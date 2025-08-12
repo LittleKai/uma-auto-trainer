@@ -5,7 +5,7 @@ import pygetwindow as gw
 
 pyautogui.useImageNotFoundException(False)
 
-from core.state import check_support_card, check_failure, check_turn, check_mood, check_current_year, check_criteria, get_current_date_info
+from core.state import check_support_card, check_failure, check_turn, check_mood, check_current_year, check_criteria, get_current_date_info, check_energy_percentage
 from core.logic import do_something
 from utils.constants import MOOD_LIST
 from core.recognizer import is_infirmary_active, match_template
@@ -50,6 +50,8 @@ with open("config.json", "r", encoding="utf-8") as file:
 
 MINIMUM_MOOD = config["minimum_mood"]
 PRIORITIZE_G1_RACE = config["prioritize_g1_race"]
+MINIMUM_ENERGY_PERCENTAGE = config["minimum_energy_percentage"]
+CRITICAL_ENERGY_PERCENTAGE = config["critical_energy_percentage"]
 
 def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
   if not is_game_window_active():
@@ -68,17 +70,36 @@ def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
 def go_to_training():
   return click("assets/buttons/training_btn.png")
 
-def check_training():
+def check_training(energy_percentage=100):
   if not is_game_window_active():
     return {}
 
-  training_types = {
-    "spd": "assets/icons/train_spd.png",
-    "sta": "assets/icons/train_sta.png",
-    "pwr": "assets/icons/train_pwr.png",
-    "guts": "assets/icons/train_guts.png",
-    "wit": "assets/icons/train_wit.png"
-  }
+  # Check if we're in Pre-Debut period
+  from core.state import get_current_date_info
+  current_date = get_current_date_info()
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+  # Define which training types to check based on energy level
+  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    # Critical energy: no training check at all
+    log_message(f"Critical energy ({energy_percentage}%), skipping all training checks")
+    return {}
+  elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+    # Low energy: only check WIT
+    training_types = {
+      "wit": "assets/icons/train_wit.png"
+    }
+    log_message(f"Low energy ({energy_percentage}%), only checking WIT training")
+  else:
+    # Normal energy: check all training types
+    training_types = {
+      "spd": "assets/icons/train_spd.png",
+      "sta": "assets/icons/train_sta.png",
+      "pwr": "assets/icons/train_pwr.png",
+      "guts": "assets/icons/train_guts.png",
+      "wit": "assets/icons/train_wit.png"
+    }
+
   results = {}
 
   for key, icon_path in training_types.items():
@@ -86,15 +107,18 @@ def check_training():
     if pos:
       pyautogui.moveTo(pos, duration=0.1)
       pyautogui.mouseDown()
-      support_counts = check_support_card()
+      support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=key)
       total_support = sum(support_counts.values())
-      failure_chance = check_failure()
+
       results[key] = {
         "support": support_counts,
-        "total_support": total_support,
-        "failure": failure_chance
+        "total_support": total_support
       }
-      log_message(f"[{key.upper()}] → {support_counts}, Fail: {failure_chance}%")
+
+      if is_pre_debut:
+        log_message(f"[{key.upper()}] → {support_counts} (Pre-Debut)")
+      else:
+        log_message(f"[{key.upper()}] → {support_counts}")
       time.sleep(0.1)
 
   pyautogui.mouseUp()
@@ -315,6 +339,7 @@ def career_lobby_iteration(race_manager, gui=None):
 
     if tazuna_hint is None:
       log_message("Should be in career lobby.")
+      time.sleep(1)  # Increased delay from 0.5s to 1s
       return True
 
     time.sleep(0.5)
@@ -333,18 +358,22 @@ def career_lobby_iteration(race_manager, gui=None):
     turn = check_turn()
     year = check_current_year()
     criteria = check_criteria()
+    energy_percentage = check_energy_percentage()
 
     # Get current date info
     current_date = get_current_date_info()
 
-    # Update GUI with current date if available
+    # Update GUI with current date and energy if available
     if gui and current_date:
       gui.update_current_date(current_date)
+    if gui:
+      gui.update_energy_display(energy_percentage)
 
     log_message("=" * 50)
     log_message(f"Year: {year}")
     log_message(f"Mood: {mood}")
     log_message(f"Turn: {turn}")
+    log_message(f"Energy: {energy_percentage}%")
 
     if current_date:
       if current_date.get('is_pre_debut', False):
@@ -377,8 +406,47 @@ def career_lobby_iteration(race_manager, gui=None):
       do_recreation()
       return True
 
-    # Enhanced race logic with filters
+    # Enhanced race logic with filters - check energy levels first
     if current_date:
+      if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+        # Critical energy: prioritize race if available, otherwise rest
+        should_race, available_races = race_manager.should_race_today(current_date)
+
+        if should_race:
+          log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
+          race_found = do_race()
+          if race_found:
+            return True
+          else:
+            click(img="assets/buttons/back_btn.png", text="Race not found. Critical energy - will rest.")
+            time.sleep(0.5)
+            do_rest()
+            log_message("Critical energy - Resting")
+            return True
+        else:
+          log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
+          do_rest()
+          log_message("Critical energy - Resting")
+          return True
+
+      elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+        # Low energy: check if we should race based on filters
+        should_race, available_races = race_manager.should_race_today(current_date)
+
+        if should_race:
+          log_message(f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Attempting race.")
+          race_found = do_race()
+          if race_found:
+            return True
+          else:
+            # If there is no race matching to aptitude, go back and check WIT training
+            click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Low energy - will check WIT training.")
+            time.sleep(0.5)
+        else:
+          log_message(f"Low energy ({energy_percentage}%) and no matching races today. Will check WIT training or rest.")
+
+    # Normal energy race logic
+    elif current_date and energy_percentage >= MINIMUM_ENERGY_PERCENTAGE:
       # Check if we should race based on filters and date
       should_race, available_races = race_manager.should_race_today(current_date)
 
@@ -410,7 +478,8 @@ def career_lobby_iteration(race_manager, gui=None):
             criteria.split(" ")[0] != "criteria" and
             year != "Junior Year Pre-Debut" and
             turn < 10 and
-            criteria != "Goal Achievedl"):
+            criteria != "Goal Achievedl" and
+            energy_percentage >= MINIMUM_ENERGY_PERCENTAGE):  # Only if energy is sufficient
       race_found = do_race()
       if race_found:
         return True
@@ -420,13 +489,14 @@ def career_lobby_iteration(race_manager, gui=None):
         time.sleep(0.5)
 
     year_parts = year.split(" ")
-    # If Prioritize G1 Race is true, check G1 race every turn - but not in restricted periods
+    # If Prioritize G1 Race is true, check G1 race every turn - but not in restricted periods and only if energy is sufficient
     if (PRIORITIZE_G1_RACE and
             current_date and not current_date.get('is_pre_debut', False) and
             not DateManager.is_restricted_period(current_date) and
             year_parts[0] != "Junior" and
             len(year_parts) > 3 and
-            year_parts[3] not in ["Jul", "Aug"]):
+            year_parts[3] not in ["Jul", "Aug"] and
+            energy_percentage >= MINIMUM_ENERGY_PERCENTAGE):  # Only if energy is sufficient
       g1_race_found = do_race(PRIORITIZE_G1_RACE)
       if g1_race_found:
         return True
@@ -435,24 +505,36 @@ def career_lobby_iteration(race_manager, gui=None):
         click(img="assets/buttons/back_btn.png", text="G1 race not found. Proceeding to training.")
         time.sleep(0.5)
 
-    # Check training button
+    # Skip training check if energy is critical
+    if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+      log_message(f"Critical energy ({energy_percentage}%) - skipping training, resting instead")
+      do_rest()
+      return True
+
+    # Check training button (only if energy allows training)
     if not go_to_training():
       log_message("Training button is not found.")
       return True
 
-    # Last, do training
+    # Last, do training (with energy consideration)
     time.sleep(0.5)
-    results_training = check_training()
+    results_training = check_training(energy_percentage)
 
-    best_training = do_something(results_training)
+    best_training = do_something(results_training, energy_percentage)
     if best_training:
       go_to_training()
       time.sleep(0.5)
       do_train(best_training)
       log_message(f"Training: {best_training.upper()}")
     else:
+      # If no training is suitable, rest
       do_rest()
-      log_message("Resting")
+      if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+        log_message(f"Critical energy ({energy_percentage}%) - Resting")
+      elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+        log_message(f"Low energy ({energy_percentage}%) - WIT training not suitable, Resting")
+      else:
+        log_message("No suitable training found, Resting")
     time.sleep(1)
     return True
 

@@ -1,11 +1,12 @@
 import re
+from PIL import Image
 
 from utils.screenshot import capture_region, enhanced_screenshot
 from core.ocr import extract_text, extract_number
 from core.recognizer import match_template
 from core.race_manager import DateManager
 
-from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION
+from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION, ENERGY_BAR
 
 # Global variable to store current date info
 current_date_info = None
@@ -28,8 +29,56 @@ def stat_state():
     result[stat] = int(digits) if digits.isdigit() else 0
   return result
 
+# Check energy percentage by counting gray pixels in energy bar
+def check_energy_percentage():
+  """
+  Check energy percentage by counting pixels with color 767576 in energy bar
+  Returns energy percentage (0-100)
+  """
+  try:
+    # Capture the energy bar region - create a region with height of 1 pixel
+    x1, y1, x2, y2 = ENERGY_BAR
+    # Create region (left, top, width, height)
+    region = (x1, y1, x2 - x1, 1)
+
+    screenshot = capture_region(region)
+
+    # Convert to RGB if needed
+    if screenshot.mode != 'RGB':
+      screenshot = screenshot.convert('RGB')
+
+    # Count pixels with gray color (RGB: 118, 117, 118 which is hex 767576)
+    target_color = (118, 117, 118)
+    gray_pixel_count = 0
+    total_width = x2 - x1
+
+    # Check each pixel in the horizontal line
+    for x in range(total_width):
+      try:
+        pixel_color = screenshot.getpixel((x, 0))
+        # Allow some tolerance for color matching (±2 for each RGB component)
+        if (abs(pixel_color[0] - target_color[0]) <= 2 and
+                abs(pixel_color[1] - target_color[1]) <= 2 and
+                abs(pixel_color[2] - target_color[2]) <= 2):
+          gray_pixel_count += 1
+      except:
+        continue
+
+    # Calculate energy percentage
+    # Formula: 100 - (gray_pixels * 100 / total_width)
+    energy_percentage = 100 - (gray_pixel_count * 100 / total_width)
+
+    # Clamp between 0 and 100
+    energy_percentage = max(0, min(100, energy_percentage))
+
+    return round(energy_percentage, 1)
+
+  except Exception as e:
+    print(f"[WARNING] Energy detection failed: {e}")
+    return 100  # Return 100% if detection fails (safe default)
+
 # Check support card in each training
-def check_support_card(threshold=0.8):
+def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None):
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
@@ -45,9 +94,16 @@ def check_support_card(threshold=0.8):
     matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
     count_result[key] = len(matches)
 
+  # In Pre-Debut period (day < 24), friend cards count as the current training type
+  if is_pre_debut and count_result["friend"] > 0 and training_type:
+    friend_count = count_result["friend"]
+    # Add friend cards to the current training type count
+    count_result[training_type] = count_result.get(training_type, 0) + friend_count
+    print(f"[INFO] Pre-Debut: {friend_count} friend cards added to {training_type.upper()} training")
+
   return count_result
 
-# Get failure chance (idk how to get energy value)
+# Get failure chance (kept for compatibility but not used in low energy logic)
 def check_failure():
   failure = enhanced_screenshot(FAILURE_REGION)
   failure_text = extract_text(failure).lower()
@@ -90,8 +146,10 @@ def check_mood():
 def check_turn():
   turn = enhanced_screenshot(TURN_REGION)
   turn_text = extract_text(turn)
+  print(f"Turn detected: {turn_text}")
 
-  if "Race Day" in turn_text:
+  if "Race" in turn_text:
+  # if "Race Day" in turn_text:
     return "Race Day"
 
   # sometimes easyocr misreads characters instead of numbers

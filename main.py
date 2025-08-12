@@ -21,7 +21,7 @@ class UmaAutoGUI:
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
     window_width = 600
-    window_height = 700
+    window_height = 750  # Increased height for energy display
     x = screen_width // 2
     y = (screen_height - window_height) // 2
 
@@ -116,6 +116,11 @@ class UmaAutoGUI:
     ttk.Label(status_frame, text="Current Date:").grid(row=2, column=0, sticky=tk.W)
     self.date_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
     self.date_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
+
+    # Energy status
+    ttk.Label(status_frame, text="Energy:").grid(row=3, column=0, sticky=tk.W)
+    self.energy_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
+    self.energy_label.grid(row=3, column=1, sticky=tk.W, padx=(5, 0))
 
     # Race Filter Frame
     filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
@@ -284,6 +289,28 @@ class UmaAutoGUI:
       self.root.after(0, lambda: self.date_label.config(text=date_str, foreground="blue"))
     else:
       self.root.after(0, lambda: self.date_label.config(text="Unknown", foreground="red"))
+
+  def update_energy_display(self, energy_percentage):
+    """Update energy display"""
+    try:
+      # Load energy thresholds from config
+      with open('config.json', 'r') as f:
+        config = json.load(f)
+      minimum_energy = config.get('minimum_energy_percentage', 40)
+      critical_energy = config.get('critical_energy_percentage', 15)
+
+      # Determine color based on energy level
+      if energy_percentage >= minimum_energy:
+        color = "green"
+      elif energy_percentage >= critical_energy:
+        color = "orange"  # Low energy (15-40%)
+      else:
+        color = "red"     # Critical energy (<15%)
+
+      energy_str = f"{energy_percentage}%"
+      self.root.after(0, lambda: self.energy_label.config(text=energy_str, foreground=color))
+    except Exception as e:
+      self.root.after(0, lambda: self.energy_label.config(text="Error", foreground="red"))
 
   def check_game_window(self):
     """Check if Umamusume window is active"""

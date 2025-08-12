@@ -1,8 +1,10 @@
 {
-  "priority_stat": ["spd", "sta", "pwr", "wit", "guts"],
-  "minimum_mood": "GREAT",
+  "priority_stat": ["spd", "pwr", "sta",  "wit", "guts"],
+  "minimum_mood": "NORMAL",
   "maximum_failure": 15,
-  "prioritize_g1_race": false,
+  "prioritize_g1_race": true,
+  "minimum_energy_percentage": 40,
+  "critical_energy_percentage": 15,
   "stat_caps": {
     "spd": 1130,
     "sta": 1130,

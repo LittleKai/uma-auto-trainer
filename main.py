@@ -20,8 +20,8 @@ class UmaAutoGUI:
     # Position window on the right half of screen
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
-    window_width = 600
-    window_height = 750  # Increased height for energy display
+    window_width = 650
+    window_height = 850  # Increased height for new controls
     x = screen_width // 2
     y = (screen_height - window_height) // 2
 
@@ -59,6 +59,10 @@ class UmaAutoGUI:
       'unknown': tk.BooleanVar(value=False)
     }
 
+    # New dropdown variables
+    self.minimum_mood = tk.StringVar(value="NORMAL")
+    self.priority_strategy = tk.StringVar(value="G1")
+
     # Setup GUI
     self.setup_gui()
 
@@ -71,8 +75,8 @@ class UmaAutoGUI:
     # Bind window close event
     self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # Load race filters from memory if exists
-    self.load_race_filters()
+    # Load settings from memory if exists
+    self.load_settings()
 
   def setup_gui(self):
     # Main frame with scrollbar
@@ -122,50 +126,71 @@ class UmaAutoGUI:
     self.energy_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
     self.energy_label.grid(row=3, column=1, sticky=tk.W, padx=(5, 0))
 
+    # NEW: Strategy Settings Frame
+    strategy_frame = ttk.LabelFrame(main_frame, text="Strategy Settings", padding="5")
+    strategy_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    strategy_frame.columnconfigure(1, weight=1)
+
+    # Minimum Mood dropdown
+    ttk.Label(strategy_frame, text="Minimum Mood:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+    mood_dropdown = ttk.Combobox(strategy_frame, textvariable=self.minimum_mood,
+                                 values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
+                                 state="readonly", width=15)
+    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 10))
+    mood_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
+
+    # Priority Strategy dropdown
+    ttk.Label(strategy_frame, text="Priority Strategy:").grid(row=1, column=0, sticky=tk.W, padx=(0, 5))
+    priority_dropdown = ttk.Combobox(strategy_frame, textvariable=self.priority_strategy,
+                                     values=["G1", "G2", "Train 1+ Rainbow", "Train 2+ Rainbow", "Train 3+ Rainbow"],
+                                     state="readonly", width=20)
+    priority_dropdown.grid(row=1, column=1, sticky=tk.W, padx=(0, 10))
+    priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
+
     # Race Filter Frame
     filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
-    filter_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    filter_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
 
     # Track filters
     track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding="5")
     track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), padx=(0, 5))
 
     ttk.Checkbutton(track_frame, text="Turf", variable=self.track_filters['turf'],
-                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
     ttk.Checkbutton(track_frame, text="Dirt", variable=self.track_filters['dirt'],
-                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
 
     # Distance filters
     distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding="5")
     distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5)
 
     ttk.Checkbutton(distance_frame, text="Sprint", variable=self.distance_filters['sprint'],
-                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
     ttk.Checkbutton(distance_frame, text="Mile", variable=self.distance_filters['mile'],
-                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
     ttk.Checkbutton(distance_frame, text="Medium", variable=self.distance_filters['medium'],
-                    command=self.save_race_filters).grid(row=0, column=1, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
     ttk.Checkbutton(distance_frame, text="Long", variable=self.distance_filters['long'],
-                    command=self.save_race_filters).grid(row=1, column=1, sticky=tk.W)
+                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W)
 
     # Grade filters
     grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding="5")
     grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E), padx=(5, 0))
 
     ttk.Checkbutton(grade_frame, text="G1", variable=self.grade_filters['g1'],
-                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
     ttk.Checkbutton(grade_frame, text="G2", variable=self.grade_filters['g2'],
-                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
     ttk.Checkbutton(grade_frame, text="G3", variable=self.grade_filters['g3'],
-                    command=self.save_race_filters).grid(row=0, column=1, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
     ttk.Checkbutton(grade_frame, text="OP", variable=self.grade_filters['op'],
-                    command=self.save_race_filters).grid(row=1, column=1, sticky=tk.W)
+                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W)
     ttk.Checkbutton(grade_frame, text="Unknown", variable=self.grade_filters['unknown'],
-                    command=self.save_race_filters).grid(row=0, column=2, sticky=tk.W)
+                    command=self.save_settings).grid(row=0, column=2, sticky=tk.W)
 
     # Control buttons frame
     button_frame = ttk.Frame(main_frame)
-    button_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    button_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
     button_frame.columnconfigure(2, weight=1)
@@ -185,7 +210,7 @@ class UmaAutoGUI:
 
     # Log frame
     log_frame = ttk.LabelFrame(main_frame, text="Activity Log", padding="5")
-    log_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+    log_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
     log_frame.columnconfigure(0, weight=1)
     log_frame.rowconfigure(0, weight=1)
 
@@ -199,7 +224,7 @@ class UmaAutoGUI:
 
     # Keyboard shortcuts info
     shortcuts_frame = ttk.LabelFrame(main_frame, text="Keyboard Shortcuts", padding="5")
-    shortcuts_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
+    shortcuts_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
 
     shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Emergency Stop")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
@@ -218,49 +243,75 @@ class UmaAutoGUI:
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
 
-  def save_race_filters(self):
-    """Save race filter settings to memory"""
-    filters = {
+  def save_settings(self):
+    """Save all settings to memory"""
+    settings = {
       'track': {k: v.get() for k, v in self.track_filters.items()},
       'distance': {k: v.get() for k, v in self.distance_filters.items()},
-      'grade': {k: v.get() for k, v in self.grade_filters.items()}
+      'grade': {k: v.get() for k, v in self.grade_filters.items()},
+      'minimum_mood': self.minimum_mood.get(),
+      'priority_strategy': self.priority_strategy.get()
     }
 
     try:
-      with open('race_filters.json', 'w') as f:
-        json.dump(filters, f)
+      with open('bot_settings.json', 'w') as f:
+        json.dump(settings, f)
 
       # Update race manager with new filters
-      self.race_manager.update_filters(filters)
+      race_filters = {
+        'track': settings['track'],
+        'distance': settings['distance'],
+        'grade': settings['grade']
+      }
+      self.race_manager.update_filters(race_filters)
 
     except Exception as e:
-      self.log_message(f"Warning: Could not save race filters: {e}")
+      self.log_message(f"Warning: Could not save settings: {e}")
 
-  def load_race_filters(self):
-    """Load race filter settings from memory"""
+  def load_settings(self):
+    """Load settings from memory"""
     try:
-      if os.path.exists('race_filters.json'):
-        with open('race_filters.json', 'r') as f:
-          filters = json.load(f)
+      if os.path.exists('bot_settings.json'):
+        with open('bot_settings.json', 'r') as f:
+          settings = json.load(f)
 
         # Apply loaded filters
-        for k, v in filters.get('track', {}).items():
+        for k, v in settings.get('track', {}).items():
           if k in self.track_filters:
             self.track_filters[k].set(v)
 
-        for k, v in filters.get('distance', {}).items():
+        for k, v in settings.get('distance', {}).items():
           if k in self.distance_filters:
             self.distance_filters[k].set(v)
 
-        for k, v in filters.get('grade', {}).items():
+        for k, v in settings.get('grade', {}).items():
           if k in self.grade_filters:
             self.grade_filters[k].set(v)
 
+        # Apply strategy settings
+        if 'minimum_mood' in settings:
+          self.minimum_mood.set(settings['minimum_mood'])
+
+        if 'priority_strategy' in settings:
+          self.priority_strategy.set(settings['priority_strategy'])
+
         # Update race manager
-        self.race_manager.update_filters(filters)
+        race_filters = {
+          'track': settings.get('track', {}),
+          'distance': settings.get('distance', {}),
+          'grade': settings.get('grade', {})
+        }
+        self.race_manager.update_filters(race_filters)
 
     except Exception as e:
-      self.log_message(f"Warning: Could not load race filters: {e}")
+      self.log_message(f"Warning: Could not load settings: {e}")
+
+  def get_current_settings(self):
+    """Get current strategy settings for bot logic"""
+    return {
+      'minimum_mood': self.minimum_mood.get(),
+      'priority_strategy': self.priority_strategy.get()
+    }
 
   def log_message(self, message):
     """Add message to log with timestamp"""
@@ -443,7 +494,7 @@ class UmaAutoGUI:
   def run(self):
     """Start the GUI"""
     self.log_message("Uma Musume Auto Train started!")
-    self.log_message("Configure race filters and make sure the game window is active before starting.")
+    self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC for emergency stop.")
     self.root.mainloop()
 

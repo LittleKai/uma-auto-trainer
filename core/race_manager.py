@@ -14,21 +14,35 @@ class DateManager:
     YEARS = ['Junior', 'Classic', 'Senior']
 
     @staticmethod
+    def clean_ocr_text(text: str) -> str:
+        """
+        Clean OCR text by removing special characters and normalizing
+        """
+        # Remove common OCR artifacts and special characters
+        cleaned = re.sub(r'[\\\/\|_\-\+\=\[\]{}()<>~`!@#$%^&*]', '', text)
+        # Remove extra spaces
+        cleaned = re.sub(r'\s+', '', cleaned)
+        return cleaned
+
+    @staticmethod
     def parse_year_text(year_text: str, max_retries: int = 3) -> Optional[Dict]:
         """
-        Parse year text from OCR
+        Parse year text from OCR with improved cleaning
         Expected format: "Classic Year Late Oct" -> ClassicYearLateOct
         Special case: "Junior Year Pre-Debut" -> JuniorYearPreDebut (Day < 16)
         Returns: {'year': 'Classic', 'month': 'Oct', 'period': 'Late', 'day': 2}
         """
+        print(f"[DEBUG] Original OCR text: '{year_text}'")
+
         for attempt in range(max_retries):
             try:
-                # Remove spaces and normalize
-                normalized = re.sub(r'\s+', '', year_text)
+                # Clean the OCR text first
+                cleaned_text = DateManager.clean_ocr_text(year_text)
+                print(f"[DEBUG] Cleaned OCR text (attempt {attempt + 1}): '{cleaned_text}'")
 
                 # Special case: Check for Pre-Debut first
                 pre_debut_pattern = r'(Junior|Classic|Senior)Year(Pre|pre)Debut'
-                pre_debut_match = re.search(pre_debut_pattern, normalized, re.IGNORECASE)
+                pre_debut_match = re.search(pre_debut_pattern, cleaned_text, re.IGNORECASE)
 
                 if pre_debut_match:
                     year = pre_debut_match.group(1).title()
@@ -38,7 +52,7 @@ class DateManager:
                         year_index = DateManager.YEARS.index(year)
                         absolute_day = year_index * 24 + 1  # First day of the year
 
-                        return {
+                        result = {
                             'year': year,
                             'month': 'Pre',
                             'period': 'Debut',
@@ -48,9 +62,12 @@ class DateManager:
                             'is_pre_debut': True
                         }
 
+                        print(f"[DEBUG] Pre-Debut successfully parsed: {result}")
+                        return result
+
                 # Normal pattern: (Junior|Classic|Senior)Year(Early|Late)(Jan|Feb|...)
                 pattern = r'(Junior|Classic|Senior)Year(Early|Late)([A-Za-z]{3})'
-                match = re.search(pattern, normalized, re.IGNORECASE)
+                match = re.search(pattern, cleaned_text, re.IGNORECASE)
 
                 if match:
                     year = match.group(1).title()
@@ -66,7 +83,7 @@ class DateManager:
                         month_index = DateManager.MONTHS[month] - 1
                         absolute_day = year_index * 24 + month_index * 2 + (day - 1) + 1
 
-                        return {
+                        result = {
                             'year': year,
                             'month': month,
                             'period': period,
@@ -76,12 +93,15 @@ class DateManager:
                             'is_pre_debut': False
                         }
 
-                print(f"[WARNING] Date parse attempt {attempt + 1} failed for: {year_text}")
+                        print(f"[DEBUG] Successfully parsed: {result}")
+                        return result
+
+                print(f"[WARNING] Date parse attempt {attempt + 1} failed for: '{year_text}' -> '{cleaned_text}'")
 
             except Exception as e:
                 print(f"[ERROR] Date parsing error on attempt {attempt + 1}: {e}")
 
-        print(f"[ERROR] Failed to parse date after {max_retries} attempts: {year_text}")
+        print(f"[ERROR] Failed to parse date after {max_retries} attempts: '{year_text}'")
         return None
 
     @staticmethod
@@ -183,6 +203,11 @@ class RaceManager:
             'grade_type': grade_type
         }
 
+    def get_grade_priority(self, grade: str) -> int:
+        """Get grade priority for sorting (lower number = higher priority)"""
+        priority_map = {'g1': 1, 'g2': 2, 'g3': 3, 'op': 4, 'unknown': 5}
+        return priority_map.get(grade.lower(), 6)
+
     def is_race_allowed(self, race: Dict, current_date: Dict) -> bool:
         """Check if race matches current filters and date"""
         if not current_date:
@@ -244,6 +269,49 @@ class RaceManager:
                 available_races.append(race)
 
         return available_races
+
+    def get_highest_grade_race_for_date(self, current_date: Dict) -> Optional[Dict]:
+        """
+        Get the highest grade race available for the current date (ignoring filters)
+        Returns the race with highest grade (G1 > G2 > G3 > OP > Unknown)
+        """
+        if not current_date:
+            return None
+
+        # Pre-Debut period: no racing allowed
+        if current_date.get('is_pre_debut', False):
+            return None
+
+        # Find all races for this date regardless of filters
+        date_races = []
+        for race in self.races:
+            race_year = race.get('year', '').split()[0]
+            race_date = race.get('date', '')
+
+            if race_year.lower() != current_date['year'].lower():
+                continue
+
+            try:
+                date_parts = race_date.split()
+                if len(date_parts) >= 2:
+                    race_month = date_parts[0][:3]
+                    race_day = int(date_parts[1])
+
+                    if (race_month == current_date['month'] and
+                            race_day == current_date['day']):
+                        date_races.append(race)
+            except:
+                continue
+
+        if not date_races:
+            return None
+
+        # Sort by grade priority (G1 first, then G2, etc.)
+        date_races.sort(key=lambda x: self.get_grade_priority(
+            self.extract_race_properties(x)['grade_type']
+        ))
+
+        return date_races[0]  # Return highest grade race
 
     def should_race_today(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
         """

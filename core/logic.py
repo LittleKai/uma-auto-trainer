@@ -135,12 +135,67 @@ def low_energy_training(results, current_date=None):
   print(f"\n[INFO] Low energy - WIT has insufficient support cards ({total_support_any_type}/3), should rest or race")
   return None
 
-# Decide training
-def do_something(results, energy_percentage=100):
+# NEW: Check rainbow training based on priority strategy
+def check_rainbow_training_by_strategy(results, priority_strategy):
+  """
+  Check if rainbow training meets the priority strategy requirements
+  """
+  if "Rainbow" not in priority_strategy:
+    return False, None
+
+  # Extract required rainbow count from strategy
+  if "1+" in priority_strategy:
+    required_count = 1
+  elif "2+" in priority_strategy:
+    required_count = 2
+  elif "3+" in priority_strategy:
+    required_count = 3
+  else:
+    return False, None
+
+  # Get rainbow training candidates
+  rainbow_candidates = {
+    stat: data for stat, data in results.items()
+    if data["support"].get(stat, 0) >= required_count
+  }
+
+  if not rainbow_candidates:
+    print(f"\n[INFO] No training with {required_count}+ rainbow supports found")
+    return False, None
+
+  # Find best rainbow training
+  best_rainbow = max(
+    rainbow_candidates.items(),
+    key=lambda x: (
+      x[1]["support"].get(x[0], 0),
+      -get_stat_priority(x[0])
+    )
+  )
+
+  best_key, best_data = best_rainbow
+  rainbow_count = best_data['support'][best_key]
+  print(f"\n[INFO] Found {best_key.upper()} training with {rainbow_count} rainbow supports (required: {required_count}+)")
+  return True, best_key
+
+# Decide training based on strategy settings
+def do_something(results, energy_percentage=100, strategy_settings=None):
+  """
+  Enhanced training decision with priority strategy
+  """
   year = check_current_year()
   current_stats = stat_state()
   print(f"Current stats: {current_stats}")
   print(f"Current energy: {energy_percentage}%")
+
+  # Default strategy settings if not provided
+  if strategy_settings is None:
+    strategy_settings = {
+      'minimum_mood': 'NORMAL',
+      'priority_strategy': 'G1'
+    }
+
+  priority_strategy = strategy_settings.get('priority_strategy', 'G1')
+  print(f"Priority Strategy: {priority_strategy}")
 
   # Get current date info to check if in Pre-Debut period
   from core.state import get_current_date_info
@@ -157,12 +212,36 @@ def do_something(results, energy_percentage=100):
     print(f"[INFO] Energy is low ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using low energy training logic.")
     return low_energy_training(filtered, current_date)
 
-  # Normal energy logic (existing logic)
+  # Normal energy logic with priority strategy
+
+  # For Junior Year, always use most support card logic
   if "Junior Year" in year:
+    print("[INFO] Junior Year - Using most support card strategy")
     return most_support_card(filtered, current_date)
+
+  # For Classic/Senior years, check priority strategy
+  if priority_strategy in ["G1", "G2"]:
+    # Race priority strategies - return None to indicate should race instead of train
+    # But only if we're checking training specifically for strategy compliance
+    print(f"[INFO] {priority_strategy} priority strategy - checking if should prioritize race over training")
+    return None
+
+  elif "Rainbow" in priority_strategy:
+    # Rainbow training priority strategies
+    has_rainbow, training = check_rainbow_training_by_strategy(filtered, priority_strategy)
+
+    if has_rainbow:
+      print(f"[INFO] {priority_strategy} strategy satisfied - doing rainbow training")
+      return training
+    else:
+      print(f"[INFO] {priority_strategy} strategy not satisfied - should try race or fallback training")
+      return None
+
   else:
+    # Fallback to rainbow training if strategy not recognized
+    print("[INFO] Unknown strategy, falling back to rainbow training")
     result = rainbow_training(filtered)
     if result is None:
       print("[INFO] Falling back to most_support_card because rainbow not available.")
       return most_support_card(filtered, current_date)
-  return result
+    return result

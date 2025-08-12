@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, messagebox
 import threading
 import time
 import pygetwindow as gw
@@ -7,14 +7,25 @@ from datetime import datetime
 import keyboard
 import sys
 import os
+import json
 
 from core.execute import set_log_callback, career_lobby
+from core.race_manager import RaceManager, DateManager
 
 class UmaAutoGUI:
   def __init__(self):
     self.root = tk.Tk()
     self.root.title("Uma Musume Auto Train")
-    self.root.geometry("600x500")
+
+    # Position window on the right half of screen
+    screen_width = self.root.winfo_screenwidth()
+    screen_height = self.root.winfo_screenheight()
+    window_width = 600
+    window_height = 700
+    x = screen_width // 2
+    y = (screen_height - window_height) // 2
+
+    self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     # Keep window always on top
     self.root.attributes('-topmost', True)
@@ -23,6 +34,30 @@ class UmaAutoGUI:
     self.is_running = False
     self.is_paused = False
     self.bot_thread = None
+
+    # Race manager
+    self.race_manager = RaceManager()
+
+    # Race filter variables
+    self.track_filters = {
+      'turf': tk.BooleanVar(value=True),
+      'dirt': tk.BooleanVar(value=True)
+    }
+
+    self.distance_filters = {
+      'sprint': tk.BooleanVar(value=True),
+      'mile': tk.BooleanVar(value=True),
+      'medium': tk.BooleanVar(value=True),
+      'long': tk.BooleanVar(value=True)
+    }
+
+    self.grade_filters = {
+      'g1': tk.BooleanVar(value=True),
+      'g2': tk.BooleanVar(value=True),
+      'g3': tk.BooleanVar(value=True),
+      'op': tk.BooleanVar(value=False),
+      'unknown': tk.BooleanVar(value=False)
+    }
 
     # Setup GUI
     self.setup_gui()
@@ -36,16 +71,28 @@ class UmaAutoGUI:
     # Bind window close event
     self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    # Load race filters from memory if exists
+    self.load_race_filters()
+
   def setup_gui(self):
-    # Main frame
-    main_frame = ttk.Frame(self.root, padding="10")
+    # Main frame with scrollbar
+    canvas = tk.Canvas(self.root)
+    scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
+
+    scrollable_frame.bind(
+      "<Configure>",
+      lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    main_frame = ttk.Frame(scrollable_frame, padding="10")
     main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
     # Configure grid weights
-    self.root.columnconfigure(0, weight=1)
-    self.root.rowconfigure(0, weight=1)
     main_frame.columnconfigure(1, weight=1)
-    main_frame.rowconfigure(2, weight=1)
 
     # Title
     title_label = ttk.Label(main_frame, text="Uma Musume Auto Train",
@@ -66,9 +113,54 @@ class UmaAutoGUI:
     self.game_status_label = ttk.Label(status_frame, text="Not Found", foreground="red")
     self.game_status_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
 
+    ttk.Label(status_frame, text="Current Date:").grid(row=2, column=0, sticky=tk.W)
+    self.date_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
+    self.date_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
+
+    # Race Filter Frame
+    filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
+    filter_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+
+    # Track filters
+    track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding="5")
+    track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), padx=(0, 5))
+
+    ttk.Checkbutton(track_frame, text="Turf", variable=self.track_filters['turf'],
+                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+    ttk.Checkbutton(track_frame, text="Dirt", variable=self.track_filters['dirt'],
+                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+
+    # Distance filters
+    distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding="5")
+    distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5)
+
+    ttk.Checkbutton(distance_frame, text="Sprint", variable=self.distance_filters['sprint'],
+                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+    ttk.Checkbutton(distance_frame, text="Mile", variable=self.distance_filters['mile'],
+                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+    ttk.Checkbutton(distance_frame, text="Medium", variable=self.distance_filters['medium'],
+                    command=self.save_race_filters).grid(row=0, column=1, sticky=tk.W)
+    ttk.Checkbutton(distance_frame, text="Long", variable=self.distance_filters['long'],
+                    command=self.save_race_filters).grid(row=1, column=1, sticky=tk.W)
+
+    # Grade filters
+    grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding="5")
+    grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E), padx=(5, 0))
+
+    ttk.Checkbutton(grade_frame, text="G1", variable=self.grade_filters['g1'],
+                    command=self.save_race_filters).grid(row=0, column=0, sticky=tk.W)
+    ttk.Checkbutton(grade_frame, text="G2", variable=self.grade_filters['g2'],
+                    command=self.save_race_filters).grid(row=1, column=0, sticky=tk.W)
+    ttk.Checkbutton(grade_frame, text="G3", variable=self.grade_filters['g3'],
+                    command=self.save_race_filters).grid(row=0, column=1, sticky=tk.W)
+    ttk.Checkbutton(grade_frame, text="OP", variable=self.grade_filters['op'],
+                    command=self.save_race_filters).grid(row=1, column=1, sticky=tk.W)
+    ttk.Checkbutton(grade_frame, text="Unknown", variable=self.grade_filters['unknown'],
+                    command=self.save_race_filters).grid(row=0, column=2, sticky=tk.W)
+
     # Control buttons frame
     button_frame = ttk.Frame(main_frame)
-    button_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    button_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
     button_frame.columnconfigure(2, weight=1)
@@ -88,12 +180,12 @@ class UmaAutoGUI:
 
     # Log frame
     log_frame = ttk.LabelFrame(main_frame, text="Activity Log", padding="5")
-    log_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+    log_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
     log_frame.columnconfigure(0, weight=1)
     log_frame.rowconfigure(0, weight=1)
 
     # Log text area
-    self.log_text = scrolledtext.ScrolledText(log_frame, height=15, width=70)
+    self.log_text = scrolledtext.ScrolledText(log_frame, height=12, width=70)
     self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
     # Clear log button
@@ -102,10 +194,14 @@ class UmaAutoGUI:
 
     # Keyboard shortcuts info
     shortcuts_frame = ttk.LabelFrame(main_frame, text="Keyboard Shortcuts", padding="5")
-    shortcuts_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
+    shortcuts_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
 
     shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Emergency Stop")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
+
+    # Pack canvas and scrollbar
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
 
   def setup_keyboard_shortcuts(self):
     """Setup global keyboard shortcuts"""
@@ -116,6 +212,50 @@ class UmaAutoGUI:
       keyboard.add_hotkey('esc', self.emergency_stop)
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
+
+  def save_race_filters(self):
+    """Save race filter settings to memory"""
+    filters = {
+      'track': {k: v.get() for k, v in self.track_filters.items()},
+      'distance': {k: v.get() for k, v in self.distance_filters.items()},
+      'grade': {k: v.get() for k, v in self.grade_filters.items()}
+    }
+
+    try:
+      with open('race_filters.json', 'w') as f:
+        json.dump(filters, f)
+
+      # Update race manager with new filters
+      self.race_manager.update_filters(filters)
+
+    except Exception as e:
+      self.log_message(f"Warning: Could not save race filters: {e}")
+
+  def load_race_filters(self):
+    """Load race filter settings from memory"""
+    try:
+      if os.path.exists('race_filters.json'):
+        with open('race_filters.json', 'r') as f:
+          filters = json.load(f)
+
+        # Apply loaded filters
+        for k, v in filters.get('track', {}).items():
+          if k in self.track_filters:
+            self.track_filters[k].set(v)
+
+        for k, v in filters.get('distance', {}).items():
+          if k in self.distance_filters:
+            self.distance_filters[k].set(v)
+
+        for k, v in filters.get('grade', {}).items():
+          if k in self.grade_filters:
+            self.grade_filters[k].set(v)
+
+        # Update race manager
+        self.race_manager.update_filters(filters)
+
+    except Exception as e:
+      self.log_message(f"Warning: Could not load race filters: {e}")
 
   def log_message(self, message):
     """Add message to log with timestamp"""
@@ -133,6 +273,17 @@ class UmaAutoGUI:
   def clear_log(self):
     """Clear the log text"""
     self.log_text.delete(1.0, tk.END)
+
+  def update_current_date(self, date_info):
+    """Update current date display"""
+    if date_info:
+      if date_info.get('is_pre_debut', False):
+        date_str = f"{date_info['year']} Year Pre-Debut (Day {date_info['absolute_day']}/72)"
+      else:
+        date_str = f"{date_info['year']} {date_info['month']} {date_info['period']} (Day {date_info['absolute_day']}/72)"
+      self.root.after(0, lambda: self.date_label.config(text=date_str, foreground="blue"))
+    else:
+      self.root.after(0, lambda: self.date_label.config(text="Unknown", foreground="red"))
 
   def check_game_window(self):
     """Check if Umamusume window is active"""
@@ -265,13 +416,13 @@ class UmaAutoGUI:
   def run(self):
     """Start the GUI"""
     self.log_message("Uma Musume Auto Train started!")
-    self.log_message("Make sure the game window is active before starting the bot.")
+    self.log_message("Configure race filters and make sure the game window is active before starting.")
     self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC for emergency stop.")
     self.root.mainloop()
 
 def main():
   """Main function - create and run GUI"""
-  print("Uma Auto - GUI Version!")
+  print("Uma Auto - Enhanced GUI Version!")
   app = UmaAutoGUI()
   app.run()
 

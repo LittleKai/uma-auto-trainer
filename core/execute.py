@@ -5,11 +5,12 @@ import pygetwindow as gw
 
 pyautogui.useImageNotFoundException(False)
 
-from core.state import check_support_card, check_failure, check_turn, check_mood, check_current_year, check_criteria
+from core.state import check_support_card, check_failure, check_turn, check_mood, check_current_year, check_criteria, get_current_date_info
 from core.logic import do_something
 from utils.constants import MOOD_LIST
 from core.recognizer import is_infirmary_active, match_template
 from utils.scenario import ura
+from core.race_manager import RaceManager, DateManager
 
 # Global variables for GUI integration
 log_callback = None
@@ -261,8 +262,14 @@ def career_lobby(gui=None):
   global gui_instance
   gui_instance = gui
 
+  # Initialize race manager
+  race_manager = RaceManager()
+
   # Check if running with GUI
   if gui:
+    # Get race manager from GUI
+    race_manager = gui.race_manager
+
     while gui.is_running:
       # Check if paused
       while gui.is_paused and gui.is_running:
@@ -278,15 +285,15 @@ def career_lobby(gui=None):
         continue
 
       # Run one iteration of the main loop
-      if not career_lobby_iteration():
+      if not career_lobby_iteration(race_manager, gui):
         time.sleep(1)
   else:
     # Original standalone mode
     while True:
-      if not career_lobby_iteration():
+      if not career_lobby_iteration(race_manager):
         time.sleep(1)
 
-def career_lobby_iteration():
+def career_lobby_iteration(race_manager, gui=None):
   """Single iteration of career lobby logic"""
   try:
     # First check, event
@@ -327,10 +334,23 @@ def career_lobby_iteration():
     year = check_current_year()
     criteria = check_criteria()
 
+    # Get current date info
+    current_date = get_current_date_info()
+
+    # Update GUI with current date if available
+    if gui and current_date:
+      gui.update_current_date(current_date)
+
     log_message("=" * 50)
     log_message(f"Year: {year}")
     log_message(f"Mood: {mood}")
     log_message(f"Turn: {turn}")
+
+    if current_date:
+      if current_date.get('is_pre_debut', False):
+        log_message(f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/72)")
+      else:
+        log_message(f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
 
     # URA SCENARIO
     if year == "Finale Season" and turn == "Race Day":
@@ -357,8 +377,40 @@ def career_lobby_iteration():
       do_recreation()
       return True
 
-    # Check if goals is not met criteria AND it is not Pre-Debut AND turn is less than 10 AND Goal is already achieved
-    if criteria.split(" ")[0] != "criteria" and year != "Junior Year Pre-Debut" and turn < 10 and criteria != "Goal Achievedl":
+    # Enhanced race logic with filters
+    if current_date:
+      # Check if we should race based on filters and date
+      should_race, available_races = race_manager.should_race_today(current_date)
+
+      if should_race:
+        log_message(f"Found {len(available_races)} matching races for today:")
+        for race in available_races:
+          props = race_manager.extract_race_properties(race)
+          log_message(f"  - {race['name']} ({props['track_type']}, {props['distance_type']}, {props['grade_type']})")
+
+        race_found = do_race()
+        if race_found:
+          return True
+        else:
+          # If there is no race matching to aptitude, go back and do training instead
+          click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Proceeding to training.")
+          time.sleep(0.5)
+      else:
+        if DateManager.is_restricted_period(current_date):
+          if current_date.get('is_pre_debut', False):
+            log_message("In Pre-Debut period. No racing allowed.")
+          else:
+            log_message("In restricted racing period (Days 1-16 or Jul-Aug). No racing allowed.")
+        else:
+          log_message("No races match current filters for today.")
+
+    # Check if goals is not met criteria AND it is not Pre-Debut AND it is not in restricted period AND turn is less than 10 AND Goal is already achieved
+    if (current_date and not current_date.get('is_pre_debut', False) and
+            not DateManager.is_restricted_period(current_date) and
+            criteria.split(" ")[0] != "criteria" and
+            year != "Junior Year Pre-Debut" and
+            turn < 10 and
+            criteria != "Goal Achievedl"):
       race_found = do_race()
       if race_found:
         return True
@@ -368,8 +420,13 @@ def career_lobby_iteration():
         time.sleep(0.5)
 
     year_parts = year.split(" ")
-    # If Prioritize G1 Race is true, check G1 race every turn
-    if PRIORITIZE_G1_RACE and year_parts[0] != "Junior" and len(year_parts) > 3 and year_parts[3] not in ["Jul", "Aug"]:
+    # If Prioritize G1 Race is true, check G1 race every turn - but not in restricted periods
+    if (PRIORITIZE_G1_RACE and
+            current_date and not current_date.get('is_pre_debut', False) and
+            not DateManager.is_restricted_period(current_date) and
+            year_parts[0] != "Junior" and
+            len(year_parts) > 3 and
+            year_parts[3] not in ["Jul", "Aug"]):
       g1_race_found = do_race(PRIORITIZE_G1_RACE)
       if g1_race_found:
         return True

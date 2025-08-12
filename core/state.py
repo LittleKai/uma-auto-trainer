@@ -3,8 +3,12 @@ import re
 from utils.screenshot import capture_region, enhanced_screenshot
 from core.ocr import extract_text, extract_number
 from core.recognizer import match_template
+from core.race_manager import DateManager
 
 from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION
+
+# Global variable to store current date info
+current_date_info = None
 
 # Get Stat
 def stat_state():
@@ -84,33 +88,48 @@ def check_mood():
 
 # Check turn
 def check_turn():
-    turn = enhanced_screenshot(TURN_REGION)
-    turn_text = extract_text(turn)
+  turn = enhanced_screenshot(TURN_REGION)
+  turn_text = extract_text(turn)
 
-    if "Race Day" in turn_text:
-        return "Race Day"
+  if "Race Day" in turn_text:
+    return "Race Day"
 
-    # sometimes easyocr misreads characters instead of numbers
-    cleaned_text = (
-        turn_text
-        .replace("T", "1")
-        .replace("I", "1")
-        .replace("O", "0")
-        .replace("S", "5")
-    )
+  # sometimes easyocr misreads characters instead of numbers
+  cleaned_text = (
+    turn_text
+      .replace("T", "1")
+      .replace("I", "1")
+      .replace("O", "0")
+      .replace("S", "5")
+  )
 
-    digits_only = re.sub(r"[^\d]", "", cleaned_text)
+  digits_only = re.sub(r"[^\d]", "", cleaned_text)
 
-    if digits_only:
-      return int(digits_only)
-    
-    return -1
+  if digits_only:
+    return int(digits_only)
 
-# Check year
+  return -1
+
+# Enhanced year checking with date parsing
 def check_current_year():
+  global current_date_info
+
   year = enhanced_screenshot(YEAR_REGION)
   text = extract_text(year)
+
+  # Parse the year text to extract date information
+  current_date_info = DateManager.parse_year_text(text)
+
+  if current_date_info is None:
+    print(f"[ERROR] Failed to parse year text: {text}")
+    # Stop the program if date parsing fails after retries
+    raise Exception(f"Critical error: Cannot parse date from OCR text: {text}")
+
   return text
+
+def get_current_date_info():
+  """Get the current parsed date information"""
+  return current_date_info
 
 # Check criteria
 def check_criteria():

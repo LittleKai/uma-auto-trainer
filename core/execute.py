@@ -398,7 +398,7 @@ def career_lobby(gui=None):
                 time.sleep(1)
 
 def career_lobby_iteration(race_manager, gui=None):
-    """Single iteration of career lobby logic - FIXED VERSION"""
+    """Single iteration of career lobby logic - COMPLETE FIXED VERSION"""
     try:
         # First check, event
         if click(img="assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
@@ -446,8 +446,22 @@ def career_lobby_iteration(race_manager, gui=None):
             current_date = {
                 'year': 'Classic',  # Safe assumption
                 'absolute_day': 50,  # Mid-game assumption
-                'is_pre_debut': False
+                'is_pre_debut': False,
+                'is_finale': False
             }
+
+        # Check if career is completed (Finale Season)
+        if current_date.get('is_finale', False):
+            log_message("🎉 CAREER COMPLETED! Finale Season detected.")
+            log_message("🎊 Congratulations! Your Uma Musume has finished their career!")
+            log_message("🏆 Bot will now stop automatically.")
+
+            # Stop the bot gracefully
+            if gui:
+                gui.root.after(0, gui.stop_bot)
+                gui.root.after(0, lambda: gui.log_message("🎉 Career completed! Bot stopped automatically."))
+
+            return False  # End the iteration loop
 
         # Get strategy settings from GUI
         strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'G1', 'allow_continuous_racing': True}
@@ -473,12 +487,14 @@ def career_lobby_iteration(race_manager, gui=None):
         log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'G1')}")
 
         if current_date:
-            if current_date.get('is_pre_debut', False):
+            if current_date.get('is_finale', False):
+                log_message(f"Current Date: Finale Season (Career Completed)")
+            elif current_date.get('is_pre_debut', False):
                 log_message(f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/72)")
             else:
                 log_message(f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
 
-            # FIXED: Display only races that match current filters
+            # Display only races that match current filters
             available_races = race_manager.get_available_races(current_date)
             all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
 
@@ -639,8 +655,6 @@ def career_lobby_iteration(race_manager, gui=None):
                         log_message("In restricted racing period (Career days 1-16). No racing allowed.")
                     else:
                         log_message("In restricted racing period (Jul-Aug). No racing allowed.")
-                # Remove the redundant "No races match current filters for today" message
-                # as it's already covered in the race display section above
 
         # Check training button (only if energy allows training)
         if not go_to_training():
@@ -651,7 +665,8 @@ def career_lobby_iteration(race_manager, gui=None):
         time.sleep(0.5)
         results_training = check_training(energy_percentage)
 
-        best_training = do_something(results_training, energy_percentage, strategy_settings)
+        # FIXED: Use enhanced training decision with proper rainbow scoring
+        best_training = enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
 
         if best_training:
             # Training found that meets strategy requirements
@@ -685,61 +700,15 @@ def career_lobby_iteration(race_manager, gui=None):
                 # Do normal training (fallback to most support card logic)
                 log_message(f"Normal energy but no {priority_strategy} training found - doing fallback training")
 
-                # Use fallback training logic (most support card with stage-based scoring)
+                # Use fallback training logic with proper rainbow scoring
                 if results_training:
-                    # Find training using stage-based scoring system
-                    def calculate_fallback_score(training_key, training_data, current_date):
-                        """Enhanced scoring for fallback training based on game stage"""
-                        support_counts = training_data["support"]
-                        is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
-
-                        if is_rainbow_stage:
-                            # After day 24: Rainbow bonus applies
-                            rainbow_count = support_counts.get(training_key, 0)
-                            rainbow_score = rainbow_count * 2
-                            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
-                            return rainbow_score + other_support_score, rainbow_count
-                        else:
-                            # Before/at day 24: Equal scoring
-                            total_support = sum(support_counts.values())
-                            rainbow_count = support_counts.get(training_key, 0)
-                            return total_support, rainbow_count
-
-                    # Custom priority for early stage
-                    def get_fallback_priority(stat_key: str, current_date) -> int:
-                        is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
-                        if is_early_stage:
-                            early_priority = ["wit", "spd", "sta", "pwr", "guts"]
-                            return early_priority.index(stat_key) if stat_key in early_priority else 999
-                        else:
-                            return get_stat_priority(stat_key)
-
-                    fallback_training = max(
-                        results_training.items(),
-                        key=lambda x: (
-                            calculate_fallback_score(x[0], x[1], current_date)[0],  # Stage-based score
-                            -get_fallback_priority(x[0], current_date)  # Stage-based priority
-                        )
-                    )
-
-                    best_key, best_data = fallback_training
-                    best_score, rainbow_count = calculate_fallback_score(best_key, best_data, current_date)
-
-                    if best_score > 0:
+                    fallback_training = enhanced_fallback_training(results_training, current_date)
+                    if fallback_training:
+                        best_key, score_info = fallback_training
                         go_to_training()
                         time.sleep(0.5)
                         do_train(best_key)
-
-                        # Display info based on stage
-                        is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
-                        is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
-
-                        if is_rainbow_stage:
-                            log_message(f"Fallback Training: {best_key.upper()} (score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)")
-                        elif is_early_stage:
-                            log_message(f"Fallback Training: {best_key.upper()} ({best_data['total_support']} support cards - Early stage WIT priority)")
-                        else:
-                            log_message(f"Fallback Training: {best_key.upper()} ({best_data['total_support']} support cards)")
+                        log_message(f"Fallback Training: {best_key.upper()} {score_info}")
                     else:
                         do_rest()
                         log_message("No support cards found in any training - Resting")
@@ -753,6 +722,237 @@ def career_lobby_iteration(race_manager, gui=None):
     except Exception as e:
         log_message(f"Error in career lobby iteration: {e}")
         return False
+
+def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
+    """
+    Enhanced training decision with proper rainbow scoring
+    """
+    if not results_training:
+        return None
+
+    # Get current stats for caps filtering
+    from core.state import stat_state
+    current_stats = stat_state()
+
+    # Filter by stat caps
+    def filter_by_stat_caps(results, current_stats):
+        STAT_CAPS = {
+            "spd": 1120,
+            "sta": 1120,
+            "pwr": 1120,
+            "guts": 300,
+            "wit": 500
+        }
+        return {
+            stat: data for stat, data in results.items()
+            if current_stats.get(stat, 0) < STAT_CAPS.get(stat, 1200)
+        }
+
+    filtered_results = filter_by_stat_caps(results_training, current_stats)
+    if not filtered_results:
+        log_message("[INFO] All stats capped.")
+        return None
+
+    # Check energy level for low energy logic
+    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+        return low_energy_training_logic(filtered_results, current_date)
+
+    # Get strategy and date info
+    priority_strategy = strategy_settings.get('priority_strategy', 'G1')
+    is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+    # For Pre-Debut or Junior Year, use most support card logic
+    year = check_current_year()
+    if is_pre_debut or "Junior Year" in year:
+        return most_support_card_logic(filtered_results, current_date)
+
+    # For Classic/Senior years with Rainbow strategy
+    if "Rainbow" in priority_strategy:
+        return check_rainbow_strategy(filtered_results, priority_strategy, current_date)
+
+    # For G1/G2 strategies, return None to prioritize racing
+    return None
+
+def low_energy_training_logic(results, current_date):
+    """Low energy training - only WIT with 3+ support cards"""
+    wit_data = results.get("wit")
+    if not wit_data:
+        return None
+
+    if wit_data["total_support"] >= 3:
+        log_message(f"Low energy - WIT training selected with {wit_data['total_support']} support cards")
+        return "wit"
+
+    log_message(f"Low energy - WIT has insufficient support cards ({wit_data['total_support']}/3)")
+    return None
+
+def most_support_card_logic(results, current_date):
+    """Most support card logic with stage-based scoring"""
+    is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+
+    def calculate_score(training_key, training_data):
+        support_counts = training_data["support"]
+
+        if is_rainbow_stage:
+            # After day 24: Rainbow support cards get 2 points
+            rainbow_count = support_counts.get(training_key, 0)
+            rainbow_score = rainbow_count * 2
+            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
+            return rainbow_score + other_support_score, rainbow_count
+        else:
+            # Before/at day 24: All support cards count equally
+            total_support = sum(support_counts.values())
+            rainbow_count = support_counts.get(training_key, 0)
+            return total_support, rainbow_count
+
+    def get_priority(stat_key):
+        if is_early_stage:
+            # Day < 16: WIT > SPD > STA > PWR > GUTS
+            early_priority = ["wit", "spd", "sta", "pwr", "guts"]
+            return early_priority.index(stat_key) if stat_key in early_priority else 999
+        else:
+            # Normal priority from config
+            return get_stat_priority(stat_key)
+
+    # Find best training
+    best_training = max(
+        results.items(),
+        key=lambda x: (
+            calculate_score(x[0], x[1])[0],  # Score
+            -get_priority(x[0])  # Priority (negative for max)
+        )
+    )
+
+    best_key, best_data = best_training
+    best_score, rainbow_count = calculate_score(best_key, best_data)
+
+    if best_score <= 1:
+        if best_key == "wit":
+            log_message("Only 1 support and it's WIT. Skipping.")
+            return None
+        log_message(f"Only 1 support. Selected: {best_key.upper()}")
+        return best_key
+
+    # Display info based on stage
+    if is_rainbow_stage:
+        score_info = f"(score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)"
+    elif is_early_stage:
+        score_info = f"({best_data['total_support']} support cards - Early stage WIT priority)"
+    else:
+        score_info = f"({best_data['total_support']} support cards)"
+
+    log_message(f"Best training: {best_key.upper()} {score_info}")
+    return best_key
+
+def check_rainbow_strategy(results, priority_strategy, current_date):
+    """Check rainbow training strategy requirements"""
+    # Extract required rainbow count
+    if "1+" in priority_strategy:
+        required_count = 1
+    elif "2+" in priority_strategy:
+        required_count = 2
+    elif "3+" in priority_strategy:
+        required_count = 3
+    else:
+        return None
+
+    # Find rainbow candidates
+    rainbow_candidates = {
+        stat: data for stat, data in results.items()
+        if data["support"].get(stat, 0) >= required_count
+    }
+
+    if not rainbow_candidates:
+        log_message(f"No training with {required_count}+ rainbow supports found")
+        return None
+
+    # Calculate scores with rainbow bonus (if day > 24)
+    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+
+    def calculate_rainbow_score(training_key, training_data):
+        support_counts = training_data["support"]
+
+        if is_rainbow_stage:
+            rainbow_count = support_counts.get(training_key, 0)
+            rainbow_score = rainbow_count * 2
+            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
+            return rainbow_score + other_support_score, rainbow_count
+        else:
+            total_support = sum(support_counts.values())
+            rainbow_count = support_counts.get(training_key, 0)
+            return total_support, rainbow_count
+
+    # Find best rainbow training
+    best_rainbow = max(
+        rainbow_candidates.items(),
+        key=lambda x: (
+            calculate_rainbow_score(x[0], x[1])[0],
+            -get_stat_priority(x[0])
+        )
+    )
+
+    best_key, best_data = best_rainbow
+    rainbow_count = best_data['support'][best_key]
+    best_score, _ = calculate_rainbow_score(best_key, best_data)
+
+    if is_rainbow_stage:
+        score_info = f"(score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)"
+    else:
+        score_info = f"({rainbow_count} rainbow supports)"
+
+    log_message(f"{priority_strategy} strategy satisfied: {best_key.upper()} {score_info}")
+    return best_key
+
+def enhanced_fallback_training(results, current_date):
+    """Enhanced fallback training with proper scoring"""
+    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+    is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+
+    def calculate_fallback_score(training_key, training_data):
+        support_counts = training_data["support"]
+
+        if is_rainbow_stage:
+            rainbow_count = support_counts.get(training_key, 0)
+            rainbow_score = rainbow_count * 2
+            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
+            return rainbow_score + other_support_score, rainbow_count
+        else:
+            total_support = sum(support_counts.values())
+            rainbow_count = support_counts.get(training_key, 0)
+            return total_support, rainbow_count
+
+    def get_fallback_priority(stat_key):
+        if is_early_stage:
+            early_priority = ["wit", "spd", "sta", "pwr", "guts"]
+            return early_priority.index(stat_key) if stat_key in early_priority else 999
+        else:
+            return get_stat_priority(stat_key)
+
+    # Find best fallback training
+    fallback_training = max(
+        results.items(),
+        key=lambda x: (
+            calculate_fallback_score(x[0], x[1])[0],
+            -get_fallback_priority(x[0])
+        )
+    )
+
+    best_key, best_data = fallback_training
+    best_score, rainbow_count = calculate_fallback_score(best_key, best_data)
+
+    if best_score <= 0:
+        return None
+
+    # Generate score info
+    if is_rainbow_stage:
+        score_info = f"(score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)"
+    elif is_early_stage:
+        score_info = f"({best_data['total_support']} support cards - Early stage WIT priority)"
+    else:
+        score_info = f"({best_data['total_support']} support cards)"
+
+    return best_key, score_info
 
 def focus_umamusume():
     """Original focus function for compatibility"""

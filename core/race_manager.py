@@ -54,9 +54,25 @@ class DateManager:
         Parse year text from OCR with improved cleaning and error handling
         Expected format: "Classic Year Late Oct" -> ClassicYearLateOct
         Special case: "Junior Year Pre-Debut" -> JuniorYearPreDebut (Day < 16)
+        Special case: "FinaleSeason" -> End of career
         Returns: {'year': 'Classic', 'month': 'Oct', 'period': 'Late', 'day': 2}
         """
         print(f"[DEBUG] Original OCR text: '{year_text}'")
+
+        # Special case: Check for Finale Season first
+        cleaned_text = DateManager.clean_ocr_text(year_text)
+        if 'finale' in cleaned_text.lower() or 'finalseason' in cleaned_text.lower():
+            print(f"[INFO] Finale Season detected! Career completed.")
+            return {
+                'year': 'Finale',
+                'month': 'Season',
+                'period': 'End',
+                'day': 1,
+                'absolute_day': 73,  # Beyond normal career
+                'month_num': 13,  # Special value
+                'is_pre_debut': False,
+                'is_finale': True
+            }
 
         for attempt in range(max_retries):
             try:
@@ -83,7 +99,8 @@ class DateManager:
                             'day': 1,
                             'absolute_day': absolute_day,
                             'month_num': 0,  # Special value for Pre-Debut
-                            'is_pre_debut': True
+                            'is_pre_debut': True,
+                            'is_finale': False
                         }
 
                         print(f"[DEBUG] Pre-Debut successfully parsed: {result}")
@@ -114,10 +131,12 @@ class DateManager:
                             'day': day,
                             'absolute_day': absolute_day,
                             'month_num': DateManager.MONTHS[month],
-                            'is_pre_debut': False
+                            'is_pre_debut': False,
+                            'is_finale': False
                         }
 
                         print(f"[DEBUG] Successfully parsed: {result}")
+                        print(f"[DEBUG] Date details: {year} {month} {period} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month]}")
                         return result
 
                 print(f"[WARNING] Date parse attempt {attempt + 1} failed for: '{year_text}' -> '{cleaned_text}'")
@@ -167,10 +186,12 @@ class DateManager:
                     'day': day,
                     'absolute_day': absolute_day,
                     'month_num': DateManager.MONTHS[month_found],
-                    'is_pre_debut': False
+                    'is_pre_debut': False,
+                    'is_finale': False
                 }
 
                 print(f"[DEBUG] Emergency fallback result: {result}")
+                print(f"[DEBUG] Fallback date details: {year_found} {month_found} {period_found} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month_found]}")
                 return result
 
         except Exception as e:
@@ -183,8 +204,7 @@ class DateManager:
     def is_restricted_period(date_info: Dict) -> bool:
         """
         Check if current date is in restricted racing period
-        Restricted: Day 1-16 of each year OR Jul 1 - Aug 2 OR Pre-Debut
-        FIXED: Corrected logic for day restriction calculation
+        Restricted: Day 1-16 of ENTIRE CAREER OR Jul 1 - Aug 2 OR Pre-Debut
         """
         if not date_info:
             return True
@@ -194,20 +214,22 @@ class DateManager:
             return True
 
         absolute_day = date_info['absolute_day']
-        year_index = DateManager.YEARS.index(date_info['year'])
 
-        # Calculate day within current year (1-24 for each year)
-        day_in_year = absolute_day - (year_index * 24)
-
-        # Days 1-16 of each year are restricted
-        if day_in_year <= 16:
+        # Days 1-16 of ENTIRE CAREER (absolute days 1-16)
+        if absolute_day <= 16:
             return True
 
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
-        month_num = date_info['month_num']
+        month_num = date_info.get('month_num', 0)
+
+        # DEBUG: Print month checking
+        print(f"[DEBUG] Checking restricted period: Month #{month_num} ({'Jul' if month_num == 7 else 'Aug' if month_num == 8 else date_info.get('month', 'Unknown')})")
+
         if month_num == 7 or (month_num == 8 and date_info['day'] <= 2):
+            print(f"[DEBUG] July-August restriction triggered: Month {month_num}, Day {date_info.get('day', 'Unknown')}")
             return True
 
+        print(f"[DEBUG] Not in restricted period")
         return False
 
 class RaceManager:

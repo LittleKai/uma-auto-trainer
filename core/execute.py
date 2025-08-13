@@ -117,6 +117,71 @@ def check_training_support_stable(training_type, max_retries=3):
     log_message(f"[{training_type.upper()}] Multiple checks completed, using median result: {result['support']} (total: {result['total_support']})")
     return result
 
+def ensure_main_menu():
+    """
+    Ensure we're at the main career lobby menu
+    Returns True if we're at main menu, False if failed
+    """
+    if not is_game_window_active():
+        return False
+
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        # Check if we're already at main menu by looking for tazuna hint
+        tazuna_hint = pyautogui.locateCenterOnScreen("assets/ui/tazuna_hint.png", confidence=0.8, minSearchTime=0.3)
+
+        if tazuna_hint:
+            log_message(f"[INFO] At main menu (attempt {attempt + 1})")
+            return True
+
+        # If not at main menu, try to go back
+        log_message(f"[DEBUG] Not at main menu, clicking back button (attempt {attempt + 1})")
+
+        # Try different back buttons
+        back_buttons = [
+            "assets/buttons/back_btn.png",
+            "assets/buttons/cancel_btn.png"
+        ]
+
+        back_clicked = False
+        for back_btn in back_buttons:
+            if click(img=back_btn, minSearch=0.3):
+                back_clicked = True
+                break
+
+        if back_clicked:
+            time.sleep(0.5)  # Wait for UI transition
+        else:
+            # If no back button found, try pressing ESC key
+            log_message(f"[DEBUG] No back button found, trying ESC key")
+            pyautogui.press('esc')
+            time.sleep(0.5)
+
+    log_message(f"[ERROR] Failed to reach main menu after {max_attempts} attempts")
+    return False
+
+def handle_critical_energy_rest():
+    """Handle resting when critical energy after failed race attempt"""
+    log_message("[INFO] Critical energy - attempting to rest after failed race")
+
+    # First ensure we're at main menu
+    if not ensure_main_menu():
+        log_message("[ERROR] Could not return to main menu")
+        return False
+
+    # Now try to rest
+    if do_rest():
+        log_message("[SUCCESS] Critical energy - Successfully rested")
+        return True
+    else:
+        log_message("[WARNING] Rest failed, trying recreation as fallback")
+        if do_recreation():
+            log_message("[SUCCESS] Critical energy - Used recreation as fallback")
+            return True
+        else:
+            log_message("[ERROR] Both rest and recreation failed")
+            return False
+
 def check_training(energy_percentage=100):
     if not is_game_window_active():
         return {}
@@ -128,9 +193,18 @@ def check_training(energy_percentage=100):
 
     # Define which training types to check based on energy level
     if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-        # Critical energy: no training check at all
-        log_message(f"Critical energy ({energy_percentage}%), skipping all training checks")
-        return {}
+        should_race, available_races = race_manager.should_race_today(current_date)
+        if should_race:
+            log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
+            race_found = do_race(allow_continuous_racing=allow_continuous_racing)
+            if race_found:
+                return True
+            else:
+                # Use improved helper function for critical energy rest
+                return handle_critical_energy_rest()
+        else:
+            log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
+            return handle_critical_energy_rest()
     elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
         # Low energy: only check WIT
         training_types = {
@@ -180,7 +254,9 @@ def do_train(train):
     return False
 
 def do_rest():
+    """Improved rest function with better error handling"""
     if not is_game_window_active():
+        log_message("[WARNING] Game window not active, cannot rest")
         return False
 
     # Get current date to check if in summer period
@@ -193,49 +269,88 @@ def do_rest():
         month_num = current_date.get('month_num', 0)
         if month_num == 7 or month_num == 8:  # July or August
             is_summer = True
+            log_message(f"[INFO] Summer period detected (Month {month_num})")
 
-    rest_btn = pyautogui.locateCenterOnScreen("assets/buttons/rest_btn.png", confidence=0.8)
-    rest_summber_btn = pyautogui.locateCenterOnScreen("assets/buttons/rest_summer_btn.png", confidence=0.8)
+    # Try to find rest buttons with more attempts
+    rest_attempts = [
+        ("assets/buttons/rest_btn.png", "Regular rest button"),
+        ("assets/buttons/rest_summer_btn.png", "Summer rest button"),
+        ("assets/buttons/recreation_btn.png", "Recreation button (fallback)")
+    ]
 
-    if rest_btn:
-        pyautogui.moveTo(rest_btn, duration=0.15)
-        pyautogui.click(rest_btn)
+    for button_path, button_name in rest_attempts:
+        log_message(f"[DEBUG] Trying to find {button_name}")
 
-        # If in summer period, need to click OK for vacation confirmation
-        if is_summer:
-            time.sleep(0.5)  # Wait for dialog
-            if click(img="assets/buttons/ok_btn.png", minSearch=1.0, text="Summer vacation - clicking OK"):
-                log_message("Summer rest - vacation dialog confirmed")
+        # Try to find the button with increased search time
+        btn = pyautogui.locateCenterOnScreen(button_path, confidence=0.8, minSearchTime=1.0)
 
-        return True
-    elif rest_summber_btn:
-        pyautogui.moveTo(rest_summber_btn, duration=0.15)
-        pyautogui.click(rest_summber_btn)
+        if btn:
+            log_message(f"[INFO] Found {button_name} at {btn}")
+            pyautogui.moveTo(btn, duration=0.15)
+            pyautogui.click(btn)
 
-        # Summer button also might need OK confirmation
-        if is_summer:
-            time.sleep(0.5)  # Wait for dialog
-            if click(img="assets/buttons/ok_btn.png", minSearch=1.0, text="Summer rest - clicking OK"):
-                log_message("Summer rest - vacation dialog confirmed")
+            # If in summer period, handle vacation dialog
+            if is_summer and "rest" in button_path:
+                log_message("[INFO] Summer period - waiting for vacation dialog")
+                time.sleep(0.8)  # Wait a bit longer for dialog to appear
 
-        return True
+                # Try to click OK button for vacation confirmation
+                ok_found = False
+                for attempt in range(3):
+                    if click(img="assets/buttons/ok_btn.png", minSearch=0.5, text="Summer vacation - clicking OK"):
+                        log_message("[INFO] Summer vacation dialog confirmed")
+                        ok_found = True
+                        break
+                    time.sleep(0.3)
+
+                if not ok_found:
+                    log_message("[WARNING] Summer vacation dialog OK button not found")
+
+            log_message(f"[SUCCESS] {button_name} clicked successfully")
+            return True
+        else:
+            log_message(f"[DEBUG] {button_name} not found")
+
+    # If all buttons failed, try a more aggressive search
+    log_message("[WARNING] All rest buttons failed, trying screenshot analysis")
+
+    # Take a screenshot and look for any button-like elements
+    try:
+        screenshot = pyautogui.screenshot()
+        screenshot.save("debug_rest_fail.png")
+        log_message("[DEBUG] Screenshot saved as debug_rest_fail.png for analysis")
+    except:
+        pass
+
+    log_message("[ERROR] All rest attempts failed")
     return False
 
 def do_recreation():
+    """Improved recreation function"""
     if not is_game_window_active():
+        log_message("[WARNING] Game window not active, cannot do recreation")
         return False
 
-    recreation_btn = pyautogui.locateCenterOnScreen("assets/buttons/recreation_btn.png", confidence=0.8)
-    recreation_summer_btn = pyautogui.locateCenterOnScreen("assets/buttons/rest_summer_btn.png", confidence=0.8)
+    recreation_attempts = [
+        ("assets/buttons/recreation_btn.png", "Recreation button"),
+        ("assets/buttons/rest_summer_btn.png", "Summer recreation button")
+    ]
 
-    if recreation_btn:
-        pyautogui.moveTo(recreation_btn, duration=0.15)
-        pyautogui.click(recreation_btn)
-        return True
-    elif recreation_summer_btn:
-        pyautogui.moveTo(recreation_summer_btn, duration=0.15)
-        pyautogui.click(recreation_summer_btn)
-        return True
+    for button_path, button_name in recreation_attempts:
+        log_message(f"[DEBUG] Trying to find {button_name}")
+
+        btn = pyautogui.locateCenterOnScreen(button_path, confidence=0.8, minSearchTime=1.0)
+
+        if btn:
+            log_message(f"[INFO] Found {button_name} at {btn}")
+            pyautogui.moveTo(btn, duration=0.15)
+            pyautogui.click(btn)
+            log_message(f"[SUCCESS] {button_name} clicked successfully")
+            return True
+        else:
+            log_message(f"[DEBUG] {button_name} not found")
+
+    log_message("[ERROR] All recreation attempts failed")
     return False
 
 def do_race(prioritize_g1=False, allow_continuous_racing=True):

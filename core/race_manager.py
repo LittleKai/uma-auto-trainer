@@ -17,17 +17,41 @@ class DateManager:
     def clean_ocr_text(text: str) -> str:
         """
         Clean OCR text by removing special characters and normalizing
+        Also fix common OCR mistakes
         """
         # Remove common OCR artifacts and special characters
         cleaned = re.sub(r'[\\\/\|_\-\+\=\[\]{}()<>~`!@#$%^&*]', '', text)
         # Remove extra spaces
         cleaned = re.sub(r'\s+', '', cleaned)
+
+        # Fix common OCR mistakes
+        ocr_fixes = {
+            'jLate': 'Late',
+            'jEarly': 'Early',
+            'Earlv': 'Early',
+            'Latv': 'Late',
+            'Eary': 'Early',
+            'Lat': 'Late',
+            'Eariy': 'Early',
+            'Lale': 'Late',
+            'Classiv': 'Classic',
+            'Clasic': 'Classic',
+            'Ciassic': 'Classic',
+            'Senlor': 'Senior',
+            'Senor': 'Senior',
+            'Junlor': 'Junior',
+            'Yunior': 'Junior'
+        }
+
+        for mistake, correction in ocr_fixes.items():
+            cleaned = cleaned.replace(mistake, correction)
+
         return cleaned
 
     @staticmethod
     def parse_year_text(year_text: str, max_retries: int = 3) -> Optional[Dict]:
         """
-        Parse year text from OCR with improved cleaning
+        Parse year text from OCR with improved cleaning and error handling
         Expected format: "Classic Year Late Oct" -> ClassicYearLateOct
         Special case: "Junior Year Pre-Debut" -> JuniorYearPreDebut (Day < 16)
         Returns: {'year': 'Classic', 'month': 'Oct', 'period': 'Late', 'day': 2}
@@ -101,7 +125,58 @@ class DateManager:
             except Exception as e:
                 print(f"[ERROR] Date parsing error on attempt {attempt + 1}: {e}")
 
+        # If all attempts fail, try to give a more helpful error message
         print(f"[ERROR] Failed to parse date after {max_retries} attempts: '{year_text}'")
+
+        # Instead of raising exception immediately, try one more fallback approach
+        try:
+            # Emergency fallback - try to extract any recognizable parts
+            cleaned_emergency = DateManager.clean_ocr_text(year_text).lower()
+
+            # Try to find year
+            year_found = None
+            for year_name in DateManager.YEARS:
+                if year_name.lower() in cleaned_emergency:
+                    year_found = year_name
+                    break
+
+            # Try to find month
+            month_found = None
+            for month_name in DateManager.MONTHS:
+                if month_name.lower() in cleaned_emergency:
+                    month_found = month_name
+                    break
+
+            # Try to find period
+            period_found = 'Early'  # Default
+            if 'late' in cleaned_emergency:
+                period_found = 'Late'
+
+            if year_found and month_found:
+                print(f"[INFO] Emergency fallback parsing successful: {year_found} {period_found} {month_found}")
+
+                day = 1 if period_found == 'Early' else 2
+                year_index = DateManager.YEARS.index(year_found)
+                month_index = DateManager.MONTHS[month_found] - 1
+                absolute_day = year_index * 24 + month_index * 2 + (day - 1) + 1
+
+                result = {
+                    'year': year_found,
+                    'month': month_found,
+                    'period': period_found,
+                    'day': day,
+                    'absolute_day': absolute_day,
+                    'month_num': DateManager.MONTHS[month_found],
+                    'is_pre_debut': False
+                }
+
+                print(f"[DEBUG] Emergency fallback result: {result}")
+                return result
+
+        except Exception as e:
+            print(f"[ERROR] Emergency fallback also failed: {e}")
+
+        print(f"[CRITICAL] All parsing methods failed for: '{year_text}'")
         return None
 
     @staticmethod
@@ -109,6 +184,7 @@ class DateManager:
         """
         Check if current date is in restricted racing period
         Restricted: Day 1-16 of each year OR Jul 1 - Aug 2 OR Pre-Debut
+        FIXED: Corrected logic for day restriction calculation
         """
         if not date_info:
             return True
@@ -118,10 +194,13 @@ class DateManager:
             return True
 
         absolute_day = date_info['absolute_day']
-        year_start = (DateManager.YEARS.index(date_info['year'])) * 24 + 1
+        year_index = DateManager.YEARS.index(date_info['year'])
 
-        # Days 1-16 of each year
-        if absolute_day <= year_start + 15:
+        # Calculate day within current year (1-24 for each year)
+        day_in_year = absolute_day - (year_index * 24)
+
+        # Days 1-16 of each year are restricted
+        if day_in_year <= 16:
             return True
 
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
@@ -268,6 +347,11 @@ class RaceManager:
             if self.is_race_allowed(race, current_date):
                 available_races.append(race)
 
+        # Sort by grade priority (G1 first, then G2, etc.)
+        available_races.sort(key=lambda x: self.get_grade_priority(
+            self.extract_race_properties(x)['grade_type']
+        ))
+
         return available_races
 
     def get_highest_grade_race_for_date(self, current_date: Dict) -> Optional[Dict]:
@@ -312,6 +396,58 @@ class RaceManager:
         ))
 
         return date_races[0]  # Return highest grade race
+
+    def get_filtered_races_for_date(self, current_date: Dict) -> List[Dict]:
+        """
+        Get races for current date that match the current filters
+        This is used for display purposes to show which races are available with current filters
+        """
+        if not current_date:
+            return []
+
+        # Don't check restricted period here - let the display show what would be available
+        filtered_races = []
+        for race in self.races:
+            race_year = race.get('year', '').split()[0]
+            race_date = race.get('date', '')
+
+            if race_year.lower() != current_date['year'].lower():
+                continue
+
+            try:
+                date_parts = race_date.split()
+                if len(date_parts) >= 2:
+                    race_month = date_parts[0][:3]
+                    race_day = int(date_parts[1])
+
+                    if (race_month == current_date['month'] and
+                            race_day == current_date['day']):
+
+                        # Check if race matches current filters
+                        props = self.extract_race_properties(race)
+
+                        # Check track filter
+                        if not self.filters['track'].get(props['track_type'], False):
+                            continue
+
+                        # Check distance filter
+                        if not self.filters['distance'].get(props['distance_type'], False):
+                            continue
+
+                        # Check grade filter
+                        if not self.filters['grade'].get(props['grade_type'], False):
+                            continue
+
+                        filtered_races.append(race)
+            except:
+                continue
+
+        # Sort by grade priority
+        filtered_races.sort(key=lambda x: self.get_grade_priority(
+            self.extract_race_properties(x)['grade_type']
+        ))
+
+        return filtered_races
 
     def should_race_today(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
         """

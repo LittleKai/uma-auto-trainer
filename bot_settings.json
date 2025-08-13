@@ -1,1 +1,1 @@
-{"track": {"turf": true, "dirt": false}, "distance": {"sprint": false, "mile": false, "medium": true, "long": true}, "grade": {"g1": true, "g2": false, "g3": false, "op": false, "unknown": false}, "minimum_mood": "GOOD", "priority_strategy": "Train 2+ Rainbow"}
+{"track": {"turf": true, "dirt": false}, "distance": {"sprint": false, "mile": true, "medium": true, "long": false}, "grade": {"g1": true, "g2": true, "g3": false, "op": false, "unknown": false}, "minimum_mood": "GOOD", "priority_strategy": "Train 2+ Rainbow", "allow_continuous_racing": false}

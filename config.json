@@ -4,10 +4,10 @@
   "minimum_energy_percentage": 40,
   "critical_energy_percentage": 25,
   "stat_caps": {
-    "spd": 1130,
-    "sta": 1130,
-    "pwr": 1130,
+    "spd": 1120,
+    "sta": 1120,
+    "pwr": 1120,
     "guts": 300,
-    "wit": 300
+    "wit": 500
   }
 }

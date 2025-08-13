@@ -21,7 +21,7 @@ class UmaAutoGUI:
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
     window_width = 650
-    window_height = 850  # Increased height for new controls
+    window_height = 900  # Increased height for new controls
     x = screen_width // 2
     y = (screen_height - window_height) // 2
 
@@ -62,6 +62,9 @@ class UmaAutoGUI:
     # New dropdown variables
     self.minimum_mood = tk.StringVar(value="NORMAL")
     self.priority_strategy = tk.StringVar(value="G1")
+
+    # NEW: Continuous racing checkbox
+    self.allow_continuous_racing = tk.BooleanVar(value=True)
 
     # Setup GUI
     self.setup_gui()
@@ -126,7 +129,7 @@ class UmaAutoGUI:
     self.energy_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
     self.energy_label.grid(row=3, column=1, sticky=tk.W, padx=(5, 0))
 
-    # NEW: Strategy Settings Frame
+    # Strategy Settings Frame
     strategy_frame = ttk.LabelFrame(main_frame, text="Strategy Settings", padding="5")
     strategy_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     strategy_frame.columnconfigure(1, weight=1)
@@ -146,6 +149,19 @@ class UmaAutoGUI:
                                      state="readonly", width=20)
     priority_dropdown.grid(row=1, column=1, sticky=tk.W, padx=(0, 10))
     priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
+
+    # NEW: Continuous Racing checkbox
+    continuous_racing_check = ttk.Checkbutton(strategy_frame,
+                                              text="Allow Continuous Racing (>3 races)",
+                                              variable=self.allow_continuous_racing,
+                                              command=self.save_settings)
+    continuous_racing_check.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(5, 0))
+
+    # Add tooltip/explanation for continuous racing
+    tooltip_label = ttk.Label(strategy_frame,
+                              text="↳ When unchecked, bot will skip racing if prompted about racing too much",
+                              font=("Arial", 8), foreground="gray")
+    tooltip_label.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=(20, 0))
 
     # Race Filter Frame
     filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
@@ -250,7 +266,8 @@ class UmaAutoGUI:
       'distance': {k: v.get() for k, v in self.distance_filters.items()},
       'grade': {k: v.get() for k, v in self.grade_filters.items()},
       'minimum_mood': self.minimum_mood.get(),
-      'priority_strategy': self.priority_strategy.get()
+      'priority_strategy': self.priority_strategy.get(),
+      'allow_continuous_racing': self.allow_continuous_racing.get()
     }
 
     try:
@@ -295,6 +312,10 @@ class UmaAutoGUI:
         if 'priority_strategy' in settings:
           self.priority_strategy.set(settings['priority_strategy'])
 
+        # Apply continuous racing setting
+        if 'allow_continuous_racing' in settings:
+          self.allow_continuous_racing.set(settings['allow_continuous_racing'])
+
         # Update race manager
         race_filters = {
           'track': settings.get('track', {}),
@@ -310,7 +331,8 @@ class UmaAutoGUI:
     """Get current strategy settings for bot logic"""
     return {
       'minimum_mood': self.minimum_mood.get(),
-      'priority_strategy': self.priority_strategy.get()
+      'priority_strategy': self.priority_strategy.get(),
+      'allow_continuous_racing': self.allow_continuous_racing.get()
     }
 
   def log_message(self, message):

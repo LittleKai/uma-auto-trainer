@@ -1,3 +1,4 @@
+# Cải tiến core/execute.py
 import pyautogui
 import time
 import json
@@ -6,7 +7,7 @@ import pygetwindow as gw
 pyautogui.useImageNotFoundException(False)
 
 from core.state import check_support_card, check_failure, check_turn, check_mood, check_current_year, check_criteria, get_current_date_info, check_energy_percentage
-from core.logic import do_something
+from core.logic import do_something, get_stat_priority
 from utils.constants import MOOD_LIST
 from core.recognizer import is_infirmary_active, match_template
 from utils.scenario import ura
@@ -69,6 +70,53 @@ def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
 def go_to_training():
     return click("assets/buttons/training_btn.png")
 
+def check_training_support_stable(training_type, max_retries=3):
+    """
+    Check training support with stability verification
+    Performs multiple checks ONLY if total support > 6 to ensure accuracy
+    """
+    # Get current date info to check if in Pre-Debut period
+    current_date = get_current_date_info()
+    is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+    # First check
+    support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type)
+    total_support = sum(support_counts.values())
+
+    first_result = {
+        'support': support_counts,
+        'total_support': total_support
+    }
+
+    # If total support <= 6, return immediately (no need for multiple checks)
+    if total_support <= 6:
+        return first_result
+
+    # If total support > 6, perform additional checks for stability
+    log_message(f"[{training_type.upper()}] High support count ({total_support}), performing additional checks for accuracy...")
+
+    support_results = [first_result]
+
+    for attempt in range(1, max_retries):
+        # Small delay between checks for stability
+        time.sleep(0.1)
+
+        support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type)
+        total_support = sum(support_counts.values())
+
+        support_results.append({
+            'support': support_counts,
+            'total_support': total_support
+        })
+
+    # Use the result with median total support count
+    support_results.sort(key=lambda x: x['total_support'])
+    median_index = len(support_results) // 2
+    result = support_results[median_index]
+
+    log_message(f"[{training_type.upper()}] Multiple checks completed, using median result: {result['support']} (total: {result['total_support']})")
+    return result
+
 def check_training(energy_percentage=100):
     if not is_game_window_active():
         return {}
@@ -106,18 +154,15 @@ def check_training(energy_percentage=100):
         if pos:
             pyautogui.moveTo(pos, duration=0.1)
             pyautogui.mouseDown()
-            support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=key)
-            total_support = sum(support_counts.values())
 
-            results[key] = {
-                "support": support_counts,
-                "total_support": total_support
-            }
+            # Use improved support checking with stability verification
+            training_result = check_training_support_stable(key)
+            results[key] = training_result
 
             if is_pre_debut:
-                log_message(f"[{key.upper()}] → {support_counts} (Pre-Debut)")
+                log_message(f"[{key.upper()}] → {training_result['support']} (Pre-Debut)")
             else:
-                log_message(f"[{key.upper()}] → {support_counts}")
+                log_message(f"[{key.upper()}] → {training_result['support']}")
             time.sleep(0.1)
 
     pyautogui.mouseUp()
@@ -138,16 +183,41 @@ def do_rest():
     if not is_game_window_active():
         return False
 
+    # Get current date to check if in summer period
+    from core.state import get_current_date_info
+    current_date = get_current_date_info()
+
+    # Check if in Jul-Aug period (summer vacation)
+    is_summer = False
+    if current_date:
+        month_num = current_date.get('month_num', 0)
+        if month_num == 7 or month_num == 8:  # July or August
+            is_summer = True
+
     rest_btn = pyautogui.locateCenterOnScreen("assets/buttons/rest_btn.png", confidence=0.8)
     rest_summber_btn = pyautogui.locateCenterOnScreen("assets/buttons/rest_summer_btn.png", confidence=0.8)
 
     if rest_btn:
         pyautogui.moveTo(rest_btn, duration=0.15)
         pyautogui.click(rest_btn)
+
+        # If in summer period, need to click OK for vacation confirmation
+        if is_summer:
+            time.sleep(0.5)  # Wait for dialog
+            if click(img="assets/buttons/ok_btn.png", minSearch=1.0, text="Summer vacation - clicking OK"):
+                log_message("Summer rest - vacation dialog confirmed")
+
         return True
     elif rest_summber_btn:
         pyautogui.moveTo(rest_summber_btn, duration=0.15)
         pyautogui.click(rest_summber_btn)
+
+        # Summer button also might need OK confirmation
+        if is_summer:
+            time.sleep(0.5)  # Wait for dialog
+            if click(img="assets/buttons/ok_btn.png", minSearch=1.0, text="Summer rest - clicking OK"):
+                log_message("Summer rest - vacation dialog confirmed")
+
         return True
     return False
 
@@ -168,12 +238,23 @@ def do_recreation():
         return True
     return False
 
-def do_race(prioritize_g1 = False):
+def do_race(prioritize_g1=False, allow_continuous_racing=True):
+    """
+    Enhanced race function with continuous racing control
+    """
     if not is_game_window_active():
         return False
 
     click(img="assets/buttons/races_btn.png", minSearch=10)
-    click(img="assets/buttons/ok_btn.png", minSearch=0.7)
+
+    # Check for OK button first (indicates more than 3 races recently)
+    ok_btn_found = click(img="assets/buttons/ok_btn.png", minSearch=0.7)
+
+    if ok_btn_found and not allow_continuous_racing:
+        # If OK button found and continuous racing not allowed, cancel instead
+        log_message("Continuous racing disabled - canceling race due to recent racing limit")
+        click(img="assets/buttons/cancel_btn.png", minSearch=0.2)
+        return False
 
     found = race_select(prioritize_g1=prioritize_g1)
     if not found:
@@ -317,7 +398,7 @@ def career_lobby(gui=None):
                 time.sleep(1)
 
 def career_lobby_iteration(race_manager, gui=None):
-    """Single iteration of career lobby logic"""
+    """Single iteration of career lobby logic - FIXED VERSION"""
     try:
         # First check, event
         if click(img="assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
@@ -357,11 +438,19 @@ def career_lobby_iteration(race_manager, gui=None):
         criteria = check_criteria()
         energy_percentage = check_energy_percentage()
 
-        # Get current date info
+        # Handle date parsing failure gracefully
         current_date = get_current_date_info()
+        if current_date is None:
+            log_message("[ERROR] Date parsing failed, using safe fallback behavior")
+            # Safe fallback - assume it's not pre-debut and continue with basic logic
+            current_date = {
+                'year': 'Classic',  # Safe assumption
+                'absolute_day': 50,  # Mid-game assumption
+                'is_pre_debut': False
+            }
 
         # Get strategy settings from GUI
-        strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'G1'}
+        strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'G1', 'allow_continuous_racing': True}
         if gui:
             strategy_settings = gui.get_current_settings()
 
@@ -389,16 +478,40 @@ def career_lobby_iteration(race_manager, gui=None):
             else:
                 log_message(f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
 
-            # Display highest grade race for current date
-            highest_race = race_manager.get_highest_grade_race_for_date(current_date)
-            if highest_race:
-                race_props = race_manager.extract_race_properties(highest_race)
-                log_message(f"📍 Today's Highest Race: {highest_race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
-            else:
-                if DateManager.is_restricted_period(current_date):
-                    log_message("📍 Today's Races: None (Restricted period)")
+            # FIXED: Display only races that match current filters
+            available_races = race_manager.get_available_races(current_date)
+            all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
+
+            if DateManager.is_restricted_period(current_date):
+                if current_date.get('is_pre_debut', False):
+                    log_message("📍 Racing Status: Disabled (Pre-Debut period)")
                 else:
-                    log_message("📍 Today's Races: None available")
+                    absolute_day = current_date['absolute_day']
+
+                    if absolute_day <= 16:
+                        log_message(f"📍 Racing Status: Disabled (Career days 1-16 restriction, current: Day {absolute_day}/72)")
+                    else:
+                        log_message("📍 Racing Status: Disabled (July-August restriction)")
+
+                # Show filtered races that would be available if not restricted
+                if all_filtered_races:
+                    log_message(f"📍 Today's Races: {len(all_filtered_races)} matching filters (restricted)")
+                    for race in all_filtered_races[:3]:  # Show max 3
+                        race_props = race_manager.extract_race_properties(race)
+                        log_message(f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                    if len(all_filtered_races) > 3:
+                        log_message(f"  ... and {len(all_filtered_races) - 3} more")
+                else:
+                    log_message("📍 Today's Races: None match current filters")
+            else:
+                # Normal racing periods - only show races that match filters
+                if available_races:
+                    log_message(f"📍 Today's Races: {len(available_races)} matching filters")
+                    for race in available_races:
+                        race_props = race_manager.extract_race_properties(race)
+                        log_message(f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                else:
+                    log_message("📍 Today's Races: None match current filters")
 
         # URA SCENARIO
         if year == "Finale Season" and turn == "Race Day":
@@ -413,27 +526,37 @@ def career_lobby_iteration(race_manager, gui=None):
             after_race()
             return True
 
-        # If calendar is race day, do race
+        # If calendar is race day, do race (always allow continuous racing for race day)
         if turn == "Race Day" and year != "Finale Season":
             log_message("Race Day.")
             race_day()
             return True
 
-        # Mood check using strategy settings
+        # Mood check using strategy settings with Pre-Debut/Junior Year restriction
         if mood_index < minimum_mood_index:
-            log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
-            do_recreation()
-            return True
+            # Check if in Pre-Debut period or Junior Year - skip recreation
+            is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+            is_junior_year = "Junior Year" in year
+
+            if is_pre_debut:
+                log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Skipping recreation (Pre-Debut period)")
+            elif is_junior_year:
+                log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Skipping recreation (Junior Year)")
+            else:
+                log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
+                do_recreation()
+                return True
 
         # Enhanced race logic with priority strategy
         priority_strategy = strategy_settings.get('priority_strategy', 'G1')
+        allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
         # Critical energy handling
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
-                race_found = do_race()
+                race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
@@ -453,7 +576,7 @@ def career_lobby_iteration(race_manager, gui=None):
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 log_message(f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
-                race_found = do_race()
+                race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
@@ -502,7 +625,7 @@ def career_lobby_iteration(race_manager, gui=None):
 
                 # If race matches priority, attempt race immediately
                 if race_matches_priority:
-                    race_found = do_race()
+                    race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -512,10 +635,12 @@ def career_lobby_iteration(race_manager, gui=None):
                 if DateManager.is_restricted_period(current_date):
                     if current_date.get('is_pre_debut', False):
                         log_message("In Pre-Debut period. No racing allowed.")
+                    elif current_date['absolute_day'] <= 16:
+                        log_message("In restricted racing period (Career days 1-16). No racing allowed.")
                     else:
-                        log_message("In restricted racing period (Days 1-16 or Jul-Aug). No racing allowed.")
-                else:
-                    log_message("No races match current filters for today.")
+                        log_message("In restricted racing period (Jul-Aug). No racing allowed.")
+                # Remove the redundant "No races match current filters for today" message
+                # as it's already covered in the race display section above
 
         # Check training button (only if energy allows training)
         if not go_to_training():
@@ -544,7 +669,7 @@ def career_lobby_iteration(race_manager, gui=None):
 
                 if should_race:
                     log_message(f"Attempting race from {len(available_races)} available races as fallback.")
-                    race_found = do_race()
+                    race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -560,21 +685,61 @@ def career_lobby_iteration(race_manager, gui=None):
                 # Do normal training (fallback to most support card logic)
                 log_message(f"Normal energy but no {priority_strategy} training found - doing fallback training")
 
-                # Use fallback training logic (most support card)
+                # Use fallback training logic (most support card with stage-based scoring)
                 if results_training:
-                    # Find training with most support cards as fallback
+                    # Find training using stage-based scoring system
+                    def calculate_fallback_score(training_key, training_data, current_date):
+                        """Enhanced scoring for fallback training based on game stage"""
+                        support_counts = training_data["support"]
+                        is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+
+                        if is_rainbow_stage:
+                            # After day 24: Rainbow bonus applies
+                            rainbow_count = support_counts.get(training_key, 0)
+                            rainbow_score = rainbow_count * 2
+                            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
+                            return rainbow_score + other_support_score, rainbow_count
+                        else:
+                            # Before/at day 24: Equal scoring
+                            total_support = sum(support_counts.values())
+                            rainbow_count = support_counts.get(training_key, 0)
+                            return total_support, rainbow_count
+
+                    # Custom priority for early stage
+                    def get_fallback_priority(stat_key: str, current_date) -> int:
+                        is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+                        if is_early_stage:
+                            early_priority = ["wit", "spd", "sta", "pwr", "guts"]
+                            return early_priority.index(stat_key) if stat_key in early_priority else 999
+                        else:
+                            return get_stat_priority(stat_key)
+
                     fallback_training = max(
                         results_training.items(),
-                        key=lambda x: x[1]["total_support"]
+                        key=lambda x: (
+                            calculate_fallback_score(x[0], x[1], current_date)[0],  # Stage-based score
+                            -get_fallback_priority(x[0], current_date)  # Stage-based priority
+                        )
                     )
 
                     best_key, best_data = fallback_training
+                    best_score, rainbow_count = calculate_fallback_score(best_key, best_data, current_date)
 
-                    if best_data["total_support"] > 0:
+                    if best_score > 0:
                         go_to_training()
                         time.sleep(0.5)
                         do_train(best_key)
-                        log_message(f"Fallback Training: {best_key.upper()} (most support cards: {best_data['total_support']})")
+
+                        # Display info based on stage
+                        is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+                        is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+
+                        if is_rainbow_stage:
+                            log_message(f"Fallback Training: {best_key.upper()} (score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)")
+                        elif is_early_stage:
+                            log_message(f"Fallback Training: {best_key.upper()} ({best_data['total_support']} support cards - Early stage WIT priority)")
+                        else:
+                            log_message(f"Fallback Training: {best_key.upper()} ({best_data['total_support']} support cards)")
                     else:
                         do_rest()
                         log_message("No support cards found in any training - Resting")

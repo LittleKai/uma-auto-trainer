@@ -72,20 +72,26 @@ def go_to_training():
 
 def check_training_support_stable(training_type, max_retries=3):
     """
-    Check training support with stability verification
+    Check training support with stability verification and hint detection
     Performs multiple checks ONLY if total support > 6 to ensure accuracy
     """
-    # Get current date info to check if in Pre-Debut period
+    # Get current date info to check if in Pre-Debut period and for hint scoring
     current_date = get_current_date_info()
     is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 
     # First check
-    support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type)
-    total_support = sum(support_counts.values())
+    support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type, current_date=current_date)
+
+    # Get total_score from check_support_card (already calculated)
+    total_score = support_counts.get("total_score", 0)
+    total_support = sum(count for key, count in support_counts.items() if key not in ["hint", "hint_score", "total_score"])
 
     first_result = {
-        'support': support_counts,
-        'total_support': total_support
+        'support': {k: v for k, v in support_counts.items() if k not in ["hint", "hint_score", "total_score"]},
+        'total_support': total_support,
+        'hint_count': support_counts.get("hint", 0),
+        'hint_score': support_counts.get("hint_score", 0),
+        'total_score': total_score
     }
 
     # If total support <= 6, return immediately (no need for multiple checks)
@@ -101,20 +107,25 @@ def check_training_support_stable(training_type, max_retries=3):
         # Small delay between checks for stability
         time.sleep(0.1)
 
-        support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type)
-        total_support = sum(support_counts.values())
+        support_counts = check_support_card(is_pre_debut=is_pre_debut, training_type=training_type, current_date=current_date)
+        total_score = support_counts.get("total_score", 0)
+        total_support = sum(count for key, count in support_counts.items() if key not in ["hint", "hint_score", "total_score"])
 
         support_results.append({
-            'support': support_counts,
-            'total_support': total_support
+            'support': {k: v for k, v in support_counts.items() if k not in ["hint", "hint_score", "total_score"]},
+            'total_support': total_support,
+            'hint_count': support_counts.get("hint", 0),
+            'hint_score': support_counts.get("hint_score", 0),
+            'total_score': total_score
         })
 
-    # Use the result with median total support count
-    support_results.sort(key=lambda x: x['total_support'])
+    # Use the result with median total score
+    support_results.sort(key=lambda x: x['total_score'])
     median_index = len(support_results) // 2
     result = support_results[median_index]
 
-    log_message(f"[{training_type.upper()}] Multiple checks completed, using median result: {result['support']} (total: {result['total_support']})")
+    hint_info = f" + {result['hint_count']} hints ({result['hint_score']} score)" if result['hint_count'] > 0 else ""
+    log_message(f"[{training_type.upper()}] Multiple checks completed, using median result: {result['support']} (total: {result['total_support']}{hint_info}, final score: {result['total_score']})")
     return result
 
 def ensure_main_menu():
@@ -193,18 +204,9 @@ def check_training(energy_percentage=100):
 
     # Define which training types to check based on energy level
     if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-        should_race, available_races = race_manager.should_race_today(current_date)
-        if should_race:
-            log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
-            race_found = do_race(allow_continuous_racing=allow_continuous_racing)
-            if race_found:
-                return True
-            else:
-                # Use improved helper function for critical energy rest
-                return handle_critical_energy_rest()
-        else:
-            log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
-            return handle_critical_energy_rest()
+        # Critical energy: no training check at all
+        log_message(f"Critical energy ({energy_percentage}%), skipping all training checks")
+        return {}
     elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
         # Low energy: only check WIT
         training_types = {
@@ -229,19 +231,25 @@ def check_training(energy_percentage=100):
             pyautogui.moveTo(pos, duration=0.1)
             pyautogui.mouseDown()
 
-            # Use improved support checking with stability verification
+            # Use improved support checking with stability verification and hint detection
             training_result = check_training_support_stable(key)
             results[key] = training_result
 
+            # Enhanced logging with hint information
+            hint_info = ""
+            if training_result.get('hint_count', 0) > 0:
+                hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
+
             if is_pre_debut:
-                log_message(f"[{key.upper()}] → {training_result['support']} (Pre-Debut)")
+                log_message(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}) (Pre-Debut)")
             else:
-                log_message(f"[{key.upper()}] → {training_result['support']}")
+                log_message(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info})")
             time.sleep(0.1)
 
     pyautogui.mouseUp()
     click(img="assets/buttons/back_btn.png")
     return results
+
 
 def do_train(train):
     if not is_game_window_active():
@@ -513,11 +521,44 @@ def career_lobby(gui=None):
                 time.sleep(1)
 
 def career_lobby_iteration(race_manager, gui=None):
-    """Single iteration of career lobby logic - COMPLETE FIXED VERSION"""
+    """Single iteration of career lobby logic - WITH MANUAL EVENT HANDLING"""
     try:
-        # First check, event
-        if click(img="assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
-            return True
+        # Get manual event handling setting
+        manual_event_handling = False
+        if gui:
+            settings = gui.get_current_settings()
+            manual_event_handling = settings.get('manual_event_handling', False)
+
+        # First check, event - WITH MANUAL HANDLING
+        event_choice_found = pyautogui.locateCenterOnScreen("assets/icons/event_choice_1.png", confidence=0.8, minSearchTime=0.2)
+
+        if event_choice_found:
+            if manual_event_handling:
+                # Manual event handling - pause bot and wait for user
+                log_message("🎭 EVENT DETECTED! Manual event handling enabled - Bot paused.")
+                log_message("👆 Please select your event choice manually, then press F2 to resume.")
+
+                if gui:
+                    # Automatically pause the bot
+                    gui.root.after(0, gui.pause_bot)
+
+                    # Wait until user resumes
+                    while gui.is_paused and gui.is_running:
+                        time.sleep(0.1)
+
+                    if not gui.is_running:
+                        return False  # Bot was stopped
+
+                else:
+                    # Non-GUI mode - just wait a bit and continue
+                    log_message("Manual event handling enabled but no GUI - continuing after 2 seconds")
+                    time.sleep(2)
+
+                return True
+            else:
+                # Automatic event handling (original behavior)
+                if click(img="assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
+                    return True
 
         # Second check, inspiration
         if click(img="assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
@@ -539,6 +580,7 @@ def career_lobby_iteration(race_manager, gui=None):
 
         time.sleep(0.5)
 
+        # [REST OF THE FUNCTION REMAINS THE SAME...]
         # Check if there is debuff status
         debuffed = pyautogui.locateOnScreen("assets/buttons/infirmary_btn2.png", confidence=0.9, minSearchTime=1)
         if debuffed:
@@ -579,7 +621,7 @@ def career_lobby_iteration(race_manager, gui=None):
             return False  # End the iteration loop
 
         # Get strategy settings from GUI
-        strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'G1', 'allow_continuous_racing': True}
+        strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'Train Score 2.5+', 'allow_continuous_racing': True}
         if gui:
             strategy_settings = gui.get_current_settings()
 
@@ -599,7 +641,9 @@ def career_lobby_iteration(race_manager, gui=None):
         log_message(f"Mood: {mood}")
         log_message(f"Turn: {turn}")
         log_message(f"Energy: {energy_percentage}%")
-        log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'G1')}")
+        log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'Train Score 2.5+')}")
+        if manual_event_handling:
+            log_message(f"Manual Events: Enabled")
 
         if current_date:
             if current_date.get('is_finale', False):
@@ -644,6 +688,7 @@ def career_lobby_iteration(race_manager, gui=None):
                 else:
                     log_message("📍 Today's Races: None match current filters")
 
+        # [CONTINUE WITH REST OF ORIGINAL LOGIC...]
         # URA SCENARIO
         if year == "Finale Season" and turn == "Race Day":
             log_message("URA Finale")
@@ -679,7 +724,7 @@ def career_lobby_iteration(race_manager, gui=None):
                 return True
 
         # Enhanced race logic with priority strategy
-        priority_strategy = strategy_settings.get('priority_strategy', 'G1')
+        priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
         # Critical energy handling
@@ -729,7 +774,7 @@ def career_lobby_iteration(race_manager, gui=None):
                 # Check if any available race matches priority strategy
                 race_matches_priority = False
 
-                if priority_strategy == "G1":
+                if "G1" in priority_strategy:
                     # Only race if there's a G1 race available
                     g1_races = [race for race in available_races
                                 if race_manager.extract_race_properties(race)['grade_type'] == 'g1']
@@ -739,7 +784,7 @@ def career_lobby_iteration(race_manager, gui=None):
                     else:
                         log_message(f"G1 priority: No G1 races found, will check training first")
 
-                elif priority_strategy == "G2":
+                elif "G2" in priority_strategy:
                     # Race if there's a G1 or G2 race available
                     high_grade_races = [race for race in available_races
                                         if race_manager.extract_race_properties(race)['grade_type'] in ['g1', 'g2']]
@@ -749,8 +794,8 @@ def career_lobby_iteration(race_manager, gui=None):
                     else:
                         log_message(f"G2 priority: No G1/G2 races found, will check training first")
 
-                elif "Rainbow" in priority_strategy:
-                    # For rainbow strategies, always check training first
+                elif "Train Score" in priority_strategy:
+                    # For score strategies, always check training first
                     log_message(f"{priority_strategy}: Will check training first, then race if requirements not met")
                     race_matches_priority = False
 
@@ -780,7 +825,7 @@ def career_lobby_iteration(race_manager, gui=None):
         time.sleep(0.5)
         results_training = check_training(energy_percentage)
 
-        # FIXED: Use enhanced training decision with proper rainbow scoring
+        # FIXED: Use enhanced training decision with proper score-based logic
         best_training = enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
 
         if best_training:
@@ -815,11 +860,12 @@ def career_lobby_iteration(race_manager, gui=None):
                 # Do normal training (fallback to most support card logic)
                 log_message(f"Normal energy but no {priority_strategy} training found - doing fallback training")
 
-                # Use fallback training logic with proper rainbow scoring
+                # Use fallback training logic with proper score-based scoring
                 if results_training:
-                    fallback_training = enhanced_fallback_training(results_training, current_date)
-                    if fallback_training:
-                        best_key, score_info = fallback_training
+                    from core.logic import enhanced_fallback_training
+                    fallback_result = enhanced_fallback_training(results_training, current_date)
+                    if fallback_result:
+                        best_key, score_info = fallback_result
                         go_to_training()
                         time.sleep(0.5)
                         do_train(best_key)

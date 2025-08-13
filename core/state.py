@@ -78,7 +78,7 @@ def check_energy_percentage():
     return 100  # Return 100% if detection fails (safe default)
 
 # Check support card in each training
-def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None):
+def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
@@ -90,9 +90,28 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None):
 
   count_result = {}
 
+  # Count regular support cards
   for key, icon_path in SUPPORT_ICONS.items():
     matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
     count_result[key] = len(matches)
+
+  # Find hint cards
+  hint_matches = match_template("assets/icons/support_card_hint.png", SUPPORT_CARD_ICON_REGION, threshold)
+  hint_count = len(hint_matches)
+
+  # Calculate hint score based on day - MAXIMUM 1 HINT COUNTS FOR SCORE
+  hint_score = 0
+  if hint_count > 0 and current_date:
+    absolute_day = current_date.get('absolute_day', 0)
+    # Only count 1 hint maximum for score calculation
+    effective_hints = min(hint_count, 1)
+
+    if absolute_day < 36:
+      hint_score = effective_hints * 1.0  # Each hint = 1 point (max 1)
+      print(f"[INFO] Found {hint_count} hint cards, counting {effective_hints} for score (Day {absolute_day} < 36: 1.0 score max)")
+    else:
+      hint_score = effective_hints * 0.5  # Each hint = 0.5 point (max 1)
+      print(f"[INFO] Found {hint_count} hint cards, counting {effective_hints} for score (Day {absolute_day} >= 36: 0.5 score max)")
 
   # In Pre-Debut period (day < 24), friend cards count as the current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
@@ -101,7 +120,29 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None):
     count_result[training_type] = count_result.get(training_type, 0) + friend_count
     print(f"[INFO] Pre-Debut: {friend_count} friend cards added to {training_type.upper()} training")
 
+  # Calculate total support (excluding hint)
+  total_support = sum(count_result.values())
+
+  # Calculate total score with rainbow bonus and hint
+  is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+
+  if is_rainbow_stage and training_type:
+    # Rainbow stage: rainbow cards = 2 points, others = 1 point
+    rainbow_count = count_result.get(training_type, 0)
+    other_support = total_support - rainbow_count
+    total_score = (rainbow_count * 2) + other_support + hint_score
+    print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints = {total_score}")
+  else:
+    # Normal stage: all = 1 point
+    total_score = total_support + hint_score
+
+  # Add hint to results
+  count_result["hint"] = hint_count
+  count_result["hint_score"] = hint_score
+  count_result["total_score"] = total_score
+
   return count_result
+
 
 # Get failure chance (kept for compatibility but not used in low energy logic)
 def check_failure():

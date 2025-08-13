@@ -54,17 +54,18 @@ class UmaAutoGUI:
     self.grade_filters = {
       'g1': tk.BooleanVar(value=True),
       'g2': tk.BooleanVar(value=True),
-      'g3': tk.BooleanVar(value=True),
-      'op': tk.BooleanVar(value=False),
-      'unknown': tk.BooleanVar(value=False)
+      'g3': tk.BooleanVar(value=True)
     }
 
-    # New dropdown variables
+    # Updated dropdown variables with new priority options
     self.minimum_mood = tk.StringVar(value="NORMAL")
-    self.priority_strategy = tk.StringVar(value="G1")
+    self.priority_strategy = tk.StringVar(value="Train Score 2.5+")
 
-    # NEW: Continuous racing checkbox
+    # Continuous racing checkbox
     self.allow_continuous_racing = tk.BooleanVar(value=True)
+
+    # NEW: Manual event handling checkbox
+    self.manual_event_handling = tk.BooleanVar(value=False)
 
     # Setup GUI
     self.setup_gui()
@@ -133,35 +134,43 @@ class UmaAutoGUI:
     strategy_frame = ttk.LabelFrame(main_frame, text="Strategy Settings", padding="5")
     strategy_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     strategy_frame.columnconfigure(1, weight=1)
+    strategy_frame.columnconfigure(3, weight=1)
 
-    # Minimum Mood dropdown
+    # Row 0: Minimum Mood and Priority Strategy on same row
     ttk.Label(strategy_frame, text="Minimum Mood:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
     mood_dropdown = ttk.Combobox(strategy_frame, textvariable=self.minimum_mood,
                                  values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
-                                 state="readonly", width=15)
-    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 10))
+                                 state="readonly", width=10)
+    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
     mood_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    # Priority Strategy dropdown
-    ttk.Label(strategy_frame, text="Priority Strategy:").grid(row=1, column=0, sticky=tk.W, padx=(0, 5))
+    ttk.Label(strategy_frame, text="Priority Strategy:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
     priority_dropdown = ttk.Combobox(strategy_frame, textvariable=self.priority_strategy,
-                                     values=["G1", "G2", "Train 1+ Rainbow", "Train 2+ Rainbow", "Train 3+ Rainbow"],
+                                     values=[
+                                       "G1 (no training)",
+                                       "G2 (no training)",
+                                       "Train Score 2+",
+                                       "Train Score 2.5+",
+                                       "Train Score 3+",
+                                       "Train Score 3.5+"
+                                     ],
                                      state="readonly", width=20)
-    priority_dropdown.grid(row=1, column=1, sticky=tk.W, padx=(0, 10))
+    priority_dropdown.grid(row=0, column=3, sticky=tk.W)
     priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    # NEW: Continuous Racing checkbox
+    # Row 1: Continuous Racing checkbox
     continuous_racing_check = ttk.Checkbutton(strategy_frame,
                                               text="Allow Continuous Racing (>3 races)",
                                               variable=self.allow_continuous_racing,
                                               command=self.save_settings)
-    continuous_racing_check.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(5, 0))
+    continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 0))
 
-    # Add tooltip/explanation for continuous racing
-    tooltip_label = ttk.Label(strategy_frame,
-                              text="↳ When unchecked, bot will skip racing if prompted about racing too much",
-                              font=("Arial", 8), foreground="gray")
-    tooltip_label.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=(20, 0))
+    # Row 1: Manual Event Handling checkbox (right side)
+    manual_event_check = ttk.Checkbutton(strategy_frame,
+                                         text="Manual Event Handling (pause on events)",
+                                         variable=self.manual_event_handling,
+                                         command=self.save_settings)
+    manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 0))
 
     # Race Filter Frame
     filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
@@ -199,10 +208,6 @@ class UmaAutoGUI:
                     command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
     ttk.Checkbutton(grade_frame, text="G3", variable=self.grade_filters['g3'],
                     command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
-    ttk.Checkbutton(grade_frame, text="OP", variable=self.grade_filters['op'],
-                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W)
-    ttk.Checkbutton(grade_frame, text="Unknown", variable=self.grade_filters['unknown'],
-                    command=self.save_settings).grid(row=0, column=2, sticky=tk.W)
 
     # Control buttons frame
     button_frame = ttk.Frame(main_frame)
@@ -242,7 +247,7 @@ class UmaAutoGUI:
     shortcuts_frame = ttk.LabelFrame(main_frame, text="Keyboard Shortcuts", padding="5")
     shortcuts_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
 
-    shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Emergency Stop")
+    shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Force Exit Program")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
 
     # Pack canvas and scrollbar
@@ -255,7 +260,7 @@ class UmaAutoGUI:
       keyboard.add_hotkey('f1', self.start_bot)
       keyboard.add_hotkey('f2', self.pause_bot)
       keyboard.add_hotkey('f3', self.stop_bot)
-      keyboard.add_hotkey('esc', self.emergency_stop)
+      keyboard.add_hotkey('esc', self.force_exit_program)
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
 
@@ -267,7 +272,8 @@ class UmaAutoGUI:
       'grade': {k: v.get() for k, v in self.grade_filters.items()},
       'minimum_mood': self.minimum_mood.get(),
       'priority_strategy': self.priority_strategy.get(),
-      'allow_continuous_racing': self.allow_continuous_racing.get()
+      'allow_continuous_racing': self.allow_continuous_racing.get(),
+      'manual_event_handling': self.manual_event_handling.get()
     }
 
     try:
@@ -310,11 +316,37 @@ class UmaAutoGUI:
           self.minimum_mood.set(settings['minimum_mood'])
 
         if 'priority_strategy' in settings:
-          self.priority_strategy.set(settings['priority_strategy'])
+          # Handle old settings migration
+          old_strategy = settings['priority_strategy']
+          if old_strategy in ["Train 1+ Rainbow", "Train 2+ Rainbow", "Train 3+ Rainbow"]:
+            # Migrate old rainbow strategies to new score-based system
+            self.priority_strategy.set("Train Score 2.5+")
+          elif "với score" in old_strategy:
+            # Migrate Vietnamese to English
+            if "2 +" in old_strategy:
+              self.priority_strategy.set("Train Score 2+")
+            elif "2.5 +" in old_strategy:
+              self.priority_strategy.set("Train Score 2.5+")
+            elif "3 +" in old_strategy:
+              self.priority_strategy.set("Train Score 3+")
+            elif "3.5 +" in old_strategy:
+              self.priority_strategy.set("Train Score 3.5+")
+            else:
+              self.priority_strategy.set("Train Score 2.5+")
+          elif old_strategy == "G1":
+            self.priority_strategy.set("G1 (no training)")
+          elif old_strategy == "G2":
+            self.priority_strategy.set("G2 (no training)")
+          else:
+            self.priority_strategy.set(old_strategy)
 
         # Apply continuous racing setting
         if 'allow_continuous_racing' in settings:
           self.allow_continuous_racing.set(settings['allow_continuous_racing'])
+
+        # Apply manual event handling setting
+        if 'manual_event_handling' in settings:
+          self.manual_event_handling.set(settings['manual_event_handling'])
 
         # Update race manager
         race_filters = {
@@ -332,7 +364,8 @@ class UmaAutoGUI:
     return {
       'minimum_mood': self.minimum_mood.get(),
       'priority_strategy': self.priority_strategy.get(),
-      'allow_continuous_racing': self.allow_continuous_racing.get()
+      'allow_continuous_racing': self.allow_continuous_racing.get(),
+      'manual_event_handling': self.manual_event_handling.get()
     }
 
   def log_message(self, message):
@@ -483,6 +516,18 @@ class UmaAutoGUI:
 
     self.log_message("Bot stopped")
 
+  def force_exit_program(self):
+    """Force exit program - ESC key handler"""
+    self.log_message("ESC pressed - Force exiting program...")
+    self.stop_bot()
+    try:
+      keyboard.unhook_all()
+    except:
+      pass
+    # Force exit the entire program
+    import os
+    os._exit(0)
+
   def emergency_stop(self):
     """Emergency stop - can be called from anywhere"""
     self.root.after(0, self.stop_bot)
@@ -517,12 +562,16 @@ class UmaAutoGUI:
     """Start the GUI"""
     self.log_message("Uma Musume Auto Train started!")
     self.log_message("Configure strategy settings and race filters before starting.")
-    self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC for emergency stop.")
+    self.log_message("Priority Strategies:")
+    self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
+    self.log_message("• Train Score 2+/2.5+/3+/3.5+: Train only if score meets threshold")
+    self.log_message("• Score = support cards + hints (1.0 or 0.5) + rainbow bonus")
+    self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC to force exit program.")
     self.root.mainloop()
 
 def main():
   """Main function - create and run GUI"""
-  print("Uma Auto - Enhanced GUI Version!")
+  print("Uma Auto - Enhanced GUI Version with New Priority System!")
   app = UmaAutoGUI()
   app.run()
 

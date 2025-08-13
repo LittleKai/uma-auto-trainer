@@ -886,53 +886,21 @@ def career_lobby_iteration(race_manager, gui=None):
 
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
     """
-    Enhanced training decision with proper rainbow scoring
+    Enhanced training decision with proper rainbow scoring - FIXED VERSION
     """
     if not results_training:
+        print(f"[DEBUG] enhanced_training_decision: No results_training provided")
         return None
 
-    # Get current stats for caps filtering
-    from core.state import stat_state
-    current_stats = stat_state()
+    print(f"[DEBUG] enhanced_training_decision: Received {len(results_training)} training results")
+    for key, data in results_training.items():
+        print(f"[DEBUG] Input data - {key.upper()}: total_score={data.get('total_score', 'MISSING')}")
 
-    # Filter by stat caps
-    def filter_by_stat_caps(results, current_stats):
-        STAT_CAPS = {
-            "spd": 1120,
-            "sta": 1120,
-            "pwr": 1120,
-            "guts": 300,
-            "wit": 500
-        }
-        return {
-            stat: data for stat, data in results.items()
-            if current_stats.get(stat, 0) < STAT_CAPS.get(stat, 1200)
-        }
+    # Import the correct logic functions from core.logic
+    from core.logic import enhanced_training_decision as logic_enhanced_training_decision
 
-    filtered_results = filter_by_stat_caps(results_training, current_stats)
-    if not filtered_results:
-        log_message("[INFO] All stats capped.")
-        return None
-
-    # Check energy level for low energy logic
-    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-        return low_energy_training_logic(filtered_results, current_date)
-
-    # Get strategy and date info
-    priority_strategy = strategy_settings.get('priority_strategy', 'G1')
-    is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
-
-    # For Pre-Debut or Junior Year, use most support card logic
-    year = check_current_year()
-    if is_pre_debut or "Junior Year" in year:
-        return most_support_card_logic(filtered_results, current_date)
-
-    # For Classic/Senior years with Rainbow strategy
-    if "Rainbow" in priority_strategy:
-        return check_rainbow_strategy(filtered_results, priority_strategy, current_date)
-
-    # For G1/G2 strategies, return None to prioritize racing
-    return None
+    # Use the proper logic function that handles score-based training
+    return logic_enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
 
 def low_energy_training_logic(results, current_date):
     """Low energy training - only WIT with 3+ support cards"""

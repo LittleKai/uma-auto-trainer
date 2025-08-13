@@ -95,28 +95,36 @@ def extract_score_threshold(priority_strategy):
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """
-  Find best training that meets minimum score threshold
+  Find best training that meets minimum score threshold - FIXED VERSION
   """
   if not results:
     return None
 
+  print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
+
   # Filter trainings that meet minimum score - use total_score from results
   valid_trainings = {}
   for key, data in results.items():
-    total_score = data.get("total_score", 0)  # Sử dụng total_score đã tính sẵn
+    total_score = data.get("total_score", 0)  # Use pre-calculated total_score
     print(f"[DEBUG] {key.upper()}: total_score={total_score}, threshold={min_score_threshold}")
+
     if total_score >= min_score_threshold:
       valid_trainings[key] = data
+      print(f"[DEBUG] {key.upper()} PASSED threshold check ({total_score} >= {min_score_threshold})")
+    else:
+      print(f"[DEBUG] {key.upper()} FAILED threshold check ({total_score} < {min_score_threshold})")
 
   if not valid_trainings:
     print(f"\n[INFO] No training meets minimum score threshold {min_score_threshold}")
     return None
 
+  print(f"[DEBUG] {len(valid_trainings)} trainings passed threshold: {list(valid_trainings.keys())}")
+
   # Find best training among valid ones
   best_training = max(
     valid_trainings.items(),
     key=lambda x: (
-      x[1].get("total_score", 0),  # Sử dụng total_score đã tính sẵn
+      x[1].get("total_score", 0),  # Use total_score
       -get_priority_by_stage(x[0], current_date)  # Priority (negative for max)
     )
   )
@@ -127,6 +135,71 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   print(f"\n[INFO] Best training meeting score {min_score_threshold}+: {best_key.upper()} {score_info}")
   return best_key
+
+def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
+  """
+  Enhanced training decision with new priority strategy system - FIXED VERSION
+  """
+  if not results_training:
+    print(f"[DEBUG] enhanced_training_decision: No results_training provided")
+    return None
+
+  print(f"[DEBUG] enhanced_training_decision: Received {len(results_training)} training results")
+  for key, data in results_training.items():
+    total_score = data.get('total_score', 'MISSING')
+    print(f"[DEBUG] Input data - {key.upper()}: total_score={total_score}")
+
+  # Get current stats for caps filtering
+  from core.state import stat_state
+  current_stats = stat_state()
+
+  # Filter by stat caps
+  filtered_results = filter_by_stat_caps(results_training, current_stats)
+  if not filtered_results:
+    print(f"[DEBUG] All trainings filtered out by stat caps")
+    return None
+
+  print(f"[DEBUG] After stat caps filtering: {len(filtered_results)} trainings remain")
+  for key, data in filtered_results.items():
+    print(f"[DEBUG] Filtered - {key.upper()}: total_score={data.get('total_score', 'MISSING')}")
+
+  # Check energy level for low energy logic
+  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Low energy detected ({energy_percentage}%), using low energy logic")
+    return low_energy_training(filtered_results, current_date)
+
+  # Get strategy and date info
+  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+  print(f"[DEBUG] Priority strategy: {priority_strategy}")
+  print(f"[DEBUG] Is pre-debut: {is_pre_debut}")
+
+  # For Pre-Debut or Junior Year, use most support card logic
+  from core.state import check_current_year
+  year = check_current_year()
+  if is_pre_debut or "Junior Year" in year:
+    print(f"[DEBUG] Using most_support_card logic for {year}")
+    return most_support_card(filtered_results, current_date)
+
+  # Check priority strategy type
+  score_threshold = extract_score_threshold(priority_strategy)
+
+  if score_threshold is None:
+    # G1 or G2 strategy - prioritize racing, no training
+    print(f"[DEBUG] Race priority strategy detected - no training")
+    return None
+  else:
+    # Score-based training strategy
+    print(f"[DEBUG] Score-based strategy detected - threshold: {score_threshold}")
+    result = find_best_training_by_score(filtered_results, current_date, score_threshold)
+
+    if result:
+      print(f"[DEBUG] Training decision: {result}")
+    else:
+      print(f"[DEBUG] No training meets requirements")
+
+    return result
 
 # Main training decision functions
 def most_support_card(results, current_date=None):

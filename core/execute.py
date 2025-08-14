@@ -17,7 +17,7 @@ log_callback = None
 gui_instance = None
 should_stop = False  # Global stop flag for F3 functionality
 career_lobby_attempts = 0  # Counter for career lobby detection
-MAX_CAREER_LOBBY_ATTEMPTS = 10  # Maximum attempts before stopping
+MAX_CAREER_LOBBY_ATTEMPTS = 20  # Maximum attempts before stopping
 
 def set_log_callback(callback):
     """Set the logging callback function"""
@@ -400,7 +400,7 @@ def do_rest():
                     if check_should_stop():
                         return False
                     if click(img="assets/buttons/ok_btn.png", minSearch=0.5, text="Summer vacation - clicking OK"):
-                        log_message("[INFO] Summer vacation dialog confirmed")
+                        # log_message("[INFO] Summer vacation dialog confirmed")
                         ok_found = True
                         break
                     time.sleep(0.3)
@@ -408,7 +408,7 @@ def do_rest():
                 if not ok_found:
                     log_message("[WARNING] Summer vacation dialog OK button not found")
 
-            log_message(f"[SUCCESS] {button_name} clicked successfully")
+            # log_message(f"[SUCCESS] {button_name} clicked successfully")
             return True
         else:
             log_message(f"[DEBUG] {button_name} not found")

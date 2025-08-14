@@ -9,7 +9,7 @@ import sys
 import os
 import json
 
-from core.execute import set_log_callback, career_lobby
+from core.execute import set_log_callback, career_lobby, set_stop_flag
 from core.race_manager import RaceManager, DateManager
 
 class UmaAutoGUI:
@@ -255,14 +255,24 @@ class UmaAutoGUI:
     scrollbar.pack(side="right", fill="y")
 
   def setup_keyboard_shortcuts(self):
-    """Setup global keyboard shortcuts"""
+    """Setup global keyboard shortcuts with enhanced F3 functionality"""
     try:
       keyboard.add_hotkey('f1', self.start_bot)
       keyboard.add_hotkey('f2', self.pause_bot)
-      keyboard.add_hotkey('f3', self.stop_bot)
+      keyboard.add_hotkey('f3', self.enhanced_stop_bot)  # Enhanced F3 functionality
       keyboard.add_hotkey('esc', self.force_exit_program)
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
+
+  def enhanced_stop_bot(self):
+    """Enhanced F3 stop functionality that immediately stops all operations"""
+    self.log_message("[F3] Emergency stop triggered - Stopping all bot operations immediately")
+
+    # Set the stop flag in execute module first
+    set_stop_flag(True)
+
+    # Then stop the GUI bot
+    self.stop_bot()
 
   def save_settings(self):
     """Save all settings to memory"""
@@ -469,6 +479,9 @@ class UmaAutoGUI:
       self.log_message("Cannot start bot: Game window not found or cannot be focused")
       return
 
+    # Reset stop flag when starting
+    set_stop_flag(False)
+
     self.is_running = True
     self.is_paused = False
 
@@ -505,6 +518,9 @@ class UmaAutoGUI:
     if not self.is_running:
       return
 
+    # Set stop flag to interrupt any ongoing operations
+    set_stop_flag(True)
+
     self.is_running = False
     self.is_paused = False
 
@@ -530,7 +546,7 @@ class UmaAutoGUI:
 
   def emergency_stop(self):
     """Emergency stop - can be called from anywhere"""
-    self.root.after(0, self.stop_bot)
+    self.root.after(0, self.enhanced_stop_bot)
     self.root.after(0, lambda: self.log_message("EMERGENCY STOP ACTIVATED!"))
 
   def bot_loop(self):

@@ -1,4 +1,3 @@
-# Cải tiến core/execute.py
 import pyautogui
 import time
 import json
@@ -13,9 +12,12 @@ from core.recognizer import is_infirmary_active, match_template
 from utils.scenario import ura
 from core.race_manager import RaceManager, DateManager
 
-# Global variables for GUI integration
+# Global variables for GUI integration and stop control
 log_callback = None
 gui_instance = None
+should_stop = False  # Global stop flag for F3 functionality
+career_lobby_attempts = 0  # Counter for career lobby detection
+MAX_CAREER_LOBBY_ATTEMPTS = 10  # Maximum attempts before stopping
 
 def set_log_callback(callback):
     """Set the logging callback function"""
@@ -29,6 +31,40 @@ def log_message(message):
     else:
         print(message)
 
+def set_stop_flag(value=True):
+    """Set the global stop flag (called when F3 is pressed)"""
+    global should_stop
+    should_stop = value
+    if value:
+        log_message("[STOP] F3 pressed - Stopping all bot operations")
+
+def check_should_stop():
+    """Check if bot should stop due to F3 press"""
+    global should_stop
+    if should_stop:
+        log_message("[STOP] Operation cancelled due to F3 press")
+        return True
+    return False
+
+def reset_career_lobby_counter():
+    """Reset career lobby attempts counter"""
+    global career_lobby_attempts
+    career_lobby_attempts = 0
+
+def increment_career_lobby_counter():
+    """Increment career lobby attempts counter and check if limit exceeded"""
+    global career_lobby_attempts
+    career_lobby_attempts += 1
+
+    if career_lobby_attempts >= MAX_CAREER_LOBBY_ATTEMPTS:
+        log_message(f"[ERROR] Career lobby detection failed {MAX_CAREER_LOBBY_ATTEMPTS} times consecutively")
+        log_message("[ERROR] Bot appears to be stuck - stopping program")
+        set_stop_flag(True)
+        return True
+
+    # log_message(f"[WARNING] Career lobby detection attempt {career_lobby_attempts}/{MAX_CAREER_LOBBY_ATTEMPTS}")
+    return False
+
 def is_game_window_active():
     """Check if Umamusume window is currently active"""
     try:
@@ -40,7 +76,9 @@ def is_game_window_active():
         return False
 
 def safe_action(func, *args, **kwargs):
-    """Execute action only if game window is active"""
+    """Execute action only if game window is active and not stopped"""
+    if check_should_stop():
+        return False
     if not is_game_window_active():
         log_message("Game window not active, skipping action")
         return False
@@ -54,6 +92,10 @@ MINIMUM_ENERGY_PERCENTAGE = config["minimum_energy_percentage"]
 CRITICAL_ENERGY_PERCENTAGE = config["critical_energy_percentage"]
 
 def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
+    """Enhanced click function with stop check"""
+    if check_should_stop():
+        return False
+
     if not is_game_window_active():
         return False
 
@@ -61,6 +103,8 @@ def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
     if btn:
         if text:
             log_message(text)
+        if check_should_stop():  # Check again before clicking
+            return False
         pyautogui.moveTo(btn, duration=0.175)
         pyautogui.click(clicks=click)
         return True
@@ -68,13 +112,20 @@ def click(img, confidence = 0.8, minSearch = 2, click = 1, text = ""):
     return False
 
 def go_to_training():
+    """Enhanced go_to_training with stop check"""
+    if check_should_stop():
+        log_message("[STOP] Training cancelled due to F3 press")
+        return False
     return click("assets/buttons/training_btn.png")
 
 def check_training_support_stable(training_type, max_retries=3):
     """
     Check training support with stability verification and hint detection
-    Performs multiple checks ONLY if total support > 6 to ensure accuracy
+    Enhanced with stop check
     """
+    if check_should_stop():
+        return None
+
     # Get current date info to check if in Pre-Debut period and for hint scoring
     current_date = get_current_date_info()
     is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
@@ -104,6 +155,9 @@ def check_training_support_stable(training_type, max_retries=3):
     support_results = [first_result]
 
     for attempt in range(1, max_retries):
+        if check_should_stop():  # Check before each attempt
+            return first_result
+
         # Small delay between checks for stability
         time.sleep(0.1)
 
@@ -131,18 +185,25 @@ def check_training_support_stable(training_type, max_retries=3):
 def ensure_main_menu():
     """
     Ensure we're at the main career lobby menu
-    Returns True if we're at main menu, False if failed
+    Enhanced with stop check
     """
+    if check_should_stop():
+        return False
+
     if not is_game_window_active():
         return False
 
     max_attempts = 5
     for attempt in range(max_attempts):
+        if check_should_stop():
+            return False
+
         # Check if we're already at main menu by looking for tazuna hint
         tazuna_hint = pyautogui.locateCenterOnScreen("assets/ui/tazuna_hint.png", confidence=0.8, minSearchTime=0.3)
 
         if tazuna_hint:
             log_message(f"[INFO] At main menu (attempt {attempt + 1})")
+            reset_career_lobby_counter()  # Reset counter on success
             return True
 
         # If not at main menu, try to go back
@@ -156,6 +217,8 @@ def ensure_main_menu():
 
         back_clicked = False
         for back_btn in back_buttons:
+            if check_should_stop():
+                return False
             if click(img=back_btn, minSearch=0.3):
                 back_clicked = True
                 break
@@ -165,14 +228,18 @@ def ensure_main_menu():
         else:
             # If no back button found, try pressing ESC key
             log_message(f"[DEBUG] No back button found, trying ESC key")
-            pyautogui.press('esc')
-            time.sleep(0.5)
+            if not check_should_stop():
+                pyautogui.press('esc')
+                time.sleep(0.5)
 
     log_message(f"[ERROR] Failed to reach main menu after {max_attempts} attempts")
     return False
 
 def handle_critical_energy_rest():
-    """Handle resting when critical energy after failed race attempt"""
+    """Handle resting when critical energy after failed race attempt - Enhanced with stop check"""
+    if check_should_stop():
+        return False
+
     log_message("[INFO] Critical energy - attempting to rest after failed race")
 
     # First ensure we're at main menu
@@ -194,6 +261,10 @@ def handle_critical_energy_rest():
             return False
 
 def check_training(energy_percentage=100):
+    """Enhanced check_training with stop check"""
+    if check_should_stop():
+        return {}
+
     if not is_game_window_active():
         return {}
 
@@ -226,6 +297,9 @@ def check_training(energy_percentage=100):
     results = {}
 
     for key, icon_path in training_types.items():
+        if check_should_stop():
+            break
+
         pos = pyautogui.locateCenterOnScreen(icon_path, confidence=0.8)
         if pos:
             pyautogui.moveTo(pos, duration=0.1)
@@ -233,6 +307,11 @@ def check_training(energy_percentage=100):
 
             # Use improved support checking with stability verification and hint detection
             training_result = check_training_support_stable(key)
+
+            if training_result is None:  # Could be due to stop flag
+                pyautogui.mouseUp()
+                break
+
             results[key] = training_result
 
             # Enhanced logging with hint information
@@ -247,22 +326,33 @@ def check_training(energy_percentage=100):
             time.sleep(0.1)
 
     pyautogui.mouseUp()
-    click(img="assets/buttons/back_btn.png")
+    if not check_should_stop():
+        click(img="assets/buttons/back_btn.png")
     return results
 
-
 def do_train(train):
+    """Enhanced do_train with stop check"""
+    if check_should_stop():
+        log_message(f"[STOP] Training {train} cancelled due to F3 press")
+        return False
+
     if not is_game_window_active():
         return False
 
     train_btn = pyautogui.locateCenterOnScreen(f"assets/icons/train_{train}.png", confidence=0.8)
     if train_btn:
+        if check_should_stop():
+            return False
         pyautogui.tripleClick(train_btn, interval=0.1, duration=0.2)
         return True
     return False
 
 def do_rest():
-    """Improved rest function with better error handling"""
+    """Enhanced rest function with stop check"""
+    if check_should_stop():
+        log_message("[STOP] Rest cancelled due to F3 press")
+        return False
+
     if not is_game_window_active():
         log_message("[WARNING] Game window not active, cannot rest")
         return False
@@ -287,13 +377,15 @@ def do_rest():
     ]
 
     for button_path, button_name in rest_attempts:
-        # log_message(f"[DEBUG] Trying to find {button_name}")
+        if check_should_stop():
+            return False
 
         # Try to find the button with increased search time
         btn = pyautogui.locateCenterOnScreen(button_path, confidence=0.8, minSearchTime=1.0)
 
         if btn:
-            # log_message(f"[INFO] Found {button_name} at {btn}")
+            if check_should_stop():
+                return False
             pyautogui.moveTo(btn, duration=0.15)
             pyautogui.click(btn)
 
@@ -305,6 +397,8 @@ def do_rest():
                 # Try to click OK button for vacation confirmation
                 ok_found = False
                 for attempt in range(3):
+                    if check_should_stop():
+                        return False
                     if click(img="assets/buttons/ok_btn.png", minSearch=0.5, text="Summer vacation - clicking OK"):
                         log_message("[INFO] Summer vacation dialog confirmed")
                         ok_found = True
@@ -334,7 +428,11 @@ def do_rest():
     return False
 
 def do_recreation():
-    """Improved recreation function"""
+    """Enhanced recreation function with stop check"""
+    if check_should_stop():
+        log_message("[STOP] Recreation cancelled due to F3 press")
+        return False
+
     if not is_game_window_active():
         log_message("[WARNING] Game window not active, cannot do recreation")
         return False
@@ -345,15 +443,20 @@ def do_recreation():
     ]
 
     for button_path, button_name in recreation_attempts:
-        log_message(f"[DEBUG] Trying to find {button_name}")
+        if check_should_stop():
+            return False
+
+        # log_message(f"[DEBUG] Trying to find {button_name}")
 
         btn = pyautogui.locateCenterOnScreen(button_path, confidence=0.8, minSearchTime=1.0)
 
         if btn:
-            log_message(f"[INFO] Found {button_name} at {btn}")
+            if check_should_stop():
+                return False
+            # log_message(f"[INFO] Found {button_name} at {btn}")
             pyautogui.moveTo(btn, duration=0.15)
             pyautogui.click(btn)
-            log_message(f"[SUCCESS] {button_name} clicked successfully")
+            # log_message(f"[SUCCESS] {button_name} clicked successfully")
             return True
         else:
             log_message(f"[DEBUG] {button_name} not found")
@@ -362,52 +465,91 @@ def do_recreation():
     return False
 
 def do_race(prioritize_g1=False, allow_continuous_racing=True):
-    """
-    Enhanced race function with continuous racing control
-    """
+    """Enhanced race function with stop check"""
+    if check_should_stop():
+        log_message("[STOP] Race cancelled due to F3 press")
+        return False
+
     if not is_game_window_active():
         return False
 
-    click(img="assets/buttons/races_btn.png", minSearch=10)
+    if not click("assets/buttons/races_btn.png", minSearch=10):
+        if check_should_stop():
+            return False
 
     # Check for OK button first (indicates more than 3 races recently)
-    ok_btn_found = click(img="assets/buttons/ok_btn.png", minSearch=0.7)
+    ok_btn_found = False
+    if not check_should_stop():
+        ok_btn_found = click("assets/buttons/ok_btn.png", minSearch=0.7)
 
     if ok_btn_found and not allow_continuous_racing:
         # If OK button found and continuous racing not allowed, cancel instead
         log_message("Continuous racing disabled - canceling race due to recent racing limit")
-        click(img="assets/buttons/cancel_btn.png", minSearch=0.2)
+        if not check_should_stop():
+            click("assets/buttons/cancel_btn.png", minSearch=0.2)
+        return False
+
+    if check_should_stop():
         return False
 
     found = race_select(prioritize_g1=prioritize_g1)
-    if not found:
-        log_message("No race found.")
+    if not found or check_should_stop():
+        log_message("No race found or operation cancelled.")
         return False
 
-    race_prep()
+    if not race_prep() or check_should_stop():
+        return False
+
     time.sleep(1)
-    after_race()
+
+    if not after_race() or check_should_stop():
+        return False
+
     return True
 
 def race_day():
+    """Enhanced race_day with stop check"""
+    if check_should_stop():
+        log_message("[STOP] Race day cancelled due to F3 press")
+        return False
+
     if not is_game_window_active():
         return False
 
-    click(img="assets/buttons/race_day_btn.png", minSearch=10)
+    if not click("assets/buttons/race_day_btn.png", minSearch=10):
+        return False
 
-    click(img="assets/buttons/ok_btn.png", minSearch=0.7)
+    if check_should_stop():
+        return False
+
+    click("assets/buttons/ok_btn.png", minSearch=0.7)
     time.sleep(0.5)
 
     for i in range(2):
-        click(img="assets/buttons/race_btn.png", minSearch=2)
+        if check_should_stop():
+            return False
+        if not click("assets/buttons/race_btn.png", minSearch=2):
+            break
         time.sleep(0.5)
 
-    race_prep()
+    if check_should_stop():
+        return False
+
+    if not race_prep():
+        return False
+
     time.sleep(1)
-    after_race()
+
+    if not after_race():
+        return False
+
     return True
 
 def race_select(prioritize_g1 = False):
+    """Enhanced race_select with stop check"""
+    if check_should_stop():
+        return False
+
     if not is_game_window_active():
         return False
 
@@ -417,17 +559,27 @@ def race_select(prioritize_g1 = False):
     if prioritize_g1:
         log_message("Looking for G1 race.")
         for i in range(2):
+            if check_should_stop():
+                return False
+
             race_card = match_template("assets/ui/g1_race.png", threshold=0.9)
 
             if race_card:
                 for x, y, w, h in race_card:
+                    if check_should_stop():
+                        return False
+
                     region = (x, y, 310, 90)
                     match_aptitude = pyautogui.locateCenterOnScreen("assets/ui/match_track.png", confidence=0.8, minSearchTime=0.7, region=region)
                     if match_aptitude:
                         log_message("G1 race found.")
+                        if check_should_stop():
+                            return False
                         pyautogui.moveTo(match_aptitude, duration=0.2)
                         pyautogui.click()
                         for i in range(2):
+                            if check_should_stop():
+                                return False
                             race_btn = pyautogui.locateCenterOnScreen("assets/buttons/race_btn.png", confidence=0.8, minSearchTime=2)
                             if race_btn:
                                 pyautogui.moveTo(race_btn, duration=0.2)
@@ -436,19 +588,28 @@ def race_select(prioritize_g1 = False):
                         return True
 
             for i in range(4):
+                if check_should_stop():
+                    return False
                 pyautogui.scroll(-300)
 
         return False
     else:
         log_message("Looking for race.")
         for i in range(4):
+            if check_should_stop():
+                return False
+
             match_aptitude = pyautogui.locateCenterOnScreen("assets/ui/match_track.png", confidence=0.8, minSearchTime=0.7)
             if match_aptitude:
                 log_message("Race found.")
+                if check_should_stop():
+                    return False
                 pyautogui.moveTo(match_aptitude, duration=0.2)
                 pyautogui.click(match_aptitude)
 
                 for i in range(2):
+                    if check_should_stop():
+                        return False
                     race_btn = pyautogui.locateCenterOnScreen("assets/buttons/race_btn.png", confidence=0.8, minSearchTime=2)
                     if race_btn:
                         pyautogui.moveTo(race_btn, duration=0.2)
@@ -457,37 +618,61 @@ def race_select(prioritize_g1 = False):
                 return True
 
             for i in range(4):
+                if check_should_stop():
+                    return False
                 pyautogui.scroll(-300)
 
         return False
 
 def race_prep():
+    """Enhanced race_prep with stop check"""
+    if check_should_stop():
+        return False
+
     if not is_game_window_active():
         return False
 
     view_result_btn = pyautogui.locateCenterOnScreen("assets/buttons/view_results.png", confidence=0.8, minSearchTime=20)
     if view_result_btn:
+        if check_should_stop():
+            return False
         pyautogui.click(view_result_btn)
         time.sleep(0.5)
         for i in range(3):
+            if check_should_stop():
+                return False
             pyautogui.tripleClick(interval=0.2)
             time.sleep(0.5)
     return True
 
 def after_race():
+    """Enhanced after_race with stop check"""
+    if check_should_stop():
+        return False
+
     if not is_game_window_active():
         return False
 
-    click(img="assets/buttons/next_btn.png", minSearch=5)
+    if not click("assets/buttons/next_btn.png", minSearch=5):
+        return False
+
+    if check_should_stop():
+        return False
+
     time.sleep(0.3)
     pyautogui.click()
-    click(img="assets/buttons/next2_btn.png", minSearch=5)
+
+    if check_should_stop():
+        return False
+
+    click("assets/buttons/next2_btn.png", minSearch=5)
     return True
 
 def career_lobby(gui=None):
     """Main career lobby function - can work with or without GUI"""
-    global gui_instance
+    global gui_instance, should_stop
     gui_instance = gui
+    should_stop = False  # Reset stop flag when starting
 
     # Initialize race manager
     race_manager = RaceManager()
@@ -497,12 +682,12 @@ def career_lobby(gui=None):
         # Get race manager from GUI
         race_manager = gui.race_manager
 
-        while gui.is_running:
+        while gui.is_running and not should_stop:
             # Check if paused
-            while gui.is_paused and gui.is_running:
+            while gui.is_paused and gui.is_running and not should_stop:
                 time.sleep(0.1)
 
-            if not gui.is_running:
+            if not gui.is_running or should_stop:
                 break
 
             # Check if game window is active
@@ -516,13 +701,18 @@ def career_lobby(gui=None):
                 time.sleep(1)
     else:
         # Original standalone mode
-        while True:
+        while not should_stop:
             if not career_lobby_iteration(race_manager):
                 time.sleep(1)
 
 def career_lobby_iteration(race_manager, gui=None):
-    """Single iteration of career lobby logic """
+    """Single iteration of career lobby logic with enhanced stop and career lobby detection"""
+    global should_stop
+
     try:
+        if check_should_stop():
+            return False
+
         # Get manual event handling setting
         manual_event_handling = False
         if gui:
@@ -567,13 +757,26 @@ def career_lobby_iteration(race_manager, gui=None):
 
         if click(img="assets/buttons/next2_btn.png", minSearch=0.2):
             return True
+
         # Check if current menu is in career lobby
         tazuna_hint = pyautogui.locateCenterOnScreen("assets/ui/tazuna_hint.png", confidence=0.8, minSearchTime=0.2)
 
         if tazuna_hint is None:
             log_message("Should be in career lobby.")
+            # Check if we've exceeded maximum attempts
+            if increment_career_lobby_counter():
+                # Force stop the bot
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
+                return False
             time.sleep(1)
             return True
+        else:
+            # Successfully detected career lobby, reset counter
+            reset_career_lobby_counter()
+
+        if check_should_stop():
+            return False
 
         time.sleep(1)
 
@@ -581,9 +784,14 @@ def career_lobby_iteration(race_manager, gui=None):
         debuffed = pyautogui.locateOnScreen("assets/buttons/infirmary_btn2.png", confidence=0.9, minSearchTime=1)
         if debuffed:
             if is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
+                if check_should_stop():
+                    return False
                 pyautogui.click(debuffed)
                 log_message("Character has debuff, go to infirmary instead.")
                 return True
+
+        if check_should_stop():
+            return False
 
         mood = check_mood()
         turn = check_turn()
@@ -615,6 +823,9 @@ def career_lobby_iteration(race_manager, gui=None):
                 gui.root.after(0, lambda: gui.log_message("🎉 Career completed! Bot stopped automatically."))
 
             return False  # End the iteration loop
+
+        if check_should_stop():
+            return False
 
         # Get strategy settings from GUI
         strategy_settings = {'minimum_mood': 'NORMAL', 'priority_strategy': 'Train Score 2.5+', 'allow_continuous_racing': True}
@@ -684,14 +895,23 @@ def career_lobby_iteration(race_manager, gui=None):
                 else:
                     log_message("📍 Today's Races: None match current filters")
 
+        if check_should_stop():
+            return False
+
         # URA SCENARIO
         if year == "Finale Season" and turn == "Race Day":
             log_message("URA Finale")
+            if check_should_stop():
+                return False
             ura()
             for i in range(2):
+                if check_should_stop():
+                    return False
                 if click(img="assets/buttons/race_btn.png", minSearch=2):
                     time.sleep(0.5)
 
+            if check_should_stop():
+                return False
             race_prep()
             time.sleep(1)
             after_race()
@@ -700,8 +920,13 @@ def career_lobby_iteration(race_manager, gui=None):
         # If calendar is race day, do race (always allow continuous racing for race day)
         if turn == "Race Day" and year != "Finale Season":
             log_message("Race Day.")
+            if check_should_stop():
+                return False
             race_day()
             return True
+
+        if check_should_stop():
+            return False
 
         # Mood check using strategy settings with Pre-Debut/Junior Year restriction
         if mood_index < minimum_mood_index:
@@ -715,8 +940,13 @@ def career_lobby_iteration(race_manager, gui=None):
                 log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Skipping recreation (Junior Year)")
             else:
                 log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
+                if check_should_stop():
+                    return False
                 do_recreation()
                 return True
+
+        if check_should_stop():
+            return False
 
         # Enhanced race logic with priority strategy
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
@@ -727,17 +957,22 @@ def career_lobby_iteration(race_manager, gui=None):
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
+                if check_should_stop():
+                    return False
                 race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
-                    click(img="assets/buttons/back_btn.png", text="Race not found. Critical energy - will rest.")
-                    time.sleep(0.5)
-                    do_rest()
-                    log_message("Critical energy - Resting")
+                    if not check_should_stop():
+                        click(img="assets/buttons/back_btn.png", text="Race not found. Critical energy - will rest.")
+                        time.sleep(0.5)
+                        do_rest()
+                        log_message("Critical energy - Resting")
                     return True
             else:
                 log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
+                if check_should_stop():
+                    return False
                 do_rest()
                 log_message("Critical energy - Resting")
                 return True
@@ -747,14 +982,20 @@ def career_lobby_iteration(race_manager, gui=None):
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 log_message(f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
+                if check_should_stop():
+                    return False
                 race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
-                    click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Low energy - will check WIT training.")
-                    time.sleep(0.5)
+                    if not check_should_stop():
+                        click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Low energy - will check WIT training.")
+                        time.sleep(0.5)
             else:
                 log_message(f"Low energy ({energy_percentage}%) and no matching races today. Will check WIT training or rest.")
+
+        if check_should_stop():
+            return False
 
         # Normal energy logic with priority strategy
         if current_date and energy_percentage >= MINIMUM_ENERGY_PERCENTAGE:
@@ -796,12 +1037,15 @@ def career_lobby_iteration(race_manager, gui=None):
 
                 # If race matches priority, attempt race immediately
                 if race_matches_priority:
+                    if check_should_stop():
+                        return False
                     race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
-                        click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Proceeding to training.")
-                        time.sleep(0.5)
+                        if not check_should_stop():
+                            click(img="assets/buttons/back_btn.png", text="Matching race not found in game. Proceeding to training.")
+                            time.sleep(0.5)
             else:
                 if DateManager.is_restricted_period(current_date):
                     if current_date.get('is_pre_debut', False):
@@ -811,22 +1055,35 @@ def career_lobby_iteration(race_manager, gui=None):
                     else:
                         log_message("In restricted racing period (Jul-Aug). No racing allowed.")
 
+        if check_should_stop():
+            return False
+
         # Check training button (only if energy allows training)
         if not go_to_training():
             log_message("Training button is not found.")
             return True
 
+        if check_should_stop():
+            return False
+
         # Check training with strategy settings
         time.sleep(0.5)
         results_training = check_training(energy_percentage)
+
+        if check_should_stop():
+            return False
 
         # FIXED: Use enhanced training decision with proper score-based logic
         best_training = enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
 
         if best_training:
             # Training found that meets strategy requirements
+            if check_should_stop():
+                return False
             go_to_training()
             time.sleep(0.5)
+            if check_should_stop():
+                return False
             do_train(best_training)
             log_message(f"Training: {best_training.upper()}")
         else:
@@ -839,12 +1096,18 @@ def career_lobby_iteration(race_manager, gui=None):
 
                 if should_race:
                     log_message(f"Attempting race from {len(available_races)} available races as fallback.")
+                    if check_should_stop():
+                        return False
                     race_found = do_race(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
-                        click(img="assets/buttons/back_btn.png", text="Race not found.")
-                        time.sleep(0.5)
+                        if not check_should_stop():
+                            click(img="assets/buttons/back_btn.png", text="Race not found.")
+                            time.sleep(0.5)
+
+            if check_should_stop():
+                return False
 
             # If energy is low (< 40%), rest
             if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
@@ -861,14 +1124,22 @@ def career_lobby_iteration(race_manager, gui=None):
                     fallback_result = enhanced_fallback_training(results_training, current_date)
                     if fallback_result:
                         best_key, score_info = fallback_result
+                        if check_should_stop():
+                            return False
                         go_to_training()
                         time.sleep(0.5)
+                        if check_should_stop():
+                            return False
                         do_train(best_key)
                         log_message(f"Fallback Training: {best_key.upper()} {score_info}")
                     else:
+                        if check_should_stop():
+                            return False
                         do_rest()
                         log_message("No support cards found in any training - Resting")
                 else:
+                    if check_should_stop():
+                        return False
                     do_rest()
                     log_message("No training available - Resting")
 
@@ -883,6 +1154,7 @@ def career_lobby_iteration(race_manager, gui=None):
 def wait_for_event_completion(gui=None, max_wait_time=300):
     """
     Wait for user to complete event manually
+    Enhanced with stop check
     Returns True if event completed, False if bot was stopped
     """
     import time
@@ -892,6 +1164,9 @@ def wait_for_event_completion(gui=None, max_wait_time=300):
     while True:
         # Check if bot was stopped
         if gui and not gui.is_running:
+            return False
+
+        if check_should_stop():
             return False
 
         # DELAY 2 GIÂY như yêu cầu
@@ -930,8 +1205,12 @@ def wait_for_event_completion(gui=None, max_wait_time=300):
 
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
     """
-    Enhanced training decision with proper rainbow scoring - FIXED VERSION
+    Enhanced training decision with proper strategy respect - FIXED VERSION
+    Enhanced with stop check
     """
+    if check_should_stop():
+        return None
+
     if not results_training:
         print(f"[DEBUG] enhanced_training_decision: No results_training provided")
         return None
@@ -943,7 +1222,7 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
     # Import the correct logic functions from core.logic
     from core.logic import enhanced_training_decision as logic_enhanced_training_decision
 
-    # Use the proper logic function that handles score-based training
+    # Use the proper logic function that handles score-based training and respects strategy
     return logic_enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
 
 def low_energy_training_logic(results, current_date):
@@ -1016,65 +1295,6 @@ def most_support_card_logic(results, current_date):
         score_info = f"({best_data['total_support']} support cards)"
 
     log_message(f"Best training: {best_key.upper()} {score_info}")
-    return best_key
-
-def check_rainbow_strategy(results, priority_strategy, current_date):
-    """Check rainbow training strategy requirements"""
-    # Extract required rainbow count
-    if "1+" in priority_strategy:
-        required_count = 1
-    elif "2+" in priority_strategy:
-        required_count = 2
-    elif "3+" in priority_strategy:
-        required_count = 3
-    else:
-        return None
-
-    # Find rainbow candidates
-    rainbow_candidates = {
-        stat: data for stat, data in results.items()
-        if data["support"].get(stat, 0) >= required_count
-    }
-
-    if not rainbow_candidates:
-        log_message(f"No training with {required_count}+ rainbow supports found")
-        return None
-
-    # Calculate scores with rainbow bonus (if day > 24)
-    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
-
-    def calculate_rainbow_score(training_key, training_data):
-        support_counts = training_data["support"]
-
-        if is_rainbow_stage:
-            rainbow_count = support_counts.get(training_key, 0)
-            rainbow_score = rainbow_count * 2
-            other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
-            return rainbow_score + other_support_score, rainbow_count
-        else:
-            total_support = sum(support_counts.values())
-            rainbow_count = support_counts.get(training_key, 0)
-            return total_support, rainbow_count
-
-    # Find best rainbow training
-    best_rainbow = max(
-        rainbow_candidates.items(),
-        key=lambda x: (
-            calculate_rainbow_score(x[0], x[1])[0],
-            -get_stat_priority(x[0])
-        )
-    )
-
-    best_key, best_data = best_rainbow
-    rainbow_count = best_data['support'][best_key]
-    best_score, _ = calculate_rainbow_score(best_key, best_data)
-
-    if is_rainbow_stage:
-        score_info = f"(score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)"
-    else:
-        score_info = f"({rainbow_count} rainbow supports)"
-
-    log_message(f"{priority_strategy} strategy satisfied: {best_key.upper()} {score_info}")
     return best_key
 
 def enhanced_fallback_training(results, current_date):

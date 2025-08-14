@@ -628,7 +628,7 @@ class DecisionEngine:
 
     def _handle_no_training_fallback(self, game_state: Dict[str, Any],
                                      strategy_settings: Dict[str, Any], race_manager) -> bool:
-        """Handle fallback when no suitable training is found - FIXED: Only rest when energy < 40%"""
+        """Handle fallback when no suitable training is found - FIXED: Try race first, then fallback training only if needed"""
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
@@ -636,12 +636,12 @@ class DecisionEngine:
 
         self.controller.log_message(f"No training meets {priority_strategy} strategy requirements")
 
-        # Try racing as fallback first
+        # FIXED: Try racing as first priority fallback
         if current_date:
             should_race, available_races = race_manager.should_race_today(current_date)
 
             if should_race:
-                self.controller.log_message(f"Attempting race from {len(available_races)} available races as fallback.")
+                self.controller.log_message(f"Strategy fallback: Attempting race from {len(available_races)} available races.")
                 if self.controller.check_should_stop():
                     return False
 
@@ -650,12 +650,13 @@ class DecisionEngine:
                 )
 
                 if race_found:
+                    self.controller.log_message(f"Strategy fallback: Race completed successfully")
                     return True
                 else:
                     if not self.controller.check_should_stop():
                         enhanced_click(
                             "assets/buttons/back_btn.png",
-                            text="Race not found.",
+                            text="Race not found in strategy fallback.",
                             check_stop_func=self.controller.check_should_stop,
                             check_window_func=self.controller.is_game_window_active,
                             log_func=self.controller.log_message
@@ -665,52 +666,59 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        # FIXED: Only rest if energy is below minimum threshold
+        # FIXED: Only use training fallback if energy is below minimum threshold OR no races available
         from utils.constants import MINIMUM_ENERGY_PERCENTAGE
 
         if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
             self.controller.log_message(f"Energy is low ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%) - Resting")
             self.controller.rest_handler.execute_rest()
         else:
-            # FIXED: If energy is good, try any available training as final fallback
-            self.controller.log_message(f"Energy is good ({energy_percentage}%) - Looking for any available training as fallback")
+            # FIXED: Try any available training as final fallback only if energy is good AND no races
+            should_race, available_races = race_manager.should_race_today(current_date) if current_date else (False, [])
 
-            # Go to training and check all available options
-            if not self.controller.training_handler.go_to_training():
-                self.controller.log_message("Training button not found - Resting as final fallback")
-                self.controller.rest_handler.execute_rest()
-                return True
+            if not should_race:  # Only try training fallback if no races available
+                self.controller.log_message(f"No races available and energy is good ({energy_percentage}%) - Looking for any available training as final fallback")
 
-            time.sleep(0.5)
+                # Go to training and check all available options
+                if not self.controller.training_handler.go_to_training():
+                    self.controller.log_message("Training button not found - Resting as final fallback")
+                    self.controller.rest_handler.execute_rest()
+                    return True
 
-            # Check all training without energy restrictions
-            results_training = self.controller.training_handler.check_all_training(100)
-
-            if self.controller.check_should_stop():
-                return False
-
-            # Use fallback logic to find any training
-            from core.logic import most_support_card
-            fallback_training = most_support_card(results_training, current_date)
-
-            if fallback_training:
-                self.controller.log_message(f"Found fallback training: {fallback_training.upper()}")
-
-                # Execute the fallback training
-                if not self.controller.check_should_stop():
-                    self.controller.training_handler.go_to_training()
-                    time.sleep(0.5)
-                    self.controller.training_handler.execute_training(fallback_training)
-                    self.controller.log_message(f"Training: {fallback_training.upper()}")
-            else:
-                self.controller.log_message("No fallback training available - Resting")
-                enhanced_click(
-                    "assets/buttons/back_btn.png",
-                    check_stop_func=self.controller.check_should_stop,
-                    check_window_func=self.controller.is_game_window_active,
-                    log_func=self.controller.log_message
-                )
                 time.sleep(0.5)
+
+                # Check all training without energy restrictions
+                results_training = self.controller.training_handler.check_all_training(100)
+
+                if self.controller.check_should_stop():
+                    return False
+
+                # Use fallback logic to find any training
+                from core.logic import most_support_card
+                fallback_training = most_support_card(results_training, current_date)
+
+                if fallback_training:
+                    self.controller.log_message(f"Found fallback training: {fallback_training.upper()}")
+
+                    # Execute the fallback training
+                    if not self.controller.check_should_stop():
+                        self.controller.training_handler.go_to_training()
+                        time.sleep(0.5)
+                        self.controller.training_handler.execute_training(fallback_training)
+                        self.controller.log_message(f"Training: {fallback_training.upper()}")
+                else:
+                    self.controller.log_message("No fallback training available - Resting")
+                    enhanced_click(
+                        "assets/buttons/back_btn.png",
+                        check_stop_func=self.controller.check_should_stop,
+                        check_window_func=self.controller.is_game_window_active,
+                        log_func=self.controller.log_message
+                    )
+                    time.sleep(0.5)
+                    self.controller.rest_handler.execute_rest()
+            else:
+                # Has races but racing failed - just rest
+                self.controller.log_message(f"Racing failed but races are available - Resting to preserve energy")
                 self.controller.rest_handler.execute_rest()
 
         return True

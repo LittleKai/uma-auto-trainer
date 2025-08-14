@@ -22,14 +22,19 @@ def filter_by_stat_caps(results, current_stats):
   }
 
 def get_priority_by_stage(stat_key, current_date):
-  """Get stat priority based on career stage - FIXED: Always prioritize WIT in pre-debut"""
-  is_early_stage = current_date and current_date.get('absolute_day', 0) < 24
+  """Get stat priority based on career stage with config-based ordering"""
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 
-  if is_early_stage:
-    # Pre-debut (Day < 24): WIT > SPD > STA > PWR > GUTS
-    pre_debut_priority = ["wit", "spd", "sta", "pwr", "guts"]
-    return pre_debut_priority.index(stat_key) if stat_key in pre_debut_priority else 999
+  if is_pre_debut:
+    # Pre-debut: Use config priority but move WIT to highest priority if not already there
+    config_priority = PRIORITY_STAT.copy()
 
+    # Remove WIT from its current position and put it first
+    if 'wit' in config_priority:
+      config_priority.remove('wit')
+    config_priority.insert(0, 'wit')
+
+    return config_priority.index(stat_key) if stat_key in config_priority else 999
   else:
     # Normal priority from config
     return get_stat_priority(stat_key)
@@ -111,7 +116,7 @@ def extract_score_threshold(priority_strategy):
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """
   Find best training that meets minimum score threshold with enhanced grouped NPC support
-  FIXED: Special WIT priority handling in pre-debut
+  FIXED: WIT priority in pre-debut, but still respect config ordering for other stats
   """
   if not results:
     return None
@@ -146,7 +151,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   print(f"[DEBUG] {len(valid_trainings)} trainings passed threshold: {list(valid_trainings.keys())}")
 
-  # FIXED: In pre-debut, always prioritize WIT if available
+  # FIXED: In pre-debut, prioritize WIT if available, but use config ordering for others
   if is_pre_debut and "wit" in valid_trainings:
     wit_data = valid_trainings["wit"]
     total_score = wit_data.get("total_score", 0)
@@ -173,7 +178,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """
   Enhanced training decision with new priority strategy system and medium energy logic
-  FIXED: Better fallback logic when no training meets threshold
+  FIXED: Return None when no training meets threshold (should try race instead)
   """
   if not results_training:
     print(f"[DEBUG] enhanced_training_decision: No results_training provided")
@@ -232,21 +237,16 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
       return result
     else:
       print(f"[DEBUG] No training meets score threshold {score_threshold}")
+      print(f"[INFO] No training meets {priority_strategy} threshold - should try race instead")
 
-      # FIXED: If no training meets threshold, use fallback with ANY available training
-      print(f"[INFO] No training meets {priority_strategy} threshold - using fallback logic")
-      fallback_result = most_support_card(filtered_results, current_date)
-      if fallback_result:
-        print(f"[INFO] Fallback training selected: {fallback_result}")
-        return fallback_result
-
+      # FIXED: Return None instead of fallback training when no training meets threshold
+      # This will trigger the race attempt in the main logic
       return None
 
 def medium_energy_wit_training(results, current_date):
   """
   Medium energy training - only WIT with enhanced score requirements
   Score 3+ normally, but Score 2+ in pre-debut
-  Enhanced with grouped NPC support
   """
   wit_data = results.get("wit")
   if not wit_data:
@@ -285,11 +285,6 @@ def medium_energy_wit_training(results, current_date):
 
 # Main training decision functions
 def most_support_card(results, current_date=None):
-  """
-  Enhanced most support card logic with hint and grouped NPC scoring
-  Used as fallback in very early game or when strategy doesn't apply
-  FIXED: WIT priority in pre-debut
-  """
   # Check if we're in Pre-Debut period (day < 24)
   is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 

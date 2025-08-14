@@ -133,7 +133,7 @@ class RaceHandler:
             if self.check_stop():
                 return False
 
-            race_cards = match_template("assets/ui/g1_race.png", threshold=0.9)
+            race_cards = match_template("assets/ui/g1_race.png", threshold=0.8)
 
             if race_cards:
                 for x, y, w, h in race_cards:
@@ -177,7 +177,7 @@ class RaceHandler:
             if self.check_stop():
                 return False
 
-            race_cards = match_template("assets/ui/g2_race.png", threshold=0.9)
+            race_cards = match_template("assets/ui/g2_race.png", threshold=0.8)
 
             if race_cards:
                 for x, y, w, h in race_cards:
@@ -357,7 +357,7 @@ class RaceHandler:
                 view_result_btn_region.left, view_result_btn_region.top,
                 view_result_btn_region.width, view_result_btn_region.height
             )
-            time.sleep(0.5)
+            time.sleep(5)
 
             # Triple click with slight randomization for skipping
             for i in range(3):
@@ -365,7 +365,7 @@ class RaceHandler:
                     return False
 
                 # Random click in center area with offset
-                random_screen_click(offset_range=50)
+                random_screen_click(offset_range=0)
                 time.sleep(0.5)
 
         return True

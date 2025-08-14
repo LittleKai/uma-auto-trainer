@@ -90,7 +90,7 @@ class TrainingHandler:
                 return first_result
 
             # Small delay between checks for stability
-            time.sleep(0.1)
+            time.sleep(0.05)
 
             support_counts = check_support_card(
                 is_pre_debut=is_pre_debut,
@@ -170,32 +170,51 @@ class TrainingHandler:
 
         results = {}
 
+        # Ensure mouse is not pressed before starting
+        pyautogui.mouseUp()
+        time.sleep(0.05)
+
         for key, icon_path in training_types.items():
             if self.check_stop():
                 break
 
             pos = pyautogui.locateCenterOnScreen(icon_path, confidence=0.8)
             if pos:
+                # Move to position without clicking
                 pyautogui.moveTo(pos, duration=0.1)
+
+                # Hold mouse down to show support cards (but don't click)
                 pyautogui.mouseDown()
+
+                # Small delay to let support cards appear
+                time.sleep(0.05)
 
                 # Use improved support checking with stability verification and NPC grouping
                 training_result = self.check_training_support_stable(key)
 
+                # IMMEDIATELY release mouse after checking
+                pyautogui.mouseUp()
+
+                # Small delay to prevent accidental clicks
+                time.sleep(0.05)
+
                 if training_result is None:  # Could be due to stop flag
-                    pyautogui.mouseUp()
                     break
 
                 results[key] = training_result
 
                 # Enhanced logging with hint and grouped NPC information
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
-                time.sleep(0.1)
 
+        # ENSURE mouse is released
         pyautogui.mouseUp()
+
+        # Exit training menu with enhanced click
         if not self.check_stop():
             enhanced_click(
                 "assets/buttons/back_btn.png",
+                minSearch=1.0,
+                text="Exiting training menu after checking",
                 check_stop_func=self.check_stop,
                 check_window_func=self.check_window,
                 log_func=self.log
@@ -232,7 +251,7 @@ class TrainingHandler:
 
     def execute_training(self, training_type: str) -> bool:
         """
-        Execute the specified training with random clicking
+        Execute the specified training with safe clicking
 
         Args:
             training_type: Type of training to execute (spd, sta, pwr, guts, wit)
@@ -247,16 +266,24 @@ class TrainingHandler:
         if not self.check_window():
             return False
 
+        # Ensure mouse is not pressed
+        pyautogui.mouseUp()
+        time.sleep(0.1)
+
+        # Find the training button
         train_btn = pyautogui.locateOnScreen(f"assets/icons/train_{training_type}.png", confidence=0.8)
         if train_btn:
             if self.check_stop():
                 return False
 
-            # Triple click with random positions within the training button
+            # Use the existing triple_click_random function which is already imported
             triple_click_random((train_btn.left, train_btn.top, train_btn.width, train_btn.height))
-            return True
 
-        return False
+            self.log(f"[SUCCESS] Executed {training_type.upper()} training")
+            return True
+        else:
+            self.log(f"[ERROR] Could not find {training_type.upper()} training button")
+            return False
 
     def get_training_energy_requirements(self, training_type: str, current_date: Optional[Dict] = None) -> Dict[str, float]:
         """

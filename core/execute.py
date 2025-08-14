@@ -617,7 +617,7 @@ class DecisionEngine:
         return True
 
     def _check_medium_energy_training(self, current_date: Dict[str, Any]) -> bool:
-        """Check medium energy WIT training with cache optimization"""
+        """Check medium energy WIT training with proper menu handling"""
         if self.controller.check_should_stop():
             return False
 
@@ -635,7 +635,7 @@ class DecisionEngine:
             if self.controller.check_should_stop():
                 return False
 
-            # Check WIT training only
+            # Check WIT training only - this will automatically exit training menu
             time.sleep(0.5)
             results_training = self.controller.training_handler.check_all_training(MINIMUM_ENERGY_PERCENTAGE - 1)
 
@@ -650,7 +650,7 @@ class DecisionEngine:
         best_training = medium_energy_wit_training(results_training, current_date)
 
         if best_training:
-            # Execute WIT training
+            # Execute WIT training - need to go to training menu again
             if self.controller.check_should_stop():
                 return False
 
@@ -663,7 +663,7 @@ class DecisionEngine:
             self.controller.training_handler.execute_training(best_training)
             self.controller.log_message(f"Training: {best_training.upper()}")
         else:
-            # No suitable WIT training - rest
+            # No suitable WIT training - just rest (training menu already exited)
             self.controller.log_message("Medium energy - No suitable WIT training found. Resting.")
             self.controller.rest_handler.execute_rest()
 
@@ -828,7 +828,7 @@ class DecisionEngine:
                 self.controller.rest_handler.execute_rest()
 
         return True
-
+    
 class CareerLobbyManager:
     """Manages career lobby detection and navigation"""
 

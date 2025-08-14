@@ -94,15 +94,10 @@ def enhanced_click(img: str, confidence: float = 0.8, minSearch: float = 2,
     return False
 
 def random_screen_click(offset_range: int = 100) -> None:
-    """
-    Click at a random position near screen center
 
-    Args:
-        offset_range: Maximum offset from center in pixels
-    """
     try:
         screen_width, screen_height = pyautogui.size()
-        center_x = screen_width // 2 + random.randint(-offset_range, offset_range)
+        center_x = screen_width // 3  + random.randint(-offset_range, offset_range)
         center_y = screen_height // 2 + random.randint(-offset_range, offset_range)
         pyautogui.click(center_x, center_y)
     except Exception as e:

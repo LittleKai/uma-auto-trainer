@@ -2,7 +2,7 @@
   "priority_stat": ["spd", "pwr", "sta",  "wit", "guts"],
   "maximum_failure": 15,
   "minimum_energy_percentage": 40,
-  "critical_energy_percentage": 25,
+  "critical_energy_percentage": 20,
   "stat_caps": {
     "spd": 1120,
     "sta": 1120,

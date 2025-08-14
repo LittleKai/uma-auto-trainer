@@ -6,7 +6,7 @@ from core.ocr import extract_text, extract_number
 from core.recognizer import match_template
 from core.race_manager import DateManager
 
-from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION, ENERGY_BAR
+from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION, ENERGY_BAR, MOOD_PATTERNS
 
 # Global variable to store current date info
 current_date_info = None
@@ -77,7 +77,54 @@ def check_energy_percentage():
     print(f"[WARNING] Energy detection failed: {e}")
     return 100  # Return 100% if detection fails (safe default)
 
-# Check support card in each training
+# Enhanced mood detection with pattern matching for OCR errors
+def match_mood_with_patterns(ocr_text):
+  """
+  Match OCR text with mood patterns to handle OCR errors
+
+  Args:
+    ocr_text: Raw OCR text from mood detection
+
+  Returns:
+    str: Matched mood or "UNKNOWN" if no match found
+  """
+  ocr_text = ocr_text.upper().strip()
+
+  # First try exact match
+  if ocr_text in MOOD_LIST:
+    return ocr_text
+
+  # Try pattern matching for each mood
+  for mood, patterns in MOOD_PATTERNS.items():
+    for pattern in patterns:
+      # Direct match
+      if pattern == ocr_text:
+        print(f"[INFO] Mood pattern matched: '{ocr_text}' -> {mood}")
+        return mood
+
+      # Partial match for missing characters
+      if len(ocr_text) >= 2:
+        # Check if OCR text is contained in pattern (missing end characters)
+        if pattern.startswith(ocr_text):
+          print(f"[INFO] Mood partial match (missing end): '{ocr_text}' -> {mood}")
+          return mood
+
+        # Check if pattern is contained in OCR text (missing start characters)
+        if ocr_text.endswith(pattern):
+          print(f"[INFO] Mood partial match (missing start): '{ocr_text}' -> {mood}")
+          return mood
+
+        # Check for character substitution (allow 1-2 character differences)
+        if len(pattern) == len(ocr_text):
+          differences = sum(1 for a, b in zip(pattern, ocr_text) if a != b)
+          if differences <= 2:
+            print(f"[INFO] Mood fuzzy match ({differences} differences): '{ocr_text}' -> {mood}")
+            return mood
+
+  print(f"[WARNING] Mood not recognized with patterns: '{ocr_text}'")
+  return "UNKNOWN"
+
+# Check support card in each training with NPC grouping
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
@@ -88,12 +135,30 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     "friend": "assets/icons/support_card_type_friend.png"
   }
 
+  # NPC support icons - will be grouped as 'npc'
+  NPC_ICONS = {
+    "akikawa": "assets/icons/support_npc_akikawa.png",
+    "etsuko": "assets/icons/support_npc_etsuko.png"
+  }
+
   count_result = {}
 
   # Count regular support cards
   for key, icon_path in SUPPORT_ICONS.items():
     matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
     count_result[key] = len(matches)
+
+  # Count NPC support cards and group them as 'npc'
+  total_npc_count = 0
+  for npc_name, icon_path in NPC_ICONS.items():
+    matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
+    npc_found = len(matches)
+    total_npc_count += npc_found
+    if npc_found > 0:
+      print(f"[INFO] Found {npc_found} {npc_name} NPC support cards")
+
+  # Add grouped NPC count
+  count_result["npc"] = total_npc_count
 
   # Find hint cards
   hint_matches = match_template("assets/icons/support_card_hint.png", SUPPORT_CARD_ICON_REGION, threshold)
@@ -113,6 +178,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
       hint_score = effective_hints * 0.5  # Each hint = 0.5 point (max 1)
       print(f"[INFO] Found {hint_count} hint cards, counting {effective_hints} for score (Day {absolute_day} >= 36: 0.5 score max)")
 
+  # Calculate NPC score - each NPC adds 0.5 score
+  npc_score = total_npc_count * 0.5
+  if total_npc_count > 0:
+    print(f"[INFO] Found {total_npc_count} total NPC support cards, adding {npc_score} to score")
+
   # In Pre-Debut period (day < 24), friend cards count as the current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
     friend_count = count_result["friend"]
@@ -120,25 +190,28 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     count_result[training_type] = count_result.get(training_type, 0) + friend_count
     print(f"[INFO] Pre-Debut: {friend_count} friend cards added to {training_type.upper()} training")
 
-  # Calculate total support (excluding hint)
-  total_support = sum(count_result.values())
+  # Calculate total support (excluding hint and NPC)
+  total_support = sum(count for key, count in count_result.items()
+                      if key not in ["hint", "npc"])
 
-  # Calculate total score with rainbow bonus and hint
+  # Calculate total score with rainbow bonus, hint, and NPC
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
   if is_rainbow_stage and training_type:
     # Rainbow stage: rainbow cards = 2 points, others = 1 point
     rainbow_count = count_result.get(training_type, 0)
     other_support = total_support - rainbow_count
-    total_score = (rainbow_count * 2) + other_support + hint_score
-    print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints = {total_score}")
+    total_score = (rainbow_count * 2) + other_support + hint_score + npc_score
+    print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
   else:
     # Normal stage: all = 1 point
-    total_score = total_support + hint_score
+    total_score = total_support + hint_score + npc_score
 
-  # Add hint to results
+  # Add additional info to results
   count_result["hint"] = hint_count
   count_result["hint_score"] = hint_score
+  count_result["npc_count"] = total_npc_count
+  count_result["npc_score"] = npc_score
   count_result["total_score"] = total_score
 
   return count_result
@@ -171,11 +244,18 @@ def check_failure():
 
   return -1
 
-# Check mood
+# Enhanced mood check with pattern matching
 def check_mood():
   mood = capture_region(MOOD_REGION)
   mood_text = extract_text(mood).upper()
 
+  # Use enhanced pattern matching for mood detection
+  detected_mood = match_mood_with_patterns(mood_text)
+
+  if detected_mood != "UNKNOWN":
+    return detected_mood
+
+  # Fallback: try original method for exact matches
   for known_mood in MOOD_LIST:
     if known_mood in mood_text:
       return known_mood
@@ -190,7 +270,7 @@ def check_turn():
   print(f"Turn detected: {turn_text}")
 
   if "Race" in turn_text:
-  # if "Race Day" in turn_text:
+    # if "Race Day" in turn_text:
     return "Race Day"
 
   # sometimes easyocr misreads characters instead of numbers

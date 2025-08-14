@@ -35,12 +35,14 @@ def get_priority_by_stage(stat_key, current_date):
 
 def calculate_training_score(training_key, training_data, current_date):
   """
-  Calculate training score with rainbow bonus and hint scoring
-  Returns: (total_score, rainbow_count, hint_score, support_count)
+  Calculate training score with rainbow bonus, hint scoring, and grouped NPC scoring
+  Returns: (total_score, rainbow_count, hint_score, npc_score, support_count)
   """
   support_counts = training_data["support"]
   hint_score = training_data.get("hint_score", 0)
-  support_count = training_data.get("total_support", 0)
+  npc_score = training_data.get("npc_score", 0)
+  # Updated to exclude 'npc' from total_support calculation since it's now grouped
+  support_count = sum(count for key, count in support_counts.items() if key != "npc")
 
   # Check if in rainbow stage (day > 24)
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
@@ -49,31 +51,33 @@ def calculate_training_score(training_key, training_data, current_date):
     # After day 24: Rainbow support cards get 2 points
     rainbow_count = support_counts.get(training_key, 0)
     rainbow_score = rainbow_count * 2
-    other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
-    total_score = rainbow_score + other_support_score + hint_score
-    return total_score, rainbow_count, hint_score, support_count
+    other_support_score = sum(count for stat, count in support_counts.items()
+                              if stat != training_key and stat != "npc")
+    total_score = rainbow_score + other_support_score + hint_score + npc_score
+    return total_score, rainbow_count, hint_score, npc_score, support_count
   else:
     # Before/at day 24: All support cards count equally
-    total_score = support_count + hint_score
+    total_score = support_count + hint_score + npc_score
     rainbow_count = support_counts.get(training_key, 0)
-    return total_score, rainbow_count, hint_score, support_count
+    return total_score, rainbow_count, hint_score, npc_score, support_count
 
 def format_score_info(training_key, training_data, current_date):
-  """Format training score information for logging"""
-  total_score, rainbow_count, hint_score, support_count = calculate_training_score(training_key, training_data, current_date)
+  """Format training score information for logging with grouped NPC support"""
+  total_score, rainbow_count, hint_score, npc_score, support_count = calculate_training_score(training_key, training_data, current_date)
 
   is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
   hint_info = f" + {training_data.get('hint_count', 0)} hints ({hint_score})" if hint_score > 0 else ""
+  npc_info = f" + {training_data.get('npc_count', 0)} NPCs ({npc_score})" if npc_score > 0 else ""
 
   if is_rainbow_stage:
     other_supports = support_count - rainbow_count
-    return f"(score: {total_score} - {rainbow_count} rainbow × 2 + {other_supports} others × 1{hint_info})"
+    return f"(score: {total_score} - {rainbow_count} rainbow × 2 + {other_supports} others × 1{hint_info}{npc_info})"
   elif is_early_stage:
-    return f"(score: {total_score} - {support_count} supports{hint_info} - Early stage WIT priority)"
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Early stage WIT priority)"
   else:
-    return f"(score: {total_score} - {support_count} supports{hint_info})"
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info})"
 
 def extract_score_threshold(priority_strategy):
   """
@@ -95,7 +99,7 @@ def extract_score_threshold(priority_strategy):
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """
-  Find best training that meets minimum score threshold - FIXED VERSION
+  Find best training that meets minimum score threshold with enhanced grouped NPC support
   """
   if not results:
     return None
@@ -138,7 +142,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """
-  Enhanced training decision with new priority strategy system - RESPECTS STRATEGY IN ALL PERIODS
+  Enhanced training decision with new priority strategy system and medium energy logic
   """
   if not results_training:
     print(f"[DEBUG] enhanced_training_decision: No results_training provided")
@@ -163,10 +167,13 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
   for key, data in filtered_results.items():
     print(f"[DEBUG] Filtered - {key.upper()}: total_score={data.get('total_score', 'MISSING')}")
 
-  # Check energy level for low energy logic
-  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Low energy detected ({energy_percentage}%), using low energy logic")
-    return low_energy_training(filtered_results, current_date)
+  # Check energy level for medium energy logic (between critical and minimum)
+  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Medium energy detected ({energy_percentage}%), using medium energy WIT logic")
+    return medium_energy_wit_training(filtered_results, current_date)
+  elif energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Critical energy detected ({energy_percentage}%), no training allowed")
+    return None
 
   # Get strategy and date info
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
@@ -175,7 +182,6 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
   print(f"[DEBUG] Priority strategy: {priority_strategy}")
   print(f"[DEBUG] Is pre-debut: {is_pre_debut}")
 
-  # FIXED: Always respect strategy settings regardless of period
   # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
 
@@ -206,10 +212,51 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
 
     return result
 
+def medium_energy_wit_training(results, current_date):
+  """
+  Medium energy training - only WIT with enhanced score requirements
+  Score 3+ normally, but Score 2+ in pre-debut
+  Enhanced with grouped NPC support
+  """
+  wit_data = results.get("wit")
+  if not wit_data:
+    print(f"[DEBUG] Medium energy - No WIT training available")
+    return None
+
+  # Get current date info to check if in Pre-Debut period
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+  # Use total score (support + hint + grouped NPC)
+  total_score = wit_data.get("total_score", 0)
+
+  # Different score requirements based on career stage
+  required_score = 2.0 if is_pre_debut else 3.0
+
+  if total_score >= required_score:
+    support_breakdown = wit_data["support"]
+    hint_info = ""
+    if wit_data.get('hint_count', 0) > 0:
+      hint_info = f" + {wit_data['hint_count']} hints ({wit_data['hint_score']} score)"
+
+    npc_info = ""
+    if wit_data.get('npc_count', 0) > 0:
+      npc_info = f" + {wit_data['npc_count']} NPCs ({wit_data['npc_score']} score)"
+
+    stage_info = "Pre-Debut" if is_pre_debut else "Normal"
+    print(f"[INFO] Medium energy - WIT training selected with total score {total_score} (required: {required_score}+)")
+    print(f"[INFO] Breakdown: {wit_data['total_support']} supports{hint_info}{npc_info} ({stage_info})")
+    print(f"[INFO] Support types: {support_breakdown}")
+
+    return "wit"
+
+  stage_info = "Pre-Debut" if is_pre_debut else "Normal"
+  print(f"[INFO] Medium energy - WIT has insufficient score ({total_score}/{required_score}) for {stage_info} stage - should rest or race")
+  return None
+
 # Main training decision functions
 def most_support_card(results, current_date=None):
   """
-  Enhanced most support card logic with hint scoring
+  Enhanced most support card logic with hint and grouped NPC scoring
   Used as fallback in very early game or when strategy doesn't apply
   """
   # Check if we're in Pre-Debut period (day < 24)
@@ -271,7 +318,7 @@ def most_support_card(results, current_date=None):
 
 def low_energy_training(results, current_date=None):
   """
-  Enhanced low energy training logic with hint scoring
+  Enhanced low energy training logic with hint and grouped NPC scoring
   When energy is low, only train WIT if it has 3+ total score
   """
   wit_data = results.get("wit")
@@ -280,7 +327,7 @@ def low_energy_training(results, current_date=None):
     print(f"\n[INFO] Low energy - No WIT training available")
     return None
 
-  # For low energy WIT training, use total score (support + hint)
+  # For low energy WIT training, use total score (support + hint + grouped NPC)
   total_score = wit_data.get("total_score", 0)
 
   # Check if we're in Pre-Debut period (day < 24)
@@ -295,8 +342,12 @@ def low_energy_training(results, current_date=None):
     if wit_data.get('hint_count', 0) > 0:
       hint_info = f" + {wit_data['hint_count']} hints ({wit_data['hint_score']} score)"
 
+    npc_info = ""
+    if wit_data.get('npc_count', 0) > 0:
+      npc_info = f" + {wit_data['npc_count']} NPCs ({wit_data['npc_score']} score)"
+
     print(f"\n[INFO] Low energy - WIT training selected with total score {total_score}")
-    print(f"[INFO] Breakdown: {wit_data['total_support']} supports{hint_info}")
+    print(f"[INFO] Breakdown: {wit_data['total_support']} supports{hint_info}{npc_info}")
     print(f"[INFO] Support types: {support_breakdown}")
 
     if is_pre_debut:
@@ -310,7 +361,7 @@ def low_energy_training(results, current_date=None):
 
 def enhanced_fallback_training(results, current_date):
   """
-  Enhanced fallback training with proper hint scoring
+  Enhanced fallback training with proper hint and grouped NPC scoring
   Used when primary strategy doesn't find suitable training
   """
   if not results:
@@ -337,7 +388,7 @@ def enhanced_fallback_training(results, current_date):
 # Main decision function
 def do_something(results, energy_percentage=100, strategy_settings=None):
   """
-  Enhanced training decision with new priority strategy system
+  Enhanced training decision with new priority strategy system and grouped NPC support
   """
   year = check_current_year()
   current_stats = stat_state()
@@ -365,10 +416,15 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     print("[INFO] All stats capped or no valid training.")
     return None
 
-  # Check if energy is low
+  # Check if energy is critical
+  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[INFO] Energy is critical ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training allowed.")
+    return None
+
+  # Check if energy is medium (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-    print(f"[INFO] Energy is low ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using low energy training logic.")
-    return low_energy_training(filtered, current_date)
+    print(f"[INFO] Energy is medium ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using medium energy WIT logic.")
+    return medium_energy_wit_training(filtered, current_date)
 
   # Normal energy logic with new priority strategy system - ALWAYS RESPECT STRATEGY
   print(f"[INFO] Using strategy: {priority_strategy}")

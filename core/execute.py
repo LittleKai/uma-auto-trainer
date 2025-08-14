@@ -521,7 +521,7 @@ def career_lobby(gui=None):
                 time.sleep(1)
 
 def career_lobby_iteration(race_manager, gui=None):
-    """Single iteration of career lobby logic - WITH MANUAL EVENT HANDLING"""
+    """Single iteration of career lobby logic """
     try:
         # Get manual event handling setting
         manual_event_handling = False
@@ -529,31 +529,26 @@ def career_lobby_iteration(race_manager, gui=None):
             settings = gui.get_current_settings()
             manual_event_handling = settings.get('manual_event_handling', False)
 
-        # First check, event - WITH MANUAL HANDLING
+        # First check, event
         event_choice_found = pyautogui.locateCenterOnScreen("assets/icons/event_choice_1.png", confidence=0.8, minSearchTime=0.2)
 
         if event_choice_found:
             if manual_event_handling:
-                # Manual event handling - pause bot and wait for user
-                log_message("🎭 EVENT DETECTED! Manual event handling enabled - Bot paused.")
-                log_message("👆 Please select your event choice manually, then press F2 to resume.")
+                # Manual event handling - pause bot and wait for user action
+                log_message("🎭 EVENT DETECTED! Manual event handling enabled.")
+                log_message("⏳ Waiting for you to select event choice manually...")
 
                 if gui:
                     # Automatically pause the bot
                     gui.root.after(0, gui.pause_bot)
 
-                    # Wait until user resumes
-                    while gui.is_paused and gui.is_running:
-                        time.sleep(0.1)
+                # Wait with improved logic
+                event_handled = wait_for_event_completion(gui)
 
-                    if not gui.is_running:
-                        return False  # Bot was stopped
+                if not event_handled:
+                    return False  # Bot was stopped
 
-                else:
-                    # Non-GUI mode - just wait a bit and continue
-                    log_message("Manual event handling enabled but no GUI - continuing after 2 seconds")
-                    time.sleep(2)
-
+                log_message("✅ Event completed! Continuing bot...")
                 return True
             else:
                 # Automatic event handling (original behavior)
@@ -570,6 +565,8 @@ def career_lobby_iteration(race_manager, gui=None):
         if click(img="assets/buttons/cancel_btn.png", minSearch=0.2):
             return True
 
+        if click(img="assets/buttons/next2_btn.png", minSearch=0.2):
+            return True
         # Check if current menu is in career lobby
         tazuna_hint = pyautogui.locateCenterOnScreen("assets/ui/tazuna_hint.png", confidence=0.8, minSearchTime=0.2)
 
@@ -578,9 +575,8 @@ def career_lobby_iteration(race_manager, gui=None):
             time.sleep(1)
             return True
 
-        time.sleep(0.5)
+        time.sleep(1)
 
-        # [REST OF THE FUNCTION REMAINS THE SAME...]
         # Check if there is debuff status
         debuffed = pyautogui.locateOnScreen("assets/buttons/infirmary_btn2.png", confidence=0.9, minSearchTime=1)
         if debuffed:
@@ -688,7 +684,6 @@ def career_lobby_iteration(race_manager, gui=None):
                 else:
                     log_message("📍 Today's Races: None match current filters")
 
-        # [CONTINUE WITH REST OF ORIGINAL LOGIC...]
         # URA SCENARIO
         if year == "Finale Season" and turn == "Race Day":
             log_message("URA Finale")
@@ -883,6 +878,55 @@ def career_lobby_iteration(race_manager, gui=None):
     except Exception as e:
         log_message(f"Error in career lobby iteration: {e}")
         return False
+
+
+def wait_for_event_completion(gui=None, max_wait_time=300):
+    """
+    Wait for user to complete event manually
+    Returns True if event completed, False if bot was stopped
+    """
+    import time
+
+    start_time = time.time()
+
+    while True:
+        # Check if bot was stopped
+        if gui and not gui.is_running:
+            return False
+
+        # DELAY 2 GIÂY như yêu cầu
+        time.sleep(2.0)
+
+        # Check if event choice is still visible
+        event_still_present = pyautogui.locateCenterOnScreen("assets/icons/event_choice_1.png", confidence=0.8, minSearchTime=0.2)
+
+        if not event_still_present:
+            # Event is gone, check if we're back to normal game state
+            tazuna_hint = pyautogui.locateCenterOnScreen("assets/ui/tazuna_hint.png", confidence=0.8, minSearchTime=0.2)
+
+            if tazuna_hint:
+                # Back to main menu - event completed
+                if gui and gui.is_paused:
+                    gui.root.after(0, gui.pause_bot)  # Resume if still paused
+                return True
+            else:
+                # Check for other game states that indicate event is progressing
+                next_btn = pyautogui.locateCenterOnScreen("assets/buttons/next_btn.png", confidence=0.8, minSearchTime=0.2)
+                if next_btn:
+                    # Event is progressing, continue waiting
+                    continue
+
+        # Timeout check (5 minutes max)
+        if time.time() - start_time > max_wait_time:
+            log_message("⚠️ Event waiting timeout - resuming bot")
+            if gui and gui.is_paused:
+                gui.root.after(0, gui.pause_bot)  # Resume if still paused
+            return True
+
+        # Show waiting message every 30 seconds
+        elapsed = time.time() - start_time
+        if elapsed > 0 and int(elapsed) % 30 == 0:
+            log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
     """

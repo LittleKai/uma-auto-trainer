@@ -571,7 +571,7 @@ class UmaAutoGUI:
 
 def main():
   """Main function - create and run GUI"""
-  print("Uma Auto - Enhanced GUI Version with New Priority System!")
+  print("Uma Auto - Developed by LittleKai!")
   app = UmaAutoGUI()
   app.run()
 

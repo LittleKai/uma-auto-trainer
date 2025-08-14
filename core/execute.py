@@ -1,6 +1,3 @@
-"""
-Uma Musume Auto Train - Main Execution Controller
-"""
 import pyautogui
 import time
 import json
@@ -36,6 +33,11 @@ class BotController:
         self.should_stop = False
         self.career_lobby_attempts = 0
         self.log_callback = None
+
+        # Cache for training results to avoid re-checking
+        self.training_cache = {}
+        self.training_cache_timestamp = 0
+        self.training_cache_timeout = 30  # 30 seconds cache timeout
 
         # Initialize handlers
         self._init_handlers()
@@ -89,8 +91,6 @@ class BotController:
     def set_stop_flag(self, value: bool = True):
         """Set the stop flag (called by F3 key)"""
         self.should_stop = value
-        if value:
-            self.log_message("[STOP] F3 pressed - Stopping all bot operations")
 
     def check_should_stop(self) -> bool:
         """Check if bot should stop"""
@@ -123,12 +123,34 @@ class BotController:
 
         return False
 
+    def clear_training_cache(self):
+        """Clear training results cache"""
+        self.training_cache = {}
+        self.training_cache_timestamp = 0
+
+    def get_cached_training_results(self, energy_percentage: float) -> Optional[Dict]:
+        """Get cached training results if still valid"""
+        current_time = time.time()
+
+        # Check if cache is still valid (within timeout period)
+        if (current_time - self.training_cache_timestamp > self.training_cache_timeout):
+            return None
+
+        # Check if we have cached results for this energy level
+        cache_key = f"energy_{int(energy_percentage)}"
+        return self.training_cache.get(cache_key)
+
+    def cache_training_results(self, energy_percentage: float, results: Dict):
+        """Cache training results"""
+        cache_key = f"energy_{int(energy_percentage)}"
+        self.training_cache[cache_key] = results
+        self.training_cache_timestamp = time.time()
+
 class GameStateManager:
     """Manages current game state information"""
 
     def __init__(self, controller: BotController):
         self.controller = controller
-        self.current_state = {}
 
     def update_game_state(self) -> Dict[str, Any]:
         """Update and return current game state"""
@@ -490,21 +512,13 @@ class DecisionEngine:
                 priority_strategy, available_races, race_manager
             )
 
-            self.controller.log_message(f"Found {len(available_races)} races matching filters today:")
-            for race in available_races:
-                props = race_manager.extract_race_properties(race)
-                self.controller.log_message(
-                    f"  - {race['name']} ({props['track_type']}, {props['distance_type']}, {props['grade_type']})"
-                )
-
             if should_race_immediately:
                 self.controller.log_message(reason + " - Racing immediately")
                 if self.controller.check_should_stop():
                     return False
 
-                race_found = self.controller.race_handler.start_race_flow(
-                    allow_continuous_racing=allow_continuous_racing
-                )
+                # Use enhanced race flow with grade priority
+                race_found = self._execute_prioritized_race(available_races, race_manager, allow_continuous_racing, priority_strategy)
 
                 if race_found:
                     return True
@@ -518,8 +532,7 @@ class DecisionEngine:
                             log_func=self.controller.log_message
                         )
                         time.sleep(0.5)
-            else:
-                self.controller.log_message(reason + ", will check training first")
+
         else:
             # Log racing restrictions
             if DateManager.is_restricted_period(current_date):
@@ -533,21 +546,101 @@ class DecisionEngine:
         # Proceed to normal training
         return self._check_normal_training(game_state, strategy_settings, race_manager)
 
+    def _execute_prioritized_race(self, available_races, race_manager, allow_continuous_racing, priority_strategy):
+        """Execute race with proper grade priority checking"""
+        if self.controller.check_should_stop():
+            return False
+
+        # Click races button first
+        if not enhanced_click(
+                "assets/buttons/races_btn.png",
+                minSearch=10,
+                check_stop_func=self.controller.check_should_stop,
+                check_window_func=self.controller.is_game_window_active,
+                log_func=self.controller.log_message
+        ):
+            return False
+
+        if self.controller.check_should_stop():
+            return False
+
+        # Check for OK button (indicates more than 3 races recently)
+        ok_btn_found = False
+        if not self.controller.check_should_stop():
+            ok_btn_found = enhanced_click(
+                "assets/buttons/ok_btn.png",
+                minSearch=0.7,
+                check_stop_func=self.controller.check_should_stop,
+                check_window_func=self.controller.is_game_window_active,
+                log_func=self.controller.log_message
+            )
+
+        if ok_btn_found and not allow_continuous_racing:
+            self.controller.log_message("Continuous racing disabled - canceling race due to recent racing limit")
+            if not self.controller.check_should_stop():
+                enhanced_click(
+                    "assets/buttons/cancel_btn.png",
+                    minSearch=0.2,
+                    check_stop_func=self.controller.check_should_stop,
+                    check_window_func=self.controller.is_game_window_active,
+                    log_func=self.controller.log_message
+                )
+            return False
+
+        if self.controller.check_should_stop():
+            return False
+
+        # Determine grade priority based on strategy
+        prioritize_g1 = "G1" in priority_strategy
+        prioritize_g2 = "G2" in priority_strategy
+
+        # Select race with enhanced grade checking
+        race_found = self.controller.race_handler.select_race(
+            prioritize_g1=prioritize_g1,
+            prioritize_g2=prioritize_g2
+        )
+
+        if not race_found or self.controller.check_should_stop():
+            self.controller.log_message("No matching race found with required grade priority.")
+            return False
+
+        # Prepare for race
+        if not self.controller.race_handler.prepare_race() or self.controller.check_should_stop():
+            return False
+
+        time.sleep(1)
+
+        # Handle post-race
+        if not self.controller.race_handler.handle_after_race() or self.controller.check_should_stop():
+            return False
+
+        return True
+
     def _check_medium_energy_training(self, current_date: Dict[str, Any]) -> bool:
-        """Check medium energy WIT training"""
+        """Check medium energy WIT training with cache optimization"""
         if self.controller.check_should_stop():
             return False
 
-        # Go to training
-        if not self.controller.training_handler.go_to_training():
-            return True
+        # Check for cached training results first
+        cached_results = self.controller.get_cached_training_results(MINIMUM_ENERGY_PERCENTAGE - 1)
 
-        if self.controller.check_should_stop():
-            return False
+        if cached_results:
+            self.controller.log_message("Using cached training results for medium energy check")
+            results_training = cached_results
+        else:
+            # Go to training
+            if not self.controller.training_handler.go_to_training():
+                return True
 
-        # Check WIT training only
-        time.sleep(0.5)
-        results_training = self.controller.training_handler.check_all_training(MINIMUM_ENERGY_PERCENTAGE - 1)
+            if self.controller.check_should_stop():
+                return False
+
+            # Check WIT training only
+            time.sleep(0.5)
+            results_training = self.controller.training_handler.check_all_training(MINIMUM_ENERGY_PERCENTAGE - 1)
+
+            # Cache the results
+            self.controller.cache_training_results(MINIMUM_ENERGY_PERCENTAGE - 1, results_training)
 
         if self.controller.check_should_stop():
             return False
@@ -578,23 +671,33 @@ class DecisionEngine:
 
     def _check_normal_training(self, game_state: Dict[str, Any],
                                strategy_settings: Dict[str, Any], race_manager) -> bool:
-        """Check normal energy training"""
+        """Check normal energy training with cache optimization"""
         if self.controller.check_should_stop():
             return False
 
-        # Go to training
-        if not self.controller.training_handler.go_to_training():
-            self.controller.log_message("Training button is not found.")
-            return True
+        energy_percentage = game_state['energy_percentage']
 
-        if self.controller.check_should_stop():
-            return False
+        # Check for cached training results first
+        cached_results = self.controller.get_cached_training_results(energy_percentage)
 
-        # Check all training
-        time.sleep(0.5)
-        results_training = self.controller.training_handler.check_all_training(
-            game_state['energy_percentage']
-        )
+        if cached_results:
+            self.controller.log_message("Using cached training results")
+            results_training = cached_results
+        else:
+            # Go to training
+            if not self.controller.training_handler.go_to_training():
+                self.controller.log_message("Training button is not found.")
+                return True
+
+            if self.controller.check_should_stop():
+                return False
+
+            # Check all training
+            time.sleep(0.5)
+            results_training = self.controller.training_handler.check_all_training(energy_percentage)
+
+            # Cache the results
+            self.controller.cache_training_results(energy_percentage, results_training)
 
         if self.controller.check_should_stop():
             return False
@@ -602,7 +705,7 @@ class DecisionEngine:
         # Make training decision
         best_training = enhanced_training_decision(
             results_training,
-            game_state['energy_percentage'],
+            energy_percentage,
             strategy_settings,
             game_state['current_date']
         )
@@ -622,13 +725,13 @@ class DecisionEngine:
             self.controller.log_message(f"Training: {best_training.upper()}")
         else:
             # No suitable training - try racing or rest as fallback
-            return self._handle_no_training_fallback(game_state, strategy_settings, race_manager)
+            return self._handle_no_training_fallback(game_state, strategy_settings, race_manager, results_training)
 
         return True
 
     def _handle_no_training_fallback(self, game_state: Dict[str, Any],
-                                     strategy_settings: Dict[str, Any], race_manager) -> bool:
-        """Handle fallback when no suitable training is found - FIXED: Try race first, then fallback training only if needed"""
+                                     strategy_settings: Dict[str, Any], race_manager, training_results: Dict = None) -> bool:
+        """Handle fallback when no suitable training is found with cached results"""
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
@@ -636,7 +739,7 @@ class DecisionEngine:
 
         self.controller.log_message(f"No training meets {priority_strategy} strategy requirements")
 
-        # FIXED: Try racing as first priority fallback
+        # Try racing as first priority fallback
         if current_date:
             should_race, available_races = race_manager.should_race_today(current_date)
 
@@ -645,9 +748,10 @@ class DecisionEngine:
                 if self.controller.check_should_stop():
                     return False
 
-                race_found = self.controller.race_handler.start_race_flow(
-                    allow_continuous_racing=allow_continuous_racing
-                )
+                # Use enhanced race flow with grade priority
+                prioritize_g1 = "G1" in priority_strategy
+                prioritize_g2 = "G2" in priority_strategy
+                race_found = self._execute_prioritized_race(available_races, race_manager, allow_continuous_racing, priority_strategy)
 
                 if race_found:
                     self.controller.log_message(f"Strategy fallback: Race completed successfully")
@@ -666,36 +770,38 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        # FIXED: Only use training fallback if energy is below minimum threshold OR no races available
+        # Only use training fallback if energy is below minimum threshold OR no races available
         from utils.constants import MINIMUM_ENERGY_PERCENTAGE
 
         if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
             self.controller.log_message(f"Energy is low ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%) - Resting")
             self.controller.rest_handler.execute_rest()
         else:
-            # FIXED: Try any available training as final fallback only if energy is good AND no races
+            # Try any available training as final fallback only if energy is good AND no races
             should_race, available_races = race_manager.should_race_today(current_date) if current_date else (False, [])
 
             if not should_race:  # Only try training fallback if no races available
                 self.controller.log_message(f"No races available and energy is good ({energy_percentage}%) - Looking for any available training as final fallback")
 
-                # Go to training and check all available options
-                if not self.controller.training_handler.go_to_training():
-                    self.controller.log_message("Training button not found - Resting as final fallback")
-                    self.controller.rest_handler.execute_rest()
-                    return True
+                # Use cached training results if available, otherwise get fresh results
+                if training_results is None:
+                    # Go to training and check all available options
+                    if not self.controller.training_handler.go_to_training():
+                        self.controller.log_message("Training button not found - Resting as final fallback")
+                        self.controller.rest_handler.execute_rest()
+                        return True
 
-                time.sleep(0.5)
+                    time.sleep(0.5)
 
-                # Check all training without energy restrictions
-                results_training = self.controller.training_handler.check_all_training(100)
+                    # Check all training without energy restrictions
+                    training_results = self.controller.training_handler.check_all_training(100)
 
                 if self.controller.check_should_stop():
                     return False
 
                 # Use fallback logic to find any training
                 from core.logic import most_support_card
-                fallback_training = most_support_card(results_training, current_date)
+                fallback_training = most_support_card(training_results, current_date)
 
                 if fallback_training:
                     self.controller.log_message(f"Found fallback training: {fallback_training.upper()}")
@@ -749,6 +855,8 @@ class CareerLobbyManager:
             return True
         else:
             self.controller.reset_career_lobby_counter()
+            # Clear training cache when returning to lobby to ensure fresh results
+            self.controller.clear_training_cache()
             return True
 
     def handle_debuff_status(self) -> bool:

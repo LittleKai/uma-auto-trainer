@@ -4,7 +4,8 @@
     <list default="true" id="40ceee30-ab0c-4aec-867d-648540673701" name="Default Changelist" comment="update ocr">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/execute.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/execute.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/race_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/race_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constants.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,6 +126,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="update ocr" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755184486372" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755186705098" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -6,7 +6,7 @@ from core.click_handler import enhanced_click, random_click_in_region, move_to_r
 from core.recognizer import match_template
 
 class RaceHandler:
-    """Handles all race-related operations with enhanced grade detection"""
+    """Handles all race-related operations with simplified logic based on original"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -80,7 +80,7 @@ class RaceHandler:
         if self.check_stop():
             return False
 
-        # Select race with enhanced grade priority
+        # Select race using original logic
         race_found = self.select_race(prioritize_g1=prioritize_g1, prioritize_g2=prioritize_g2)
         if not race_found or self.check_stop():
             self.log("No race found or operation cancelled.")
@@ -98,13 +98,177 @@ class RaceHandler:
 
         return True
 
-    def handle_race_day(self) -> bool:
-        """
-        Handle scheduled race day
+    def select_race(self, prioritize_g1: bool = False, prioritize_g2: bool = False) -> bool:
+        if self.check_stop():
+            return False
 
-        Returns:
-            bool: True if race day was handled successfully
-        """
+        if not self.check_window():
+            return False
+
+        # Move to race list area
+        pyautogui.moveTo(x=560, y=680)
+        time.sleep(0.2)
+
+        # Handle G1 priority
+        if prioritize_g1:
+            return self._select_g1_race_original()
+
+        # Handle G2 priority (try G2 first, then G1)
+        elif prioritize_g2:
+            self.log("Looking for G2 race, fallback to G1.")
+            if self._select_g2_race_original():
+                return True
+            # Fallback to G1 if no G2 found
+            return self._select_g1_race_original()
+
+        # Default: any race
+        else:
+            return self._select_any_race_original()
+
+    def _select_g1_race_original(self) -> bool:
+        """Original G1 race selection logic"""
+        self.log("Looking for G1 race.")
+
+        for scroll_attempt in range(2):
+            if self.check_stop():
+                return False
+
+            race_cards = match_template("assets/ui/g1_race.png", threshold=0.9)
+
+            if race_cards:
+                for x, y, w, h in race_cards:
+                    if self.check_stop():
+                        return False
+
+                    # Original region logic
+                    region = (x, y, 310, 90)
+                    match_aptitude = pyautogui.locateCenterOnScreen(
+                        "assets/ui/match_track.png",
+                        confidence=0.8,
+                        minSearchTime=0.7,
+                        region=region
+                    )
+
+                    if match_aptitude:
+                        self.log("G1 race with matching aptitude found.")
+                        if self.check_stop():
+                            return False
+
+                        # Click on aptitude match
+                        pyautogui.moveTo(match_aptitude, duration=0.2)
+                        pyautogui.click()
+
+                        # Click race buttons
+                        return self._click_race_buttons_original()
+
+            # Scroll down to find more races
+            for i in range(4):
+                if self.check_stop():
+                    return False
+                pyautogui.scroll(-300)
+
+        self.log("No G1 race with matching aptitude found.")
+        return False
+
+    def _select_g2_race_original(self) -> bool:
+        self.log("Looking for G2 race.")
+
+        for scroll_attempt in range(2):
+            if self.check_stop():
+                return False
+
+            race_cards = match_template("assets/ui/g2_race.png", threshold=0.9)
+
+            if race_cards:
+                for x, y, w, h in race_cards:
+                    if self.check_stop():
+                        return False
+
+                    # Original region logic
+                    region = (x, y, 310, 90)
+                    match_aptitude = pyautogui.locateCenterOnScreen(
+                        "assets/ui/match_track.png",
+                        confidence=0.8,
+                        minSearchTime=0.7,
+                        region=region
+                    )
+
+                    if match_aptitude:
+                        self.log("G2 race with matching aptitude found.")
+                        if self.check_stop():
+                            return False
+
+                        # Click on aptitude match
+                        pyautogui.moveTo(match_aptitude, duration=0.2)
+                        pyautogui.click()
+
+                        # Click race buttons
+                        return self._click_race_buttons_original()
+
+            # Scroll down to find more races
+            for i in range(4):
+                if self.check_stop():
+                    return False
+                pyautogui.scroll(-300)
+
+        self.log("No G2 race with matching aptitude found.")
+        return False
+
+    def _select_any_race_original(self) -> bool:
+        self.log("Looking for any matching race.")
+
+        for scroll_attempt in range(4):
+            if self.check_stop():
+                return False
+
+            match_aptitude = pyautogui.locateCenterOnScreen(
+                "assets/ui/match_track.png",
+                confidence=0.8,
+                minSearchTime=0.7
+            )
+
+            if match_aptitude:
+                self.log("Matching race found.")
+                if self.check_stop():
+                    return False
+
+                # Click on aptitude match
+                pyautogui.moveTo(match_aptitude, duration=0.2)
+                pyautogui.click(match_aptitude)
+
+                # Click race buttons
+                return self._click_race_buttons_original()
+
+            # Scroll down to find more races
+            for i in range(4):
+                if self.check_stop():
+                    return False
+                pyautogui.scroll(-300)
+
+        return False
+
+    def _click_race_buttons_original(self) -> bool:
+        for i in range(2):
+            if self.check_stop():
+                return False
+
+            race_btn = pyautogui.locateCenterOnScreen(
+                "assets/buttons/race_btn.png",
+                confidence=0.8,
+                minSearchTime=2
+            )
+
+            if race_btn:
+                pyautogui.moveTo(race_btn, duration=0.2)
+                pyautogui.click(race_btn)
+                time.sleep(0.5)
+            else:
+                break
+
+        return True
+
+    def handle_race_day(self) -> bool:
+
         if self.check_stop():
             self.log("[STOP] Race day cancelled due to F3 press")
             return False
@@ -164,190 +328,6 @@ class RaceHandler:
 
         return True
 
-    def select_race(self, prioritize_g1: bool = False, prioritize_g2: bool = False) -> bool:
-        """
-        Select an appropriate race based on grade preferences
-
-        Args:
-            prioritize_g1: Whether to prioritize G1 races
-            prioritize_g2: Whether to prioritize G2 races
-
-        Returns:
-            bool: True if race was selected successfully
-        """
-        if self.check_stop():
-            return False
-
-        if not self.check_window():
-            return False
-
-        # Move to race list area with randomization
-        move_to_random_position(560, 680, offset_range=10)
-        time.sleep(0.2)
-
-        # Determine selection priority
-        if prioritize_g1:
-            return self._select_grade_race("G1")
-        elif prioritize_g2:
-            return self._select_grade_race("G2") or self._select_grade_race("G1")
-        else:
-            return self._select_any_race()
-
-    def _select_grade_race(self, grade: str) -> bool:
-        """
-        Select race of specific grade (G1, G2, or G3)
-
-        Args:
-            grade: Race grade to look for ("G1", "G2", or "G3")
-
-        Returns:
-            bool: True if race was selected successfully
-        """
-        self.log(f"Looking for {grade} race.")
-
-        # Define grade image mapping
-        grade_images = {
-            "G1": "assets/ui/g1_race.png",
-            "G2": "assets/ui/g2_race.png",
-            "G3": "assets/ui/g3_race.png"
-        }
-
-        if grade not in grade_images:
-            self.log(f"[ERROR] Unknown grade: {grade}")
-            return False
-
-        grade_image = grade_images[grade]
-
-        for scroll_attempt in range(2):
-            if self.check_stop():
-                return False
-
-            race_cards = match_template(grade_image, threshold=0.9)
-
-            if race_cards:
-                for x, y, w, h in race_cards:
-                    if self.check_stop():
-                        return False
-
-                    # Check for matching track/aptitude in this race card
-                    region = (x, y, 310, 90)
-                    match_aptitude = pyautogui.locateCenterOnScreen(
-                        "assets/ui/match_track.png",
-                        confidence=0.8,
-                        minSearchTime=0.7,
-                        region=region
-                    )
-
-                    if match_aptitude:
-                        self.log(f"{grade} race with matching aptitude found.")
-                        if self.check_stop():
-                            return False
-
-                        # Random click within the match region
-                        aptitude_region = pyautogui.locateOnScreen(
-                            "assets/ui/match_track.png",
-                            confidence=0.8,
-                            minSearchTime=0.1,
-                            region=region
-                        )
-
-                        if aptitude_region:
-                            random_click_in_region(
-                                aptitude_region.left, aptitude_region.top,
-                                aptitude_region.width, aptitude_region.height,
-                                duration=0.2
-                            )
-                        else:
-                            pyautogui.moveTo(match_aptitude, duration=0.2)
-                            pyautogui.click()
-
-                        # Click race button(s)
-                        return self._click_race_buttons()
-
-            # Scroll down to find more races
-            for scroll in range(4):
-                if self.check_stop():
-                    return False
-                pyautogui.scroll(-300)
-
-        self.log(f"No {grade} race with matching aptitude found.")
-        return False
-
-    def _select_g1_race(self) -> bool:
-        """Select G1 race specifically (legacy method for compatibility)"""
-        return self._select_grade_race("G1")
-
-    def _select_any_race(self) -> bool:
-        """Select any suitable race"""
-        self.log("Looking for any matching race.")
-
-        for scroll_attempt in range(4):
-            if self.check_stop():
-                return False
-
-            match_aptitude = pyautogui.locateCenterOnScreen(
-                "assets/ui/match_track.png",
-                confidence=0.8,
-                minSearchTime=0.7
-            )
-
-            if match_aptitude:
-                self.log("Matching race found.")
-                if self.check_stop():
-                    return False
-
-                # Random click within the match region
-                aptitude_region = pyautogui.locateOnScreen(
-                    "assets/ui/match_track.png",
-                    confidence=0.8,
-                    minSearchTime=0.1
-                )
-
-                if aptitude_region:
-                    random_click_in_region(
-                        aptitude_region.left, aptitude_region.top,
-                        aptitude_region.width, aptitude_region.height,
-                        duration=0.2
-                    )
-                else:
-                    pyautogui.moveTo(match_aptitude, duration=0.2)
-                    pyautogui.click()
-
-                # Click race button(s)
-                return self._click_race_buttons()
-
-            # Scroll down to find more races
-            for scroll in range(4):
-                if self.check_stop():
-                    return False
-                pyautogui.scroll(-300)
-
-        return False
-
-    def _click_race_buttons(self) -> bool:
-        """Click race buttons after selecting a race"""
-        for i in range(2):
-            if self.check_stop():
-                return False
-
-            race_btn_region = pyautogui.locateOnScreen(
-                "assets/buttons/race_btn.png",
-                confidence=0.8,
-                minSearchTime=2
-            )
-
-            if race_btn_region:
-                random_click_in_region(
-                    race_btn_region.left, race_btn_region.top,
-                    race_btn_region.width, race_btn_region.height,
-                    duration=0.2
-                )
-                time.sleep(0.5)
-            else:
-                break
-
-        return True
-
     def prepare_race(self) -> bool:
         """
         Prepare for race by watching results
@@ -391,12 +371,7 @@ class RaceHandler:
         return True
 
     def handle_after_race(self) -> bool:
-        """
-        Handle post-race UI interactions
 
-        Returns:
-            bool: True if post-race handling was successful
-        """
         if self.check_stop():
             return False
 

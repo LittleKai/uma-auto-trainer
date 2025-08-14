@@ -21,8 +21,8 @@ class UmaAutoGUI:
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
     window_width = 650
-    window_height = 900  # Increased height for new controls
-    x = screen_width // 2
+    window_height = 800
+    x = screen_width // 2 + 50
     y = (screen_height - window_height) // 2
 
     self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")

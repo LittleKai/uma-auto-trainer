@@ -287,13 +287,13 @@ def do_rest():
     ]
 
     for button_path, button_name in rest_attempts:
-        log_message(f"[DEBUG] Trying to find {button_name}")
+        # log_message(f"[DEBUG] Trying to find {button_name}")
 
         # Try to find the button with increased search time
         btn = pyautogui.locateCenterOnScreen(button_path, confidence=0.8, minSearchTime=1.0)
 
         if btn:
-            log_message(f"[INFO] Found {button_name} at {btn}")
+            # log_message(f"[INFO] Found {button_name} at {btn}")
             pyautogui.moveTo(btn, duration=0.15)
             pyautogui.click(btn)
 

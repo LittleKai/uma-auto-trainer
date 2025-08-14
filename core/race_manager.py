@@ -37,6 +37,7 @@ class DateManager:
             'Classiv': 'Classic',
             'Clasic': 'Classic',
             'Ciassic': 'Classic',
+            'Glassic': 'Classic',
             'Senlor': 'Senior',
             'Senor': 'Senior',
             'Junlor': 'Junior',

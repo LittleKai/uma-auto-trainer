@@ -79,15 +79,6 @@ def check_energy_percentage():
 
 # Enhanced mood detection with pattern matching for OCR errors
 def match_mood_with_patterns(ocr_text):
-  """
-  Match OCR text with mood patterns to handle OCR errors
-
-  Args:
-    ocr_text: Raw OCR text from mood detection
-
-  Returns:
-    str: Matched mood or "UNKNOWN" if no match found
-  """
   ocr_text = ocr_text.upper().strip()
 
   # First try exact match
@@ -127,12 +118,12 @@ def match_mood_with_patterns(ocr_text):
 # Check support card in each training with NPC grouping
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   SUPPORT_ICONS = {
-    "spd": "assets/icons/support_card_type_spd.png",
+    "spd": "assets/icons/support_card_type_spd1.png",
     "sta": "assets/icons/support_card_type_sta.png",
     "pwr": "assets/icons/support_card_type_pwr.png",
     "guts": "assets/icons/support_card_type_guts.png",
     "wit": "assets/icons/support_card_type_wit.png",
-    "friend": "assets/icons/support_card_type_friend.png"
+    "friend": "assets/icons/support_card_type_friend1.png"
   }
 
   # NPC support icons - will be grouped as 'npc'
@@ -183,29 +174,37 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   if total_npc_count > 0:
     print(f"[INFO] Found {total_npc_count} total NPC support cards, adding {npc_score} to score")
 
-  # In Pre-Debut period (day < 24), friend cards count as the current training type
+  # FIXED: In Pre-Debut period (day < 24), friend cards count as the current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
     friend_count = count_result["friend"]
     # Add friend cards to the current training type count
     count_result[training_type] = count_result.get(training_type, 0) + friend_count
-    print(f"[INFO] Pre-Debut: {friend_count} friend cards added to {training_type.upper()} training")
+    # Set friend count to 0 since they're now counted as training type
+    count_result["friend"] = 0
+    print(f"[INFO] Pre-Debut: {friend_count} friend cards converted to {training_type.upper()} training")
 
   # Calculate total support (excluding hint and NPC)
   total_support = sum(count for key, count in count_result.items()
                       if key not in ["hint", "npc"])
 
-  # Calculate total score with rainbow bonus, hint, and NPC
-  is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
-
-  if is_rainbow_stage and training_type:
-    # Rainbow stage: rainbow cards = 2 points, others = 1 point
-    rainbow_count = count_result.get(training_type, 0)
-    other_support = total_support - rainbow_count
-    total_score = (rainbow_count * 2) + other_support + hint_score + npc_score
-    print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
-  else:
-    # Normal stage: all = 1 point
+  # FIXED: Calculate total score - No rainbow bonus in pre-debut (day < 24)
+  if is_pre_debut:
+    # Pre-debut: all support = 1 point each, no rainbow bonus
     total_score = total_support + hint_score + npc_score
+    print(f"[INFO] Pre-Debut scoring: {total_support} supports × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
+  else:
+    # Check if in rainbow stage (day > 24)
+    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
+
+    if is_rainbow_stage and training_type:
+      # Rainbow stage: rainbow cards = 2 points, others = 1 point
+      rainbow_count = count_result.get(training_type, 0)
+      other_support = total_support - rainbow_count
+      total_score = (rainbow_count * 2) + other_support + hint_score + npc_score
+      print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
+    else:
+      # Normal stage: all = 1 point
+      total_score = total_support + hint_score + npc_score
 
   # Add additional info to results
   count_result["hint"] = hint_count

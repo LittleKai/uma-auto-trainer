@@ -22,13 +22,14 @@ def filter_by_stat_caps(results, current_stats):
   }
 
 def get_priority_by_stage(stat_key, current_date):
-  """Get stat priority based on career stage"""
-  is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+  """Get stat priority based on career stage - FIXED: Always prioritize WIT in pre-debut"""
+  is_early_stage = current_date and current_date.get('absolute_day', 0) < 24
 
   if is_early_stage:
-    # Day < 16: WIT > SPD > STA > PWR > GUTS
-    early_priority = ["wit", "spd", "sta", "pwr", "guts"]
-    return early_priority.index(stat_key) if stat_key in early_priority else 999
+    # Pre-debut (Day < 24): WIT > SPD > STA > PWR > GUTS
+    pre_debut_priority = ["wit", "spd", "sta", "pwr", "guts"]
+    return pre_debut_priority.index(stat_key) if stat_key in pre_debut_priority else 999
+
   else:
     # Normal priority from config
     return get_stat_priority(stat_key)
@@ -36,6 +37,7 @@ def get_priority_by_stage(stat_key, current_date):
 def calculate_training_score(training_key, training_data, current_date):
   """
   Calculate training score with rainbow bonus, hint scoring, and grouped NPC scoring
+  FIXED: No rainbow bonus in pre-debut period
   Returns: (total_score, rainbow_count, hint_score, npc_score, support_count)
   """
   support_counts = training_data["support"]
@@ -44,10 +46,16 @@ def calculate_training_score(training_key, training_data, current_date):
   # Updated to exclude 'npc' from total_support calculation since it's now grouped
   support_count = sum(count for key, count in support_counts.items() if key != "npc")
 
-  # Check if in rainbow stage (day > 24)
+  # Check if in pre-debut or rainbow stage
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
-  if is_rainbow_stage:
+  if is_pre_debut:
+    # Pre-debut: No rainbow bonus, all support cards = 1 point
+    total_score = support_count + hint_score + npc_score
+    rainbow_count = support_counts.get(training_key, 0)
+    return total_score, rainbow_count, hint_score, npc_score, support_count
+  elif is_rainbow_stage:
     # After day 24: Rainbow support cards get 2 points
     rainbow_count = support_counts.get(training_key, 0)
     rainbow_score = rainbow_count * 2
@@ -56,7 +64,7 @@ def calculate_training_score(training_key, training_data, current_date):
     total_score = rainbow_score + other_support_score + hint_score + npc_score
     return total_score, rainbow_count, hint_score, npc_score, support_count
   else:
-    # Before/at day 24: All support cards count equally
+    # Day 24 and before: All support cards count equally
     total_score = support_count + hint_score + npc_score
     rainbow_count = support_counts.get(training_key, 0)
     return total_score, rainbow_count, hint_score, npc_score, support_count
@@ -65,13 +73,16 @@ def format_score_info(training_key, training_data, current_date):
   """Format training score information for logging with grouped NPC support"""
   total_score, rainbow_count, hint_score, npc_score, support_count = calculate_training_score(training_key, training_data, current_date)
 
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
   is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
   hint_info = f" + {training_data.get('hint_count', 0)} hints ({hint_score})" if hint_score > 0 else ""
   npc_info = f" + {training_data.get('npc_count', 0)} NPCs ({npc_score})" if npc_score > 0 else ""
 
-  if is_rainbow_stage:
+  if is_pre_debut:
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Pre-Debut: No rainbow bonus, WIT priority)"
+  elif is_rainbow_stage:
     other_supports = support_count - rainbow_count
     return f"(score: {total_score} - {rainbow_count} rainbow × 2 + {other_supports} others × 1{hint_info}{npc_info})"
   elif is_early_stage:
@@ -100,11 +111,14 @@ def extract_score_threshold(priority_strategy):
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """
   Find best training that meets minimum score threshold with enhanced grouped NPC support
+  FIXED: Special WIT priority handling in pre-debut
   """
   if not results:
     return None
 
   print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
+
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 
   # Filter trainings that meet minimum score - use total_score from results
   valid_trainings = {}
@@ -120,11 +134,27 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   if not valid_trainings:
     print(f"\n[INFO] No training meets minimum score threshold {min_score_threshold}")
+
+    # FIXED: In pre-debut, try WIT even if below threshold if it has any support
+    if is_pre_debut and "wit" in results:
+      wit_score = results["wit"].get("total_score", 0)
+      if wit_score > 0:
+        print(f"[INFO] Pre-debut: WIT has {wit_score} score - training anyway due to WIT priority")
+        return "wit"
+
     return None
 
   print(f"[DEBUG] {len(valid_trainings)} trainings passed threshold: {list(valid_trainings.keys())}")
 
-  # Find best training among valid ones
+  # FIXED: In pre-debut, always prioritize WIT if available
+  if is_pre_debut and "wit" in valid_trainings:
+    wit_data = valid_trainings["wit"]
+    total_score = wit_data.get("total_score", 0)
+    score_info = format_score_info("wit", wit_data, current_date)
+    print(f"\n[INFO] Pre-debut WIT priority: WIT {score_info}")
+    return "wit"
+
+  # Find best training among valid ones using priority system
   best_training = max(
     valid_trainings.items(),
     key=lambda x: (
@@ -143,6 +173,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """
   Enhanced training decision with new priority strategy system and medium energy logic
+  FIXED: Better fallback logic when no training meets threshold
   """
   if not results_training:
     print(f"[DEBUG] enhanced_training_decision: No results_training provided")
@@ -198,19 +229,18 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
 
     if result:
       print(f"[DEBUG] Training decision: {result}")
+      return result
     else:
       print(f"[DEBUG] No training meets score threshold {score_threshold}")
 
-      # Optional: For very early game (Day < 10), provide fallback option
-      absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-      if absolute_day < 10:
-        print(f"[DEBUG] Very early game (Day {absolute_day}) - considering fallback")
-        fallback_result = most_support_card(filtered_results, current_date)
-        if fallback_result:
-          print(f"[DEBUG] Early game fallback selected: {fallback_result}")
-          return fallback_result
+      # FIXED: If no training meets threshold, use fallback with ANY available training
+      print(f"[INFO] No training meets {priority_strategy} threshold - using fallback logic")
+      fallback_result = most_support_card(filtered_results, current_date)
+      if fallback_result:
+        print(f"[INFO] Fallback training selected: {fallback_result}")
+        return fallback_result
 
-    return result
+      return None
 
 def medium_energy_wit_training(results, current_date):
   """
@@ -258,9 +288,19 @@ def most_support_card(results, current_date=None):
   """
   Enhanced most support card logic with hint and grouped NPC scoring
   Used as fallback in very early game or when strategy doesn't apply
+  FIXED: WIT priority in pre-debut
   """
   # Check if we're in Pre-Debut period (day < 24)
   is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+
+  # FIXED: In pre-debut, prioritize WIT if it has any score > 0
+  if is_pre_debut and "wit" in results:
+    wit_data = results["wit"]
+    wit_score = wit_data.get("total_score", 0)
+    if wit_score > 0:
+      score_info = format_score_info("wit", wit_data, current_date)
+      print(f"\n[INFO] Pre-debut WIT priority: WIT {score_info}")
+      return "wit"
 
   # Separate wit for special checking
   wit_data = results.get("wit")

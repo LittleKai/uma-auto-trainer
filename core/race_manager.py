@@ -36,6 +36,7 @@ class DateManager:
             'Uate': 'Late',
             'Lat': 'Late',
             'Lale': 'Late',
+            'Latee': 'Late',
             'Classiv': 'Classic',
             'Clasic': 'Classic',
             'Ciassic': 'Classic',

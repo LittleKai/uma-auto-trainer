@@ -13,6 +13,7 @@ current_date_info = None
 
 # Get Stat
 def stat_state():
+
   stat_regions = {
     "spd": (310, 723, 55, 20),
     "sta": (405, 723, 55, 20),
@@ -21,12 +22,25 @@ def stat_state():
     "wit": (690, 723, 55, 20)
   }
 
+  raw_values = {}
   result = {}
+
+  # Read raw OCR values first
   for stat, region in stat_regions.items():
     img = enhanced_screenshot(region)
-    val = extract_number(img)
-    digits = ''.join(filter(str.isdigit, val))
+    raw_val = extract_number(img)
+    raw_values[stat] = raw_val
+
+    # Process the value
+    digits = ''.join(filter(str.isdigit, raw_val))
     result[stat] = int(digits) if digits.isdigit() else 0
+
+  # Create single line log with both raw and processed values
+  raw_str = ", ".join([f"{stat}:'{raw_values[stat]}'" for stat in stat_regions.keys()])
+  processed_str = ", ".join([f"{stat}:{result[stat]}" for stat in stat_regions.keys()])
+
+  print(f"[STATS OCR] Raw: [{raw_str}] | Processed: [{processed_str}]")
+
   return result
 
 # Check energy percentage by counting gray pixels in energy bar
@@ -126,7 +140,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     "friend": "assets/icons/support_card_type_friend1.png"
   }
 
-  # NPC support icons - will be grouped as 'npc'
+  # NPC support icons grouped as 'npc'
   NPC_ICONS = {
     "akikawa": "assets/icons/support_npc_akikawa.png",
     "etsuko": "assets/icons/support_npc_etsuko.png"
@@ -145,8 +159,6 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
     npc_found = len(matches)
     total_npc_count += npc_found
-    if npc_found > 0:
-      print(f"[INFO] Found {npc_found} {npc_name} NPC support cards")
 
   # Add grouped NPC count
   count_result["npc"] = total_npc_count
@@ -155,7 +167,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   hint_matches = match_template("assets/icons/support_card_hint.png", SUPPORT_CARD_ICON_REGION, threshold)
   hint_count = len(hint_matches)
 
-  # Calculate hint score based on day - MAXIMUM 1 HINT COUNTS FOR SCORE
+  # Calculate hint score based on day - maximum 1 hint counts for score
   hint_score = 0
   if hint_count > 0 and current_date:
     absolute_day = current_date.get('absolute_day', 0)
@@ -164,47 +176,81 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
     if absolute_day < 36:
       hint_score = effective_hints * 1.0  # Each hint = 1 point (max 1)
-      print(f"[INFO] Found {hint_count} hint cards, counting {effective_hints} for score (Day {absolute_day} < 36: 1.0 score max)")
     else:
       hint_score = effective_hints * 0.5  # Each hint = 0.5 point (max 1)
-      print(f"[INFO] Found {hint_count} hint cards, counting {effective_hints} for score (Day {absolute_day} >= 36: 0.5 score max)")
 
   # Calculate NPC score - each NPC adds 0.5 score
   npc_score = total_npc_count * 0.5
-  if total_npc_count > 0:
-    print(f"[INFO] Found {total_npc_count} total NPC support cards, adding {npc_score} to score")
 
-  # FIXED: In Pre-Debut period (day < 24), friend cards count as the current training type
+  # Determine career stage based on absolute day
+  absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+
+  # Stage determination: Pre-debut (day < 24), Mid stage (24-48), Late stage (>48)
+  is_mid_stage = 24 <= absolute_day <= 48
+  is_late_stage = absolute_day > 48
+
+  # Handle friend cards in Pre-Debut period - convert to current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
     friend_count = count_result["friend"]
     # Add friend cards to the current training type count
     count_result[training_type] = count_result.get(training_type, 0) + friend_count
     # Set friend count to 0 since they're now counted as training type
     count_result["friend"] = 0
-    print(f"[INFO] Pre-Debut: {friend_count} friend cards converted to {training_type.upper()} training")
 
   # Calculate total support (excluding hint and NPC)
   total_support = sum(count for key, count in count_result.items()
                       if key not in ["hint", "npc"])
 
-  # FIXED: Calculate total score - No rainbow bonus in pre-debut (day < 24)
+  # Calculate total score based on career stage
   if is_pre_debut:
     # Pre-debut: all support = 1 point each, no rainbow bonus
     total_score = total_support + hint_score + npc_score
-    print(f"[INFO] Pre-Debut scoring: {total_support} supports × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
-  else:
-    # Check if in rainbow stage (day > 24)
-    is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
-    if is_rainbow_stage and training_type:
-      # Rainbow stage: rainbow cards = 2 points, others = 1 point
+  elif is_mid_stage:
+    # Mid stage (day 24-48): rainbow cards = 2 points, friend cards = 0.75 points, others = 1 point
+    if training_type:
       rainbow_count = count_result.get(training_type, 0)
-      other_support = total_support - rainbow_count
-      total_score = (rainbow_count * 2) + other_support + hint_score + npc_score
-      print(f"[INFO] Rainbow stage scoring: {rainbow_count} rainbow × 2 + {other_support} others × 1 + {hint_score} hints + {npc_score} NPC = {total_score}")
+      friend_count = count_result.get("friend", 0)
+      other_support = total_support - rainbow_count - friend_count
+
+      rainbow_score = rainbow_count * 2.0
+      friend_score = friend_count * 0.75
+      other_score = other_support * 1.0
+
+      total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
     else:
-      # Normal stage: all = 1 point
-      total_score = total_support + hint_score + npc_score
+      # No training type specified, treat friend cards as 0.75 points
+      friend_count = count_result.get("friend", 0)
+      other_support = total_support - friend_count
+      friend_score = friend_count * 0.75
+      other_score = other_support * 1.0
+
+      total_score = friend_score + other_score + hint_score + npc_score
+
+  elif is_late_stage:
+    # Late stage (day > 48): rainbow cards = 2.5 points, friend cards = 0.75 points, others = 1 point
+    if training_type:
+      rainbow_count = count_result.get(training_type, 0)
+      friend_count = count_result.get("friend", 0)
+      other_support = total_support - rainbow_count - friend_count
+
+      rainbow_score = rainbow_count * 2.5
+      friend_score = friend_count * 0.75
+      other_score = other_support * 1.0
+
+      total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
+    else:
+      # No training type specified, treat friend cards as 0.75 points
+      friend_count = count_result.get("friend", 0)
+      other_support = total_support - friend_count
+      friend_score = friend_count * 0.75
+      other_score = other_support * 1.0
+
+      total_score = friend_score + other_score + hint_score + npc_score
+
+  else:
+    # Early stage (day < 24 but not pre-debut): all = 1 point
+    total_score = total_support + hint_score + npc_score
 
   # Add additional info to results
   count_result["hint"] = hint_count
@@ -214,7 +260,6 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["total_score"] = total_score
 
   return count_result
-
 
 # Get failure chance (kept for compatibility but not used in low energy logic)
 def check_failure():

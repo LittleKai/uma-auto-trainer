@@ -17,7 +17,7 @@ from core.state import (
     check_turn, check_mood, check_current_year, check_criteria,
     get_current_date_info, check_energy_percentage
 )
-from core.logic import enhanced_training_decision, enhanced_fallback_training
+from core.logic import training_decision, fallback_training
 from core.recognizer import is_infirmary_active
 from core.race_manager import RaceManager, DateManager
 from utils.constants import (
@@ -495,7 +495,7 @@ class DecisionEngine:
             return False
 
         # Use enhanced training decision from core.logic directly
-        best_training = enhanced_training_decision(
+        best_training = training_decision(
             results_training,
             energy_percentage,
             strategy_settings,
@@ -543,7 +543,7 @@ class DecisionEngine:
 
                 # Use fallback training logic from core.logic directly
                 if results_training:
-                    fallback_result = enhanced_fallback_training(results_training, current_date)
+                    fallback_result = fallback_training(results_training, current_date)
                     if fallback_result:
                         best_key, score_info = fallback_result
                         if self.controller.check_should_stop():

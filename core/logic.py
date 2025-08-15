@@ -78,20 +78,16 @@ def format_score_info(training_key, training_data, current_date):
   """Format training score information for logging with grouped NPC support"""
   total_score, rainbow_count, hint_score, npc_score, support_count = calculate_training_score(training_key, training_data, current_date)
 
-  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
-  is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
+  is_early_stage = current_date and current_date.get('absolute_day', 0) < 24
   is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
 
   hint_info = f" + {training_data.get('hint_count', 0)} hints ({hint_score})" if hint_score > 0 else ""
   npc_info = f" + {training_data.get('npc_count', 0)} NPCs ({npc_score})" if npc_score > 0 else ""
 
-  if is_pre_debut:
-    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Pre-Debut: No rainbow bonus, WIT priority)"
+  if is_early_stage:
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Early Stage: No rainbow bonus, WIT priority)"
   elif is_rainbow_stage:
-    other_supports = support_count - rainbow_count
-    return f"(score: {total_score} - {rainbow_count} rainbow × 2 + {other_supports} others × 1{hint_info}{npc_info})"
-  elif is_early_stage:
-    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Early stage WIT priority)"
+    return f"(score: {total_score})"
   else:
     return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info})"
 
@@ -177,19 +173,16 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   print(f"\n[INFO] Best training meeting score {min_score_threshold}+: {best_key.upper()} {score_info}")
   return best_key
 
-def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
+def training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """
-  Enhanced training decision with new priority strategy system and medium energy logic
-  FIXED: Pre-Debut logic to choose highest score training
+  Enhanced training decision with new priority strategy system and grouped NPC support
+  Added mid-game energy restriction for low score training
   """
   if not results_training:
-    print(f"[DEBUG] enhanced_training_decision: No results_training provided")
     return None
 
-  print(f"[DEBUG] enhanced_training_decision: Received {len(results_training)} training results")
   for key, data in results_training.items():
     total_score = data.get('total_score', 'MISSING')
-    print(f"[DEBUG] Input data - {key.upper()}: total_score={total_score}")
 
   # Get current stats for caps filtering
   from core.state import stat_state
@@ -198,54 +191,120 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
   # Filter by stat caps
   filtered_results = filter_by_stat_caps(results_training, current_stats)
   if not filtered_results:
-    print(f"[DEBUG] All trainings filtered out by stat caps")
     return None
 
-  print(f"[DEBUG] After stat caps filtering: {len(filtered_results)} trainings remain")
-  for key, data in filtered_results.items():
-    print(f"[DEBUG] Filtered - {key.upper()}: total_score={data.get('total_score', 'MISSING')}")
+  # Check energy level for critical energy (no training allowed)
+  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    return None
 
   # Check energy level for medium energy logic (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Medium energy detected ({energy_percentage}%), using medium energy WIT logic")
     return medium_energy_wit_training(filtered_results, current_date)
-  elif energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Critical energy detected ({energy_percentage}%), no training allowed")
-    return None
+
+  # Mid-game energy restriction for low score training
+  absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+  if (absolute_day > 24 and
+          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < 50 and
+          energy_percentage >= CRITICAL_ENERGY_PERCENTAGE):
+
+    # Check if best available training score is <= 2.5
+    best_score = 0
+    for key, data in filtered_results.items():
+      total_score = data.get('total_score', 0)
+      if total_score > best_score:
+        best_score = total_score
+
+    if best_score <= 2.5:
+      return None
 
   # Get strategy and date info
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
   is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
-
-  print(f"[DEBUG] Priority strategy: {priority_strategy}")
-  print(f"[DEBUG] Is pre-debut: {is_pre_debut}")
 
   # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
 
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
-    print(f"[DEBUG] Race priority strategy detected - no training")
     return None
   else:
     # Score-based training strategy - APPLY TO ALL PERIODS
-    print(f"[DEBUG] Score-based strategy detected - threshold: {score_threshold}")
-
     result = find_best_training_by_score(filtered_results, current_date, score_threshold)
 
     if result:
-      print(f"[DEBUG] Training decision: {result}")
       return result
     else:
-      print(f"[DEBUG] No training meets score threshold {score_threshold}")
-
-      # FIXED: In Pre-Debut, use fallback to most_support_card logic if no training meets threshold
+      # In Pre-Debut, use fallback to most_support_card logic if no training meets threshold
       if is_pre_debut:
-        print(f"[INFO] Pre-Debut fallback: Using most support card logic")
         return most_support_card(filtered_results, current_date)
 
-      print(f"[INFO] No training meets {priority_strategy} threshold - should try race instead")
       return None
+
+
+def do_something(results, energy_percentage=100, strategy_settings=None):
+  """
+  Enhanced training decision with new priority strategy system and grouped NPC support
+  Added mid-game energy restriction for low score training
+  """
+  year = check_current_year()
+  current_stats = stat_state()
+
+  # Default strategy settings if not provided
+  if strategy_settings is None:
+    strategy_settings = {
+      'minimum_mood': 'NORMAL',
+      'priority_strategy': 'Train Score 2.5+'
+    }
+
+  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+
+  # Get current date info to check stage and Pre-Debut period
+  from core.state import get_current_date_info
+  current_date = get_current_date_info()
+
+  # Filter by stat caps
+  filtered = filter_by_stat_caps(results, current_stats)
+
+  if not filtered:
+    return None
+
+  # Check if energy is critical
+  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    return None
+
+  # Check if energy is medium (between critical and minimum)
+  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+    return medium_energy_wit_training(filtered, current_date)
+
+  # NEW: Mid-game energy restriction for low score training
+  absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+  if (absolute_day > 24 and
+          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < 50):
+
+    # Check if best available training score is <= 2.5
+    best_score = 0
+    for key, data in filtered.items():
+      # Calculate score for each training
+      total_score, _, _, _, _ = calculate_training_score(key, data, current_date)
+      if total_score > best_score:
+        best_score = total_score
+
+    if best_score <= 2.5:
+      return None
+
+
+  # Check priority strategy type
+  score_threshold = extract_score_threshold(priority_strategy)
+
+  if score_threshold is None:
+    # G1 or G2 strategy - prioritize racing, no training
+    return None
+  else:
+    # Score-based training strategy - APPLY REGARDLESS OF PERIOD
+    result = find_best_training_by_score(filtered, current_date, score_threshold)
+
+
+    return result
 
 def medium_energy_wit_training(results, current_date):
   """
@@ -415,7 +474,7 @@ def low_energy_training(results, current_date=None):
   print(f"\n[INFO] Low energy - WIT has insufficient score ({total_score}/3), should rest or race")
   return None
 
-def enhanced_fallback_training(results, current_date):
+def fallback_training(results, current_date):
   """
   Enhanced fallback training with proper hint and grouped NPC scoring
   Used when primary strategy doesn't find suitable training

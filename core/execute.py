@@ -358,14 +358,9 @@ class DecisionEngine:
 
         if mood_index < minimum_mood_index:
             # Check if in Pre-Debut period or Junior Year - skip recreation
-            is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
-            is_junior_year = "Junior Year" in year
+            is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
-            if is_pre_debut:
-                self.controller.log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Skipping recreation (Pre-Debut period)")
-            elif is_junior_year:
-                self.controller.log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Skipping recreation (Junior Year)")
-            else:
+            if not is_junior_year:
                 self.controller.log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
                 if self.controller.check_should_stop():
                     return False
@@ -392,14 +387,12 @@ class DecisionEngine:
                         self._click_back_button("Race not found. Critical energy - will rest.")
                         time.sleep(0.5)
                         self.controller.rest_handler.execute_rest()
-                        self.controller.log_message("Critical energy - Resting")
                     return True
             else:
                 self.controller.log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
                 if self.controller.check_should_stop():
                     return False
                 self.controller.rest_handler.execute_rest()
-                self.controller.log_message("Critical energy - Resting")
                 return True
 
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
@@ -480,7 +473,6 @@ class DecisionEngine:
             return False
 
         if not self.controller.training_handler.go_to_training():
-            self.controller.log_message("Training button is not found.")
             return True
 
         if self.controller.check_should_stop():
@@ -561,7 +553,6 @@ class DecisionEngine:
 
     def _do_race(self, prioritize_g1=False, prioritize_g2=False, allow_continuous_racing=True):
         if self.controller.check_should_stop():
-            self.controller.log_message("[STOP] Race cancelled due to F3 press")
             return False
 
         if not self.controller.is_game_window_active():
@@ -707,12 +698,9 @@ class StatusLogger:
         self.controller.log_message("=" * 50)
         self.controller.log_message(f"Year: {game_state['year']}")
         self.controller.log_message(f"Mood: {game_state['mood']}")
-        self.controller.log_message(f"Turn: {game_state['turn']}")
+        # self.controller.log_message(f"Turn: {game_state['turn']}")
         self.controller.log_message(f"Energy: {game_state['energy_percentage']}%")
         self.controller.log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'Train Score 2.5+')}")
-
-        if strategy_settings.get('manual_event_handling', False):
-            self.controller.log_message(f"Manual Events: Enabled")
 
         self._log_date_and_race_info(game_state['current_date'], race_manager)
 
@@ -733,16 +721,6 @@ class StatusLogger:
         from core.race_manager import DateManager
 
         if DateManager.is_restricted_period(current_date):
-            if current_date.get('is_pre_debut', False):
-                self.controller.log_message("📍 Racing Status: Disabled (Pre-Debut period)")
-            else:
-                absolute_day = current_date['absolute_day']
-
-                if absolute_day <= 16:
-                    self.controller.log_message(f"📍 Racing Status: Disabled (Career days 1-16 restriction, current: Day {absolute_day}/72)")
-                else:
-                    self.controller.log_message("📍 Racing Status: Disabled (July-August restriction)")
-
             # Show filtered races that would be available if not restricted
             if all_filtered_races:
                 self.controller.log_message(f"📍 Today's Races: {len(all_filtered_races)} matching filters (restricted)")
@@ -895,7 +873,6 @@ class MainExecutor:
         """Handle career completion scenario (unchanged)"""
         self.controller.log_message("🎉 CAREER COMPLETED! Finale Season detected.")
         self.controller.log_message("🎊 Congratulations! Your Uma Musume has finished their career!")
-        self.controller.log_message("🏆 Bot will now stop automatically.")
 
         if gui:
             gui.root.after(0, gui.stop_bot)

@@ -89,7 +89,6 @@ class RaceHandler:
         if not self.handle_after_race() or self.check_stop():
             return False
 
-        self._verify_lobby_return()
         return True
 
     def _select_race_by_panels(self) -> bool:
@@ -187,14 +186,14 @@ class RaceHandler:
             if grade_matches:
                 # Return the first (highest priority) match found
                 self.log(f"[DEBUG] Found {grade.upper()} race with match_track in panel")
-                return (grade.upper(), grade_matches[0])
+                return (grade.upper(), grade_matches)
 
         return None
 
     def _find_grade_and_match_track_pair(self, panel_region: tuple, grade: str) -> Optional[tuple]:
         """
         Find single grade indicator + match_track pair in the same panel
-        Returns: match_track position if both are found in the same race entry
+        Returns: match_track position tuple (x, y) if both are found in the same race entry
         """
         try:
             # Find first grade indicator in this panel
@@ -202,19 +201,24 @@ class RaceHandler:
             grade_location = find_template_position(
                 template_path=template_path,
                 region=panel_region,
-                threshold=0.9
+                threshold=0.9,
+                region_format='xywh'
             )
 
             if not grade_location:
-                self.log(f"[DEBUG] No {grade_location} indicator found in panel")
+                self.log(f"[DEBUG] No {grade.upper()} indicator found in panel")
                 return None
 
             # Find first match_track indicator in this panel
+            # Convert panel_region from (x, y, width, height) to (left, top, right, bottom)
+            left, top, width, height = panel_region
+            region_ltrb = (left, top, left + width, top + height)
+
             match_track_location = pyautogui.locateCenterOnScreen(
                 "assets/ui/match_track.png",
                 confidence=0.8,
                 minSearchTime=0.3,
-                region=panel_region
+                region=region_ltrb
             )
 
             if not match_track_location:
@@ -229,7 +233,8 @@ class RaceHandler:
 
             if vertical_distance <= 50 and horizontal_distance <= 300:  # Same race entry
                 self.log(f"[DEBUG] Found {grade.upper()} + match_track pair (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
-                return match_track_location
+                # Return tuple coordinates instead of pyautogui object
+                return (match_track_location.x, match_track_location.y)
             else:
                 self.log(f"[DEBUG] {grade.upper()} and match_track too far apart (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
                 return None
@@ -237,10 +242,6 @@ class RaceHandler:
         except Exception as e:
             self.log(f"[DEBUG] Error finding {grade.upper()} + match_track pair: {e}")
             return None
-
-    def _check_horizontal_overlap(self, rect1, rect2) -> bool:
-        """Check if two rectangles have horizontal overlap (same race row) - REMOVED"""
-        pass
 
     def _get_enabled_grades(self) -> list:
         """Get list of enabled grade filters"""
@@ -402,7 +403,6 @@ class RaceHandler:
         if not self.handle_after_race():
             return False
 
-        self._verify_lobby_return()
         return True
 
     def handle_ura_finale(self) -> bool:
@@ -437,43 +437,4 @@ class RaceHandler:
         self.prepare_race()
         time.sleep(1)
         self.handle_after_race()
-        self._verify_lobby_return()
-        return True
-
-    def _verify_lobby_return(self, max_attempts: int = 5) -> bool:
-        """Verify return to lobby after race completion"""
-        for attempt in range(max_attempts):
-            if self.check_stop():
-                return False
-
-            tazuna_hint = pyautogui.locateCenterOnScreen(
-                "assets/ui/tazuna_hint.png",
-                confidence=0.8,
-                minSearchTime=0.5
-            )
-
-            if tazuna_hint:
-                if attempt > 0:
-                    self.log(f"[DEBUG] Successfully returned to lobby (attempt {attempt + 1})")
-                return True
-
-            self.log(f"[DEBUG] Not yet in lobby, waiting... (attempt {attempt + 1}/{max_attempts})")
-
-            remaining_elements = [
-                "assets/buttons/next_btn.png",
-                "assets/buttons/next2_btn.png"
-            ]
-
-            for element in remaining_elements:
-                enhanced_click(
-                    element,
-                    minSearch=0.3,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=lambda msg: None
-                )
-
-            time.sleep(0.5)
-
-        self.log("[WARNING] Could not verify return to lobby, but continuing...")
         return True

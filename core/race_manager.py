@@ -233,16 +233,9 @@ class DateManager:
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
         month_num = date_info.get('month_num', 0)
 
-        # DEBUG: Print month checking
-        print(
-            f"[DEBUG] Checking restricted period: Month #{month_num} ({'Jul' if month_num == 7 else 'Aug' if month_num == 8 else date_info.get('month', 'Unknown')})")
-
-        if month_num == 7 or (month_num == 8 and date_info['day'] <= 2):
-            print(
-                f"[DEBUG] July-August restriction triggered: Month {month_num}, Day {date_info.get('day', 'Unknown')}")
+        if (month_num == 7 or month_num == 8) and date_info['day'] > 24:
             return True
-
-        print(f"[DEBUG] Not in restricted period")
+        
         return False
 
 

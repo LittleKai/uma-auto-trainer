@@ -51,11 +51,11 @@ class TrainingHandler:
 
         # Get current date info to check if in Pre-Debut period
         current_date = get_current_date_info()
-        is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+        is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
         # First check
         support_counts = check_support_card(
-            is_pre_debut=is_pre_debut,
+            is_pre_debut=is_junior_year,
             training_type=training_type,
             current_date=current_date
         )
@@ -93,7 +93,7 @@ class TrainingHandler:
             time.sleep(0.1)
 
             support_counts = check_support_card(
-                is_pre_debut=is_pre_debut,
+                is_pre_debut=is_junior_year,
                 training_type=training_type,
                 current_date=current_date
             )
@@ -262,11 +262,11 @@ class TrainingHandler:
         Returns:
             Dict with energy requirements for different scenarios
         """
-        is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+        is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
         if training_type == "wit" and current_date:
             # Medium energy WIT requirements
-            if is_pre_debut:
+            if is_junior_year:
                 return {
                     'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
                     'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,

@@ -3,6 +3,7 @@ import re
 import os
 from typing import Dict, List, Optional, Tuple
 
+
 class DateManager:
     """Manages date parsing and conversion from OCR text"""
 
@@ -26,13 +27,14 @@ class DateManager:
 
         # Fix common OCR mistakes
         ocr_fixes = {
-            'jLate': 'Late',
             'jEarly': 'Early',
             'Earlv': 'Early',
-            'Latv': 'Late',
-            'Eary': 'Early',
-            'Lat': 'Late',
             'Eariy': 'Early',
+            'Eary': 'Early',
+            'jLate': 'Late',
+            'Latv': 'Late',
+            'Uate': 'Late',
+            'Lat': 'Late',
             'Lale': 'Late',
             'Classiv': 'Classic',
             'Clasic': 'Classic',
@@ -40,13 +42,14 @@ class DateManager:
             'Glassic': 'Classic',
             'Senlor': 'Senior',
             'Senor': 'Senior',
+            'Seniom': 'Senior',
             'Junlor': 'Junior',
             'Yunior': 'Junior',
-            'Seniom': 'Senior',
+            'Juniom': 'Junior',
+            'Junionm': 'Junior',
             'Yean': 'Year',
             'pul': 'Jul',
-            'Juniom': 'Junior',
-            'Junionm': 'Junior'
+            'Noy': 'Nov',
         }
 
         for mistake, correction in ocr_fixes.items():
@@ -142,7 +145,8 @@ class DateManager:
                         }
 
                         print(f"[DEBUG] Successfully parsed: {result}")
-                        print(f"[DEBUG] Date details: {year} {month} {period} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month]}")
+                        print(
+                            f"[DEBUG] Date details: {year} {month} {period} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month]}")
                         return result
 
                 print(f"[WARNING] Date parse attempt {attempt + 1} failed for: '{year_text}' -> '{cleaned_text}'")
@@ -197,7 +201,8 @@ class DateManager:
                 }
 
                 print(f"[DEBUG] Emergency fallback result: {result}")
-                print(f"[DEBUG] Fallback date details: {year_found} {month_found} {period_found} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month_found]}")
+                print(
+                    f"[DEBUG] Fallback date details: {year_found} {month_found} {period_found} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month_found]}")
                 return result
 
         except Exception as e:
@@ -229,14 +234,17 @@ class DateManager:
         month_num = date_info.get('month_num', 0)
 
         # DEBUG: Print month checking
-        print(f"[DEBUG] Checking restricted period: Month #{month_num} ({'Jul' if month_num == 7 else 'Aug' if month_num == 8 else date_info.get('month', 'Unknown')})")
+        print(
+            f"[DEBUG] Checking restricted period: Month #{month_num} ({'Jul' if month_num == 7 else 'Aug' if month_num == 8 else date_info.get('month', 'Unknown')})")
 
         if month_num == 7 or (month_num == 8 and date_info['day'] <= 2):
-            print(f"[DEBUG] July-August restriction triggered: Month {month_num}, Day {date_info.get('day', 'Unknown')}")
+            print(
+                f"[DEBUG] July-August restriction triggered: Month {month_num}, Day {date_info.get('day', 'Unknown')}")
             return True
 
         print(f"[DEBUG] Not in restricted period")
         return False
+
 
 class RaceManager:
     """Manages race filtering and selection"""

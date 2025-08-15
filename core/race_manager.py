@@ -44,7 +44,9 @@ class DateManager:
             'Yunior': 'Junior',
             'Seniom': 'Senior',
             'Yean': 'Year',
-            'pul': 'Jul'
+            'pul': 'Jul',
+            'Juniom': 'Junior',
+            'Junionm': 'Junior'
         }
 
         for mistake, correction in ocr_fixes.items():

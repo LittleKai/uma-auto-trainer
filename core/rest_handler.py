@@ -40,9 +40,6 @@ class RestHandler:
         current_date = get_current_date_info()
         is_summer = self._is_summer_period(current_date)
 
-        if is_summer:
-            self.log(f"[INFO] Summer period detected")
-
         # Try to find rest buttons
         rest_attempts = self._get_rest_button_attempts()
 

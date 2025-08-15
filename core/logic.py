@@ -116,7 +116,7 @@ def extract_score_threshold(priority_strategy):
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """
   Find best training that meets minimum score threshold with enhanced grouped NPC support
-  FIXED: WIT priority in pre-debut, but still respect config ordering for other stats
+  FIXED: In Pre-Debut, prioritize highest score training even if not WIT
   """
   if not results:
     return None
@@ -140,26 +140,28 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   if not valid_trainings:
     print(f"\n[INFO] No training meets minimum score threshold {min_score_threshold}")
 
-    # FIXED: In pre-debut, try WIT even if below threshold if it has any support
-    if is_pre_debut and "wit" in results:
-      wit_score = results["wit"].get("total_score", 0)
-      if wit_score > 0:
-        print(f"[INFO] Pre-debut: WIT has {wit_score} score - training anyway due to WIT priority")
-        return "wit"
+    # FIXED: In pre-debut, try any training with score > 0, prioritize by score then WIT priority
+    if is_pre_debut:
+      # Find training with highest score > 0
+      valid_pre_debut = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
+      if valid_pre_debut:
+        best_pre_debut = max(
+          valid_pre_debut.items(),
+          key=lambda x: (
+            x[1].get("total_score", 0),  # Highest score first
+            -get_priority_by_stage(x[0], current_date)  # Then WIT priority
+          )
+        )
+        best_key, best_data = best_pre_debut
+        total_score = best_data.get("total_score", 0)
+        print(f"[INFO] Pre-debut: Using highest score training {best_key.upper()} with score {total_score}")
+        return best_key
 
     return None
 
   print(f"[DEBUG] {len(valid_trainings)} trainings passed threshold: {list(valid_trainings.keys())}")
 
-  # FIXED: In pre-debut, prioritize WIT if available, but use config ordering for others
-  if is_pre_debut and "wit" in valid_trainings:
-    wit_data = valid_trainings["wit"]
-    total_score = wit_data.get("total_score", 0)
-    score_info = format_score_info("wit", wit_data, current_date)
-    print(f"\n[INFO] Pre-debut WIT priority: WIT {score_info}")
-    return "wit"
-
-  # Find best training among valid ones using priority system
+  # Find best training among valid ones using score first, then priority
   best_training = max(
     valid_trainings.items(),
     key=lambda x: (
@@ -178,7 +180,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 def enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """
   Enhanced training decision with new priority strategy system and medium energy logic
-  FIXED: Return None when no training meets threshold (should try race instead)
+  FIXED: Pre-Debut logic to choose highest score training
   """
   if not results_training:
     print(f"[DEBUG] enhanced_training_decision: No results_training provided")
@@ -228,7 +230,6 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
   else:
     # Score-based training strategy - APPLY TO ALL PERIODS
     print(f"[DEBUG] Score-based strategy detected - threshold: {score_threshold}")
-    print(f"[DEBUG] Applying score threshold {score_threshold} regardless of career period")
 
     result = find_best_training_by_score(filtered_results, current_date, score_threshold)
 
@@ -237,10 +238,13 @@ def enhanced_training_decision(results_training, energy_percentage, strategy_set
       return result
     else:
       print(f"[DEBUG] No training meets score threshold {score_threshold}")
-      print(f"[INFO] No training meets {priority_strategy} threshold - should try race instead")
 
-      # FIXED: Return None instead of fallback training when no training meets threshold
-      # This will trigger the race attempt in the main logic
+      # FIXED: In Pre-Debut, use fallback to most_support_card logic if no training meets threshold
+      if is_pre_debut:
+        print(f"[INFO] Pre-Debut fallback: Using most support card logic")
+        return most_support_card(filtered_results, current_date)
+
+      print(f"[INFO] No training meets {priority_strategy} threshold - should try race instead")
       return None
 
 def medium_energy_wit_training(results, current_date):
@@ -285,17 +289,34 @@ def medium_energy_wit_training(results, current_date):
 
 # Main training decision functions
 def most_support_card(results, current_date=None):
+  """
+  FIXED: Pre-Debut logic to prioritize highest score, then WIT priority
+  """
   # Check if we're in Pre-Debut period (day < 24)
   is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 
-  # FIXED: In pre-debut, prioritize WIT if it has any score > 0
-  if is_pre_debut and "wit" in results:
-    wit_data = results["wit"]
-    wit_score = wit_data.get("total_score", 0)
-    if wit_score > 0:
-      score_info = format_score_info("wit", wit_data, current_date)
-      print(f"\n[INFO] Pre-debut WIT priority: WIT {score_info}")
-      return "wit"
+  # FIXED: In pre-debut, prioritize by score first, then WIT priority
+  if is_pre_debut:
+    # Find all trainings with score > 0
+    valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
+
+    if valid_trainings:
+      # Sort by score first, then by WIT priority
+      best_training = max(
+        valid_trainings.items(),
+        key=lambda x: (
+          x[1].get("total_score", 0),  # Highest score first
+          -get_priority_by_stage(x[0], current_date)  # Then WIT priority
+        )
+      )
+
+      best_key, best_data = best_training
+      score_info = format_score_info(best_key, best_data, current_date)
+      print(f"\n[INFO] Pre-debut best training: {best_key.upper()} {score_info}")
+      return best_key
+
+    print(f"\n[INFO] Pre-debut: No training with score > 0 found")
+    return None
 
   # Separate wit for special checking
   wit_data = results.get("wit")

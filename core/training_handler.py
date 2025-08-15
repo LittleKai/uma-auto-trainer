@@ -37,7 +37,7 @@ class TrainingHandler:
 
     def check_training_support_stable(self, training_type: str, max_retries: int = 3) -> Optional[Dict]:
         """
-        Check training support with stability verification, hint detection, and grouped NPC recognition
+        Check training support with stability verification based on execute_old logic
 
         Args:
             training_type: Type of training to check (spd, sta, pwr, guts, wit)
@@ -63,7 +63,7 @@ class TrainingHandler:
         # Get total_score from check_support_card (already calculated with grouped NPC support)
         total_score = support_counts.get("total_score", 0)
         total_support = sum(count for key, count in support_counts.items()
-                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "npc"])
+                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"])
 
         first_result = {
             'support': {k: v for k, v in support_counts.items()
@@ -89,8 +89,8 @@ class TrainingHandler:
             if self.check_stop():
                 return first_result
 
-            # Small delay between checks for stability
-            time.sleep(0.05)
+            # Small delay between checks for stability (from execute_old)
+            time.sleep(0.1)
 
             support_counts = check_support_card(
                 is_pre_debut=is_pre_debut,
@@ -99,7 +99,7 @@ class TrainingHandler:
             )
             total_score = support_counts.get("total_score", 0)
             total_support = sum(count for key, count in support_counts.items()
-                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "npc"])
+                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"])
 
             support_results.append({
                 'support': {k: v for k, v in support_counts.items()
@@ -129,7 +129,7 @@ class TrainingHandler:
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
         """
-        Check all available training options based on energy level
+        Check all available training options based on execute_old logic
 
         Args:
             energy_percentage: Current energy percentage
@@ -147,17 +147,17 @@ class TrainingHandler:
         current_date = get_current_date_info()
         is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
 
-        # Define which training types to check based on energy level
+        # Define which training types to check based on energy level (execute_old logic)
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             # Critical energy: no training check at all
             self.log(f"Critical energy ({energy_percentage}%), skipping all training checks")
             return {}
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-            # Medium energy: only check WIT with enhanced score requirements
+            # Low energy: only check WIT (from execute_old)
             training_types = {
                 "wit": "assets/icons/train_wit.png"
             }
-            self.log(f"Medium energy ({energy_percentage}%), only checking WIT training with enhanced score requirements")
+            self.log(f"Low energy ({energy_percentage}%), only checking WIT training")
         else:
             # Normal energy: check all training types
             training_types = {
@@ -170,51 +170,36 @@ class TrainingHandler:
 
         results = {}
 
-        # Ensure mouse is not pressed before starting
-        pyautogui.mouseUp()
-        time.sleep(0.05)
-
+        # Execute_old mouse handling logic
         for key, icon_path in training_types.items():
             if self.check_stop():
                 break
 
             pos = pyautogui.locateCenterOnScreen(icon_path, confidence=0.8)
             if pos:
-                # Move to position without clicking
                 pyautogui.moveTo(pos, duration=0.1)
-
-                # Hold mouse down to show support cards (but don't click)
                 pyautogui.mouseDown()
 
-                # Small delay to let support cards appear
-                time.sleep(0.05)
-
-                # Use improved support checking with stability verification and NPC grouping
+                # Use improved support checking with stability verification and hint detection
                 training_result = self.check_training_support_stable(key)
 
-                # IMMEDIATELY release mouse after checking
-                pyautogui.mouseUp()
-
-                # Small delay to prevent accidental clicks
-                time.sleep(0.05)
-
                 if training_result is None:  # Could be due to stop flag
+                    pyautogui.mouseUp()
                     break
 
                 results[key] = training_result
 
-                # Enhanced logging with hint and grouped NPC information
+                # Enhanced logging with hint information (execute_old style)
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
+                time.sleep(0.1)
 
-        # ENSURE mouse is released
+        # Execute_old mouse release and back logic
         pyautogui.mouseUp()
-
-        # Exit training menu with enhanced click
         if not self.check_stop():
             enhanced_click(
                 "assets/buttons/back_btn.png",
                 minSearch=1.0,
-                text="Exiting training menu after checking",
+                # text="Exiting training menu after checking",
                 check_stop_func=self.check_stop,
                 check_window_func=self.check_window,
                 log_func=self.log
@@ -223,7 +208,7 @@ class TrainingHandler:
         return results
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_pre_debut: bool) -> None:
-        """Log training result with detailed information including grouped NPC support"""
+        """Log training result with detailed information following execute_old format"""
         hint_info = ""
         if training_result.get('hint_count', 0) > 0:
             hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
@@ -232,26 +217,15 @@ class TrainingHandler:
         if training_result.get('npc_count', 0) > 0:
             npc_info = f" + {training_result['npc_count']} NPCs ({training_result['npc_score']} score)"
 
-        energy_status = ""
-        if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-            energy_status = " (Medium Energy - Score Based)"
-
-        # Show NPC count in support breakdown
-        support_display = dict(training_result['support'])
-        if training_result.get('npc_count', 0) > 0:
-            support_display['npc'] = training_result['npc_count']
-
+        # Execute_old logging format
         if is_pre_debut:
-            self.log(f"[{key.upper()}] → {support_display} "
-                     f"(score: {training_result['total_score']}{hint_info}{npc_info}) "
-                     f"(Pre-Debut{energy_status})")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info}) (Pre-Debut)")
         else:
-            self.log(f"[{key.upper()}] → {support_display} "
-                     f"(score: {training_result['total_score']}{hint_info}{npc_info}){energy_status}")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info})")
 
     def execute_training(self, training_type: str) -> bool:
         """
-        Execute the specified training with safe clicking
+        Execute the specified training with execute_old logic (tripleClick)
 
         Args:
             training_type: Type of training to execute (spd, sta, pwr, guts, wit)
@@ -266,20 +240,12 @@ class TrainingHandler:
         if not self.check_window():
             return False
 
-        # Ensure mouse is not pressed
-        pyautogui.mouseUp()
-        time.sleep(0.1)
-
-        # Find the training button
-        train_btn = pyautogui.locateOnScreen(f"assets/icons/train_{training_type}.png", confidence=0.8)
+        # Execute_old logic: direct tripleClick without enhanced_click
+        train_btn = pyautogui.locateCenterOnScreen(f"assets/icons/train_{training_type}.png", confidence=0.8)
         if train_btn:
             if self.check_stop():
                 return False
-
-            # Use the existing triple_click_random function which is already imported
-            triple_click_random((train_btn.left, train_btn.top, train_btn.width, train_btn.height))
-
-            self.log(f"[SUCCESS] Executed {training_type.upper()} training")
+            pyautogui.tripleClick(train_btn, interval=0.1, duration=0.2)
             return True
         else:
             self.log(f"[ERROR] Could not find {training_type.upper()} training button")

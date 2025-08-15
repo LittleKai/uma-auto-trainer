@@ -176,7 +176,8 @@ PRIORITY_STRATEGIES = [
     "Train Score 2+",
     "Train Score 2.5+",
     "Train Score 3+",
-    "Train Score 3.5+"
+    "Train Score 3.5+",
+    "Train Score 4+"
 ]
 
 MINIMUM_MOODS = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]

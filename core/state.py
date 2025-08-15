@@ -132,7 +132,7 @@ def match_mood_with_patterns(ocr_text):
 # Check support card in each training with NPC grouping
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   SUPPORT_ICONS = {
-    "spd": "assets/icons/support_card_type_spd1.png",
+    "spd": "assets/icons/support_card_type_spd2.png",
     "sta": "assets/icons/support_card_type_sta.png",
     "pwr": "assets/icons/support_card_type_pwr.png",
     "guts": "assets/icons/support_card_type_guts.png",

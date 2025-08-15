@@ -106,6 +106,8 @@ def extract_score_threshold(priority_strategy):
     return 3.0
   elif "Score 3.5+" in priority_strategy:
     return 3.5
+  elif "Score 4+" in priority_strategy:
+    return 4.0
   else:
     return 2.5  # Default threshold
 

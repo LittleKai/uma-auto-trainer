@@ -152,7 +152,8 @@ class UmaAutoGUI:
                                        "Train Score 2+",
                                        "Train Score 2.5+",
                                        "Train Score 3+",
-                                       "Train Score 3.5+"
+                                       "Train Score 3.5+",
+                                       "Train Score 4+"
                                      ],
                                      state="readonly", width=20)
     priority_dropdown.grid(row=0, column=3, sticky=tk.W)

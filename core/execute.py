@@ -17,13 +17,14 @@ from core.state import (
     check_turn, check_mood, check_current_year, check_criteria,
     get_current_date_info, check_energy_percentage
 )
-from core.logic import enhanced_training_decision
+from core.logic import enhanced_training_decision, enhanced_fallback_training
 from core.recognizer import is_infirmary_active
 from core.race_manager import RaceManager, DateManager
 from utils.constants import (
     MOOD_LIST, MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE,
     MAX_CAREER_LOBBY_ATTEMPTS
 )
+
 
 class BotController:
     """Main bot controller that orchestrates all operations"""
@@ -108,8 +109,6 @@ class BotController:
 
     def increment_career_lobby_counter(self) -> bool:
         """Increment career lobby counter and check limits"""
-        from utils.constants import MAX_CAREER_LOBBY_ATTEMPTS
-
         self.career_lobby_attempts += 1
 
         if self.career_lobby_attempts >= MAX_CAREER_LOBBY_ATTEMPTS:
@@ -120,13 +119,16 @@ class BotController:
 
         return False
 
+
 class GameStateManager:
+    """Manages current game state information"""
 
     def __init__(self, controller: BotController):
         self.controller = controller
         self.current_state = {}
 
     def update_game_state(self) -> Dict[str, Any]:
+        """Update and return current game state"""
         try:
             mood = check_mood()
             turn = check_turn()
@@ -157,7 +159,7 @@ class GameStateManager:
             return self.current_state
 
         except Exception as e:
-            self.controller.log_message(f"Error in career lobby iteration: {e}")
+            self.controller.log_message(f"Error in game state update: {e}")
             # Return safe fallback state
             return {
                 'mood': 'UNKNOWN',
@@ -174,7 +176,7 @@ class GameStateManager:
             }
 
     def is_career_completed(self) -> bool:
-
+        """Check if career is completed"""
         return self.current_state.get('current_date', {}).get('is_finale', False)
 
     def is_race_day(self) -> bool:
@@ -186,13 +188,16 @@ class GameStateManager:
         return (self.current_state.get('year') == "Finale Season" and
                 self.current_state.get('turn') == "Race Day")
 
+
 class EventHandler:
+    """Handles UI events and manual event processing"""
 
     def __init__(self, controller: BotController):
         self.controller = controller
 
     def handle_ui_elements(self, gui=None) -> bool:
-
+        """Handle various UI elements with priority order"""
+        # Priority 1: Handle event choices first (highest priority)
         event_choice_found = pyautogui.locateCenterOnScreen(
             "assets/icons/event_choice_1.png",
             confidence=0.8,
@@ -221,13 +226,13 @@ class EventHandler:
                 if not event_handled:
                     return False  # Bot was stopped
 
-                self.controller.log_message("✅ Event completed! Continuing bot...")
                 return True
             else:
                 # Automatic event handling (original behavior)
                 if self._click("assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
                     return True
 
+        # Priority 2: Handle other UI elements
         if self._click("assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
             return True
 
@@ -243,6 +248,7 @@ class EventHandler:
         return False
 
     def _click(self, img, confidence=0.8, minSearch=2, click_count=1, text=""):
+        """Click UI element with stop and window checks"""
         if self.controller.check_should_stop():
             return False
 
@@ -262,7 +268,7 @@ class EventHandler:
         return False
 
     def _wait_for_event_completion(self, gui=None, max_wait_time=300):
-
+        """Wait for manual event completion"""
         import time
 
         start_time = time.time()
@@ -275,7 +281,7 @@ class EventHandler:
             if self.controller.check_should_stop():
                 return False
 
-            time.sleep(1)
+            time.sleep(0.5)
 
             # Check if event choice is still visible
             event_still_present = pyautogui.locateCenterOnScreen(
@@ -320,39 +326,39 @@ class EventHandler:
             if elapsed > 0 and int(elapsed) % 30 == 0:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
+
 class DecisionEngine:
+    """Makes training and racing decisions based on game state"""
 
     def __init__(self, controller: BotController):
         self.controller = controller
 
     def make_decision(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any],
                       race_manager, gui=None) -> bool:
+        """Make training/racing decision based on current game state"""
 
+        # Handle URA Finale
         if game_state['year'] == "Finale Season" and game_state['turn'] == "Race Day":
             self.controller.log_message("URA Finale")
             if self.controller.check_should_stop():
                 return False
-
-            # Use race handler with preserved timing
             return self.controller.race_handler.handle_ura_finale()
 
+        # Handle Race Day
         if game_state['turn'] == "Race Day" and game_state['year'] != "Finale Season":
             self.controller.log_message("Race Day.")
             if self.controller.check_should_stop():
                 return False
-
-            # Use race handler with preserved timing
             return self.controller.race_handler.handle_race_day()
 
         if self.controller.check_should_stop():
             return False
 
         mood = game_state['mood']
-        year = game_state['year']
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
 
-        MOOD_LIST = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT", "UNKNOWN"]
+        # Check mood requirements
         mood_index = MOOD_LIST.index(mood) if mood in MOOD_LIST else 0
         minimum_mood_index = MOOD_LIST.index(strategy_settings.get('minimum_mood', 'NORMAL'))
 
@@ -373,13 +379,14 @@ class DecisionEngine:
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
+        # Handle critical energy
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 self.controller.log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
                 if self.controller.check_should_stop():
                     return False
-                race_found = self._do_race(allow_continuous_racing=allow_continuous_racing)
+                race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
@@ -395,13 +402,14 @@ class DecisionEngine:
                 self.controller.rest_handler.execute_rest()
                 return True
 
+        # Handle low energy
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 self.controller.log_message(f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
                 if self.controller.check_should_stop():
                     return False
-                race_found = self._do_race(allow_continuous_racing=allow_continuous_racing)
+                race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
@@ -414,6 +422,7 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
+        # Handle normal energy with race priority check
         if current_date and energy_percentage >= MINIMUM_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
 
@@ -453,7 +462,7 @@ class DecisionEngine:
                 if race_matches_priority:
                     if self.controller.check_should_stop():
                         return False
-                    race_found = self._do_race(allow_continuous_racing=allow_continuous_racing)
+                    race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -472,6 +481,7 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
+        # Check training options
         if not self.controller.training_handler.go_to_training():
             return True
 
@@ -484,7 +494,13 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        best_training = self._enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
+        # Use enhanced training decision from core.logic directly
+        best_training = enhanced_training_decision(
+            results_training,
+            energy_percentage,
+            strategy_settings,
+            current_date
+        )
 
         if best_training:
             # Training found that meets strategy requirements
@@ -507,7 +523,7 @@ class DecisionEngine:
                     self.controller.log_message(f"Attempting race from {len(available_races)} available races as fallback.")
                     if self.controller.check_should_stop():
                         return False
-                    race_found = self._do_race(allow_continuous_racing=allow_continuous_racing)
+                    race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -525,9 +541,9 @@ class DecisionEngine:
                 # Energy is normal but no suitable strategy training found
                 self.controller.log_message(f"Normal energy but no {priority_strategy} training found - doing fallback training")
 
-                # Use fallback training logic with proper score-based scoring
+                # Use fallback training logic from core.logic directly
                 if results_training:
-                    fallback_result = self._enhanced_fallback_training(results_training, current_date)
+                    fallback_result = enhanced_fallback_training(results_training, current_date)
                     if fallback_result:
                         best_key, score_info = fallback_result
                         if self.controller.check_should_stop():
@@ -551,20 +567,8 @@ class DecisionEngine:
 
         return True
 
-    def _do_race(self, prioritize_g1=False, prioritize_g2=False, allow_continuous_racing=True):
-        if self.controller.check_should_stop():
-            return False
-
-        if not self.controller.is_game_window_active():
-            return False
-
-        return self.controller.race_handler.start_race_flow(
-            prioritize_g1=prioritize_g1,
-            prioritize_g2=prioritize_g2,
-            allow_continuous_racing=allow_continuous_racing
-        )
-
     def _click_back_button(self, text=""):
+        """Click back button with logging"""
         enhanced_click(
             "assets/buttons/back_btn.png",
             text=text,
@@ -572,74 +576,6 @@ class DecisionEngine:
             check_window_func=self.controller.is_game_window_active,
             log_func=self.controller.log_message
         )
-
-    def _enhanced_training_decision(self, results_training, energy_percentage, strategy_settings, current_date):
-        if self.controller.check_should_stop():
-            return None
-
-        if not results_training:
-            print(f"[DEBUG] enhanced_training_decision: No results_training provided")
-            return None
-
-        print(f"[DEBUG] enhanced_training_decision: Received {len(results_training)} training results")
-        for key, data in results_training.items():
-            print(f"[DEBUG] Input data - {key.upper()}: total_score={data.get('total_score', 'MISSING')}")
-
-        # Import the correct logic functions from core.logic
-        from core.logic import enhanced_training_decision as logic_enhanced_training_decision
-
-        # Use the proper logic function that handles score-based training and respects strategy
-        return logic_enhanced_training_decision(results_training, energy_percentage, strategy_settings, current_date)
-
-    def _enhanced_fallback_training(self, results, current_date):
-        from core.logic import get_stat_priority
-
-        is_rainbow_stage = current_date and current_date.get('absolute_day', 0) > 24
-        is_early_stage = current_date and current_date.get('absolute_day', 0) < 16
-
-        def calculate_fallback_score(training_key, training_data):
-            support_counts = training_data["support"]
-
-            if is_rainbow_stage:
-                rainbow_count = support_counts.get(training_key, 0)
-                rainbow_score = rainbow_count * 2
-                other_support_score = sum(count for stat, count in support_counts.items() if stat != training_key)
-                return rainbow_score + other_support_score, rainbow_count
-            else:
-                total_support = sum(support_counts.values())
-                rainbow_count = support_counts.get(training_key, 0)
-                return total_support, rainbow_count
-
-        def get_fallback_priority(stat_key):
-            if is_early_stage:
-                early_priority = ["wit", "spd", "sta", "pwr", "guts"]
-                return early_priority.index(stat_key) if stat_key in early_priority else 999
-            else:
-                return get_stat_priority(stat_key)
-
-        # Find best fallback training
-        fallback_training = max(
-            results.items(),
-            key=lambda x: (
-                calculate_fallback_score(x[0], x[1])[0],
-                -get_fallback_priority(x[0])
-            )
-        )
-
-        best_key, best_data = fallback_training
-        best_score, rainbow_count = calculate_fallback_score(best_key, best_data)
-
-        if best_score <= 0:
-            return None
-
-        if is_rainbow_stage:
-            score_info = f"(score: {best_score} - {rainbow_count} rainbow × 2 + {best_data['total_support'] - rainbow_count} others × 1)"
-        elif is_early_stage:
-            score_info = f"({best_data['total_support']} support cards - Early stage WIT priority)"
-        else:
-            score_info = f"({best_data['total_support']} support cards)"
-
-        return best_key, score_info
 
 
 class CareerLobbyManager:
@@ -649,6 +585,7 @@ class CareerLobbyManager:
         self.controller = controller
 
     def verify_lobby_state(self, gui=None) -> bool:
+        """Verify if currently in career lobby"""
         tazuna_hint = pyautogui.locateCenterOnScreen(
             "assets/ui/tazuna_hint.png",
             confidence=0.8,
@@ -656,17 +593,22 @@ class CareerLobbyManager:
         )
 
         if tazuna_hint is None:
+            # Not in lobby - log and increment counter
             self.controller.log_message("Should be in career lobby.")
 
+            # Check if we've exceeded maximum attempts
             if self.controller.increment_career_lobby_counter():
+                # Force stop the bot if too many failed attempts
                 if gui:
                     gui.root.after(0, gui.stop_bot)
                 return False
 
-            time.sleep(1)
-            return True
+            # Return False because we're NOT in lobby
+            return False
         else:
+            # Successfully detected career lobby, reset counter
             self.controller.reset_career_lobby_counter()
+            # Return True because we ARE in lobby
             return True
 
     def handle_debuff_status(self) -> bool:
@@ -677,34 +619,36 @@ class CareerLobbyManager:
             minSearchTime=1
         )
 
-        if debuffed and is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
-            if self.controller.check_should_stop():
-                return False
-
-            pyautogui.click(debuffed)
-            self.controller.log_message("Character has debuff, go to infirmary instead.")
-            return True
+        if debuffed:
+            if is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
+                if self.controller.check_should_stop():
+                    return False
+                pyautogui.click(debuffed)
+                self.controller.log_message("Character has debuff, go to infirmary instead.")
+                return True
 
         return False
 
+
 class StatusLogger:
+    """Handles status logging and GUI updates"""
 
     def __init__(self, controller: BotController):
         self.controller = controller
 
     def log_current_status(self, game_state: Dict[str, Any],
                            strategy_settings: Dict[str, Any], race_manager):
-
+        """Log current game status"""
         self.controller.log_message("=" * 50)
         self.controller.log_message(f"Year: {game_state['year']}")
         self.controller.log_message(f"Mood: {game_state['mood']}")
-        # self.controller.log_message(f"Turn: {game_state['turn']}")
         self.controller.log_message(f"Energy: {game_state['energy_percentage']}%")
         self.controller.log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'Train Score 2.5+')}")
 
         self._log_date_and_race_info(game_state['current_date'], race_manager)
 
     def _log_date_and_race_info(self, current_date: Dict[str, Any], race_manager):
+        """Log date and race information"""
         if not current_date:
             return
 
@@ -717,8 +661,6 @@ class StatusLogger:
 
         available_races = race_manager.get_available_races(current_date)
         all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
-
-        from core.race_manager import DateManager
 
         if DateManager.is_restricted_period(current_date):
             # Show filtered races that would be available if not restricted
@@ -742,6 +684,7 @@ class StatusLogger:
                 self.controller.log_message("📍 Today's Races: None match current filters")
 
     def update_gui_status(self, gui, game_state: Dict[str, Any]):
+        """Update GUI status displays"""
         if not gui:
             return
 
@@ -750,8 +693,9 @@ class StatusLogger:
 
         gui.update_energy_display(game_state['energy_percentage'])
 
+
 class MainExecutor:
-    """Main executor class with minimal timing changes, only adding verification"""
+    """Main executor class that orchestrates all bot operations"""
 
     def __init__(self):
         """Initialize the main executor"""
@@ -763,61 +707,16 @@ class MainExecutor:
         self.status_logger = StatusLogger(self.controller)
 
     def execute_single_iteration(self, race_manager, gui=None) -> bool:
-        """Execute single iteration of main bot logic with proper event handling order"""
+        """Execute single iteration of main bot logic"""
         try:
             if self.controller.check_should_stop():
                 return False
 
-            # Priority 1: Handle event choices first (highest priority)
-            event_choice_found = pyautogui.locateCenterOnScreen(
-                "assets/icons/event_choice_1.png",
-                confidence=0.8,
-                minSearchTime=0.2
-            )
-
-            if event_choice_found:
-                # Get manual event handling setting
-                manual_event_handling = False
-                if gui:
-                    settings = gui.get_current_settings()
-                    manual_event_handling = settings.get('manual_event_handling', False)
-
-                if manual_event_handling:
-                    # Manual event handling - pause bot and wait for user action
-                    self.controller.log_message("🎭 EVENT DETECTED! Manual event handling enabled.")
-                    self.controller.log_message("⏳ Waiting for you to select event choice manually...")
-
-                    if gui:
-                        # Automatically pause the bot
-                        gui.root.after(0, gui.pause_bot)
-
-                    # Wait with improved logic
-                    event_handled = self.event_handler._wait_for_event_completion(gui)
-
-                    if not event_handled:
-                        return False  # Bot was stopped
-
-                    self.controller.log_message("✅ Event completed! Continuing bot...")
-                    return True
-                else:
-                    # Automatic event handling (original behavior)
-                    if self.event_handler._click("assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
-                        return True
-
-            # Priority 2: Handle other UI elements (buttons, inspiration, etc.)
-            if self.event_handler._click("assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
+            # Priority 1: Handle UI elements first
+            if self.event_handler.handle_ui_elements(gui):
                 return True
 
-            if self.event_handler._click("assets/buttons/next_btn.png", minSearch=0.2):
-                return True
-
-            if self.event_handler._click("assets/buttons/cancel_btn.png", minSearch=0.2):
-                return True
-
-            if self.event_handler._click("assets/buttons/next2_btn.png", minSearch=0.2):
-                return True
-
-            # Priority 3: Check if we're in career lobby (after handling all UI elements)
+            # Priority 2: Check if we're in career lobby
             if not self.lobby_manager.verify_lobby_state(gui):
                 # Not in lobby - wait and try again in next iteration
                 time.sleep(1)
@@ -870,7 +769,7 @@ class MainExecutor:
             return False
 
     def _handle_career_completion(self, gui) -> bool:
-        """Handle career completion scenario (unchanged)"""
+        """Handle career completion scenario"""
         self.controller.log_message("🎉 CAREER COMPLETED! Finale Season detected.")
         self.controller.log_message("🎊 Congratulations! Your Uma Musume has finished their career!")
 
@@ -881,7 +780,7 @@ class MainExecutor:
         return False
 
     def _get_strategy_settings(self, gui) -> Dict[str, Any]:
-        """Get strategy settings from GUI or defaults (unchanged)"""
+        """Get strategy settings from GUI or defaults"""
         default_settings = {
             'minimum_mood': 'NORMAL',
             'priority_strategy': 'Train Score 2.5+',
@@ -894,61 +793,10 @@ class MainExecutor:
         return default_settings
 
 
-class CareerLobbyManager:
-
-    def __init__(self, controller: BotController):
-        self.controller = controller
-
-    def verify_lobby_state(self, gui=None) -> bool:
-        """
-        Verify if currently in career lobby
-        Returns True only if confirmed in lobby, False otherwise
-        """
-        tazuna_hint = pyautogui.locateCenterOnScreen(
-            "assets/ui/tazuna_hint.png",
-            confidence=0.8,
-            minSearchTime=0.2
-        )
-
-        if tazuna_hint is None:
-            # Not in lobby - log and increment counter
-            self.controller.log_message("Should be in career lobby.")
-
-            # Check if we've exceeded maximum attempts
-            if self.controller.increment_career_lobby_counter():
-                # Force stop the bot if too many failed attempts
-                if gui:
-                    gui.root.after(0, gui.stop_bot)
-                return False
-
-            # Return False because we're NOT in lobby
-            return False
-        else:
-            # Successfully detected career lobby, reset counter
-            self.controller.reset_career_lobby_counter()
-            # Return True because we ARE in lobby
-            return True
-
-    def handle_debuff_status(self) -> bool:
-        debuffed = pyautogui.locateOnScreen(
-            "assets/buttons/infirmary_btn2.png",
-            confidence=0.9,
-            minSearchTime=1  
-        )
-
-        if debuffed:
-            if is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
-                if self.controller.check_should_stop():
-                    return False
-                pyautogui.click(debuffed)
-                self.controller.log_message("Character has debuff, go to infirmary instead.")
-                return True
-
-        return False
-
-# Global instances and functions for backward compatibility
+# Global instances for backward compatibility
 _main_executor = None
 _global_controller = None
+
 
 def initialize_executor():
     """Initialize the main executor"""
@@ -957,6 +805,7 @@ def initialize_executor():
         _main_executor = MainExecutor()
         _global_controller = _main_executor.controller
 
+
 def get_controller() -> BotController:
     """Get the global controller instance"""
     global _global_controller
@@ -964,26 +813,31 @@ def get_controller() -> BotController:
         initialize_executor()
     return _global_controller
 
+
 # Global functions for external access
 def set_log_callback(callback: Callable[[str], None]):
     """Set the logging callback function"""
     controller = get_controller()
     controller.set_log_callback(callback)
 
+
 def set_stop_flag(value: bool = True):
     """Set the global stop flag (called when F3 is pressed)"""
     controller = get_controller()
     controller.set_stop_flag(value)
+
 
 def check_should_stop() -> bool:
     """Check if bot should stop due to F3 press"""
     controller = get_controller()
     return controller.check_should_stop()
 
+
 def log_message(message: str):
     """Log message using global controller"""
     controller = get_controller()
     controller.log_message(message)
+
 
 def career_lobby(gui=None):
     """Main career lobby function - entry point for bot execution"""
@@ -1026,7 +880,7 @@ def career_lobby(gui=None):
             if not _main_executor.execute_single_iteration(race_manager):
                 time.sleep(1)
 
-# Legacy function wrappers for backward compatibility
+
 def focus_umamusume():
     """Focus Umamusume window for compatibility"""
     try:
@@ -1042,6 +896,7 @@ def focus_umamusume():
         time.sleep(0.5)
     except Exception as e:
         print(f"Error focusing Umamusume window: {e}")
+
 
 # Export main classes for advanced usage
 __all__ = [

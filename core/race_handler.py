@@ -32,8 +32,6 @@ class RaceHandler:
         if not self.check_window():
             return False
 
-        self.log(f"[DEBUG] Starting race flow - any race selection with grade priority")
-
         # Click races button
         if not enhanced_click(
                 "assets/buttons/races_btn.png",
@@ -77,7 +75,6 @@ class RaceHandler:
         race_found = self._select_race_by_panels()
 
         if not race_found or self.check_stop():
-            self.log("[DEBUG] Race selection failed or operation cancelled")
             return False
 
         # Continue with race preparation
@@ -93,25 +90,19 @@ class RaceHandler:
 
     def _select_race_by_panels(self) -> bool:
         """Select race using panel-based detection with grade priority"""
-        self.log("Looking for races using panel-based detection.")
-        self.log(f"[DEBUG] Full race region: {RACE_REGION}")
 
         # Get enabled grades from filters
         enabled_grades = self._get_enabled_grades()
-        self.log(f"[DEBUG] Enabled grade filters: {enabled_grades}")
 
         # Calculate panel dimensions (split race region into smaller panels)
         left, top, width, height = RACE_REGION
         panel_height = height // 2  # Split vertically into 2 panels
         scroll_amount = panel_height  # Scroll by one panel height
 
-        self.log(f"[DEBUG] Panel height: {panel_height}, Scroll amount: {scroll_amount}")
 
-        for scroll_attempt in range(4):
+        for scroll_attempt in range(3):
             if self.check_stop():
                 return False
-
-            self.log(f"[DEBUG] Race selection scroll attempt {scroll_attempt + 1}/4")
 
             # Check both upper and lower panels
             panels = [
@@ -123,14 +114,12 @@ class RaceHandler:
                 if self.check_stop():
                     return False
 
-                self.log(f"[DEBUG] Checking panel {panel_index + 1}: {panel_region}")
 
                 # Find matching race in this panel
                 race_match = self._find_matching_race_in_panel(panel_region, enabled_grades)
 
                 if race_match:
                     grade, match_pos = race_match
-                    self.log(f"[DEBUG] Found {grade} race with match_track at {match_pos}")
 
                     # Click on the match position
                     pyautogui.moveTo(match_pos, duration=0.2)
@@ -174,10 +163,8 @@ class RaceHandler:
         enabled_priority_grades = [grade for grade in grade_priority if grade in enabled_grades]
 
         if not enabled_priority_grades:
-            self.log(f"[DEBUG] No enabled grades to check in panel")
             return None
 
-        self.log(f"[DEBUG] Checking panel for grades in priority order: {enabled_priority_grades}")
 
         # Check each grade in priority order
         for grade in enabled_priority_grades:
@@ -185,7 +172,6 @@ class RaceHandler:
 
             if grade_matches:
                 # Return the first (highest priority) match found
-                self.log(f"[DEBUG] Found {grade.upper()} race with match_track in panel")
                 return (grade.upper(), grade_matches)
 
         return None
@@ -206,7 +192,6 @@ class RaceHandler:
             )
 
             if not grade_location:
-                self.log(f"[DEBUG] No {grade.upper()} indicator found in panel")
                 return None
 
             # Find first match_track indicator in this panel
@@ -222,21 +207,16 @@ class RaceHandler:
             )
 
             if not match_track_location:
-                self.log(f"[DEBUG] No match_track found in panel for {grade.upper()}")
                 return None
-
-            self.log(f"[DEBUG] Found match_track at {match_track_location}")
 
             # Check if they are in the same race entry (vertically close)
             vertical_distance = abs(grade_location[1] - match_track_location.y)
             horizontal_distance = abs(grade_location[0] - match_track_location.x)
 
             if vertical_distance <= 50 and horizontal_distance <= 300:  # Same race entry
-                self.log(f"[DEBUG] Found {grade.upper()} + match_track pair (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
                 # Return tuple coordinates instead of pyautogui object
                 return (match_track_location.x, match_track_location.y)
             else:
-                self.log(f"[DEBUG] {grade.upper()} and match_track too far apart (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
                 return None
 
         except Exception as e:

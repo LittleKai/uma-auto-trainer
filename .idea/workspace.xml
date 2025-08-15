@@ -4,8 +4,9 @@
     <list default="true" id="40ceee30-ab0c-4aec-867d-648540673701" name="Default Changelist" comment="update ocr">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bot_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/bot_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/race_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/race_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/state.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/state.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/execute.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/execute.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/race_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/race_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constants.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +106,7 @@
       <workItem from="1755015792820" duration="1864000" />
       <workItem from="1755048496981" duration="20508000" />
       <workItem from="1755085273804" duration="19560000" />
-      <workItem from="1755220794137" duration="22224000" />
+      <workItem from="1755220794137" duration="24919000" />
     </task>
     <task id="LOCAL-00001" summary="update ocr">
       <created>1754969886923</created>
@@ -138,6 +139,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="update ocr" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755247892765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755250918241" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

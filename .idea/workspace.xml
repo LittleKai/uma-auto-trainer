@@ -2,12 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="40ceee30-ab0c-4aec-867d-648540673701" name="Default Changelist" comment="update ocr">
+      <change afterPath="$PROJECT_DIR$/assets/ui/g1_race1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ui/g1_race2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ui/g2_race1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ui/g2_race2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ui/g3_race1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ui/g3_race2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/bot_settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/execute.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/execute.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/race_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/race_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/race_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/race_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/rest_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/rest_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug_rest_fail.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/recognizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/recognizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constants.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +47,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/assets/icons" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/assets/ui" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -49,8 +55,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\Dev\Uma_Musume\uma-auto-trainer\assets\icons" />
       <recent name="D:\Dev\Uma_Musume\uma-auto-trainer\assets\ui" />
+      <recent name="D:\Dev\Uma_Musume\uma-auto-trainer\assets\icons" />
       <recent name="D:\Dev\Uma_Musume\uma-auto-trainer\core" />
       <recent name="D:\Dev\Uma_Musume\uma-auto-trainer" />
     </key>
@@ -59,6 +65,17 @@
     </key>
   </component>
   <component name="RunManager">
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="uma-auto-trainer" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -96,7 +113,7 @@
       <workItem from="1755015792820" duration="1864000" />
       <workItem from="1755048496981" duration="20508000" />
       <workItem from="1755085273804" duration="19560000" />
-      <workItem from="1755220794137" duration="6526000" />
+      <workItem from="1755220794137" duration="18116000" />
     </task>
     <task id="LOCAL-00001" summary="update ocr">
       <created>1754969886923</created>
@@ -129,6 +146,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="update ocr" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755229525146" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/uma_auto_trainer$main.coverage" NAME="main Coverage Results" MODIFIED="1755243805860" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

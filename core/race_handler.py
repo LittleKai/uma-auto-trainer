@@ -1,12 +1,13 @@
 import pyautogui
 import time
 from typing import Callable, Optional, Dict, List, Tuple
+from core.recognizer import find_template_position
 
 from core.click_handler import enhanced_click, random_click_in_region, move_to_random_position, random_screen_click
-from core.recognizer import match_template
+from utils.constants import RACE_REGION
 
 class RaceHandler:
-    """Handles all race-related operations with conservative timing improvements"""
+    """Handles all race-related operations with panel-based race detection"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -23,16 +24,15 @@ class RaceHandler:
 
     def start_race_flow(self, prioritize_g1: bool = False, prioritize_g2: bool = False,
                         allow_continuous_racing: bool = True) -> bool:
-        """
-        Start the complete race flow from lobby to finish
-        Uses original timing but adds lobby verification
-        """
+        """Start the complete race flow from lobby to finish"""
         if self.check_stop():
             self.log("[STOP] Race cancelled due to F3 press")
             return False
 
         if not self.check_window():
             return False
+
+        self.log(f"[DEBUG] Starting race flow - any race selection with grade priority")
 
         # Click races button
         if not enhanced_click(
@@ -73,417 +73,191 @@ class RaceHandler:
         if self.check_stop():
             return False
 
-        # Select race using original logic
-        race_found = self.select_race(prioritize_g1=prioritize_g1, prioritize_g2=prioritize_g2)
+        # Use new panel-based race selection
+        race_found = self._select_race_by_panels()
+
         if not race_found or self.check_stop():
-            self.log("No race found or operation cancelled.")
+            self.log("[DEBUG] Race selection failed or operation cancelled")
             return False
 
-        # Prepare for race (original timing)
+        # Continue with race preparation
         if not self.prepare_race() or self.check_stop():
             return False
 
-        # KEEP ORIGINAL TIMING: time.sleep(1)
         time.sleep(1)
 
-        # Handle post-race (original timing)
         if not self.handle_after_race() or self.check_stop():
             return False
 
-        # ONLY ADD: Verify return to lobby
         self._verify_lobby_return()
-
         return True
 
-    def handle_race_day(self) -> bool:
-        """Handle race day using original execute_old timing"""
-        if self.check_stop():
-            self.log("[STOP] Race day cancelled due to F3 press")
-            return False
-
-        if not self.check_window():
-            return False
-
-        # Original execute_old logic
-        if not enhanced_click(
-                "assets/buttons/race_day_btn.png",
-                minSearch=10,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-        ):
-            return False
-
-        if self.check_stop():
-            return False
-
-        # Original timing
-        enhanced_click(
-            "assets/buttons/ok_btn.png",
-            minSearch=0.7,
-            check_stop_func=self.check_stop,
-            check_window_func=self.check_window,
-            log_func=self.log
-        )
-        time.sleep(0.5)  # Keep original timing
-
-        # Original race button logic
-        for i in range(2):
-            if self.check_stop():
-                return False
-
-            if not enhanced_click(
-                    "assets/buttons/race_btn.png",
-                    minSearch=2,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=self.log
-            ):
-                break
-            time.sleep(0.5)  # Keep original timing
-
-        if self.check_stop():
-            return False
-
-        # Original race flow with original timing
-        if not self.prepare_race():
-            return False
-
-        time.sleep(1)  # Keep original timing
-
-        if not self.handle_after_race():
-            return False
-
-        # ONLY ADD: Verify return to lobby
-        self._verify_lobby_return()
-
-        return True
-
-    def prepare_race(self) -> bool:
-        """
-        Prepare for race using EXACT original execute_old timing
-        """
-        if self.check_stop():
-            return False
-
-        if not self.check_window():
-            return False
-
-        # Original execute_old logic
-        view_result_btn_region = pyautogui.locateOnScreen(
-            "assets/buttons/view_results.png",
-            confidence=0.8,
-            minSearchTime=20  # Keep original
-        )
-
-        if view_result_btn_region:
-            if self.check_stop():
-                return False
-
-            # Random click within the view results button
-            random_click_in_region(
-                view_result_btn_region.left, view_result_btn_region.top,
-                view_result_btn_region.width, view_result_btn_region.height
-            )
-
-            # KEEP ORIGINAL TIMING: time.sleep(5)
-            time.sleep(5)
-
-            # KEEP ORIGINAL LOGIC: Triple click with original intervals
-            for i in range(3):
-                if self.check_stop():
-                    return False
-
-                # Random click in center area with offset
-                random_screen_click(offset_range=0)
-                time.sleep(0.5)  # Keep original timing
-
-        return True
-
-    def handle_after_race(self) -> bool:
-        """
-        Handle post-race using EXACT original execute_old timing
-        """
-        if self.check_stop():
-            return False
-
-        if not self.check_window():
-            return False
-
-        # KEEP ORIGINAL: minSearch=5
-        if not enhanced_click(
-                "assets/buttons/next_btn.png",
-                minSearch=5,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-        ):
-            return False
-
-        if self.check_stop():
-            return False
-
-        # KEEP ORIGINAL TIMING: time.sleep(0.3)
-        time.sleep(0.3)
-
-        # KEEP ORIGINAL: random screen click
-        random_screen_click(offset_range=100)
-
-        if self.check_stop():
-            return False
-
-        # KEEP ORIGINAL: next2 button with minSearch=5
-        enhanced_click(
-            "assets/buttons/next2_btn.png",
-            minSearch=5,
-            check_stop_func=self.check_stop,
-            check_window_func=self.check_window,
-            log_func=self.log
-        )
-
-        return True
-
-    def _verify_lobby_return(self, max_attempts: int = 5) -> bool:
-        """
-        ONLY ADDITION: Verify return to lobby without changing original flow
-        This is called AFTER original race logic completes
-        """
-        for attempt in range(max_attempts):
-            if self.check_stop():
-                return False
-
-            # Check for tazuna hint indicating we're in career lobby
-            tazuna_hint = pyautogui.locateCenterOnScreen(
-                "assets/ui/tazuna_hint.png",
-                confidence=0.8,
-                minSearchTime=0.5
-            )
-
-            if tazuna_hint:
-                if attempt > 0:
-                    self.log(f"[DEBUG] Successfully returned to lobby (attempt {attempt + 1})")
-                return True
-
-            # If not in lobby, wait a bit and try clicking any remaining UI elements
-            self.log(f"[DEBUG] Not yet in lobby, waiting... (attempt {attempt + 1}/{max_attempts})")
-
-            # Try to clear any remaining UI elements
-            remaining_elements = [
-                "assets/buttons/next_btn.png",
-                "assets/buttons/next2_btn.png"
-            ]
-
-            for element in remaining_elements:
-                enhanced_click(
-                    element,
-                    minSearch=0.3,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=lambda msg: None  # Silent
-                )
-
-            time.sleep(0.5)  # Short wait between attempts
-
-        self.log("[WARNING] Could not verify return to lobby, but continuing...")
-        return True  # Don't block execution if verification fails
-
-    def handle_ura_finale(self) -> bool:
-        """
-        Handle URA finale using original execute_old timing
-        """
-        if self.check_stop():
-            return False
-
-        self.log("URA Finale")
-
-        # Original execute_old logic
-        try:
-            from utils.scenario import ura
-            ura()
-        except ImportError:
-            self.log("[WARNING] URA scenario not available")
-
-        # Original race button logic
-        for i in range(2):
-            if self.check_stop():
-                return False
-
-            if enhanced_click(
-                    "assets/buttons/race_btn.png",
-                    minSearch=2,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=self.log
-            ):
-                time.sleep(0.5)  # Keep original timing
-
-        if self.check_stop():
-            return False
-
-        # Original flow with original timing
-        self.prepare_race()
-        time.sleep(1)  # Keep original timing
-        self.handle_after_race()
-
-        # ONLY ADD: Verify return to lobby
-        self._verify_lobby_return()
-
-        return True
-
-    def select_race(self, prioritize_g1: bool = False, prioritize_g2: bool = False) -> bool:
-        """UNCHANGED: Keep exact original logic"""
-        if self.check_stop():
-            return False
-
-        if not self.check_window():
-            return False
-
-        # Move to race list area
-        pyautogui.moveTo(x=560, y=680)
-        time.sleep(0.2)
-
-        # Handle G1 priority
-        if prioritize_g1:
-            return self._select_g1_race_original()
-
-        # Handle G2 priority (try G2 first, then G1)
-        elif prioritize_g2:
-            self.log("Looking for G2 race, fallback to G1.")
-            if self._select_g2_race_original():
-                return True
-            # Fallback to G1 if no G2 found
-            return self._select_g1_race_original()
-
-        # Default: any race
-        else:
-            return self._select_any_race_original()
-
-    def _select_g1_race_original(self) -> bool:
-        """UNCHANGED: Exact original logic"""
-        self.log("Looking for G1 race.")
-
-        for scroll_attempt in range(2):
-            if self.check_stop():
-                return False
-
-            race_cards = match_template("assets/ui/g1_race.png", threshold=0.8)
-
-            if race_cards:
-                for x, y, w, h in race_cards:
-                    if self.check_stop():
-                        return False
-
-                    # Original region logic
-                    region = (x, y, 310, 90)
-                    match_aptitude = pyautogui.locateCenterOnScreen(
-                        "assets/ui/match_track.png",
-                        confidence=0.8,
-                        minSearchTime=0.7,
-                        region=region
-                    )
-
-                    if match_aptitude:
-                        self.log("G1 race with matching aptitude found.")
-                        if self.check_stop():
-                            return False
-
-                        # Click on aptitude match
-                        pyautogui.moveTo(match_aptitude, duration=0.2)
-                        pyautogui.click()
-
-                        # Click race buttons
-                        return self._click_race_buttons_original()
-
-            # Scroll down to find more races
-            for i in range(4):
-                if self.check_stop():
-                    return False
-                pyautogui.scroll(-300)
-
-        self.log("No G1 race with matching aptitude found.")
-        return False
-
-    def _select_g2_race_original(self) -> bool:
-        """UNCHANGED: Exact original logic"""
-        self.log("Looking for G2 race.")
-
-        for scroll_attempt in range(2):
-            if self.check_stop():
-                return False
-
-            race_cards = match_template("assets/ui/g2_race.png", threshold=0.8)
-
-            if race_cards:
-                for x, y, w, h in race_cards:
-                    if self.check_stop():
-                        return False
-
-                    # Original region logic
-                    region = (x, y, 310, 90)
-                    match_aptitude = pyautogui.locateCenterOnScreen(
-                        "assets/ui/match_track.png",
-                        confidence=0.8,
-                        minSearchTime=0.7,
-                        region=region
-                    )
-
-                    if match_aptitude:
-                        self.log("G2 race with matching aptitude found.")
-                        if self.check_stop():
-                            return False
-
-                        # Click on aptitude match
-                        pyautogui.moveTo(match_aptitude, duration=0.2)
-                        pyautogui.click()
-
-                        # Click race buttons
-                        return self._click_race_buttons_original()
-
-            # Scroll down to find more races
-            for i in range(4):
-                if self.check_stop():
-                    return False
-                pyautogui.scroll(-300)
-
-        self.log("No G2 race with matching aptitude found.")
-        return False
-
-    def _select_any_race_original(self) -> bool:
-        """UNCHANGED: Exact original logic"""
-        self.log("Looking for any matching race.")
+    def _select_race_by_panels(self) -> bool:
+        """Select race using panel-based detection with grade priority"""
+        self.log("Looking for races using panel-based detection.")
+        self.log(f"[DEBUG] Full race region: {RACE_REGION}")
+
+        # Get enabled grades from filters
+        enabled_grades = self._get_enabled_grades()
+        self.log(f"[DEBUG] Enabled grade filters: {enabled_grades}")
+
+        # Calculate panel dimensions (split race region into smaller panels)
+        left, top, width, height = RACE_REGION
+        panel_height = height // 2  # Split vertically into 2 panels
+        scroll_amount = panel_height  # Scroll by one panel height
+
+        self.log(f"[DEBUG] Panel height: {panel_height}, Scroll amount: {scroll_amount}")
 
         for scroll_attempt in range(4):
             if self.check_stop():
                 return False
 
-            match_aptitude = pyautogui.locateCenterOnScreen(
-                "assets/ui/match_track.png",
-                confidence=0.8,
-                minSearchTime=0.7
-            )
+            self.log(f"[DEBUG] Race selection scroll attempt {scroll_attempt + 1}/4")
 
-            if match_aptitude:
-                self.log("Matching race found.")
+            # Check both upper and lower panels
+            panels = [
+                (left, top, width, panel_height),  # Upper panel
+                (left, top + panel_height, width, panel_height)  # Lower panel
+            ]
+
+            for panel_index, panel_region in enumerate(panels):
                 if self.check_stop():
                     return False
 
-                # Click on aptitude match
-                pyautogui.moveTo(match_aptitude, duration=0.2)
-                pyautogui.click(match_aptitude)
+                self.log(f"[DEBUG] Checking panel {panel_index + 1}: {panel_region}")
 
-                # Click race buttons
-                return self._click_race_buttons_original()
+                # Find matching race in this panel
+                race_match = self._find_matching_race_in_panel(panel_region, enabled_grades)
 
-            # Scroll down to find more races
-            for i in range(4):
+                if race_match:
+                    grade, match_pos = race_match
+                    self.log(f"[DEBUG] Found {grade} race with match_track at {match_pos}")
+
+                    # Click on the match position
+                    pyautogui.moveTo(match_pos, duration=0.2)
+                    pyautogui.click()
+
+                    # Click race buttons
+                    return self._click_race_buttons_original()
+
+            # Scroll down by panel height to see new races
+            self.log(f"[DEBUG] Scrolling down by {scroll_amount} pixels (attempt {scroll_attempt + 1})")
+
+            # Move mouse to center of race region before scrolling
+            center_x = left + width // 2
+            center_y = top + height // 2
+            pyautogui.moveTo(center_x, center_y, duration=0.2)
+
+            # Scroll in increments for better control
+            scroll_increments = scroll_amount // 50  # 50px per scroll
+            for i in range(scroll_increments):
                 if self.check_stop():
                     return False
-                pyautogui.scroll(-300)
+                pyautogui.scroll(-50)
+                time.sleep(0.05)  # Small delay between scroll increments
 
+            # Final delay after scrolling
+            time.sleep(0.5)
+
+        self.log("[DEBUG] No matching race found after all scroll attempts")
         return False
 
+    def _find_matching_race_in_panel(self, panel_region: tuple, enabled_grades: list) -> Optional[Tuple[str, tuple]]:
+        """
+        Find a race with both grade indicator and match_track in the same panel
+        Returns: (grade, match_position) or None
+        Priority: G1 > G2 > G3
+        """
+        # Define grade priority order
+        grade_priority = ['g1', 'g2', 'g3']
+
+        # Only check grades that are enabled in filters
+        enabled_priority_grades = [grade for grade in grade_priority if grade in enabled_grades]
+
+        if not enabled_priority_grades:
+            self.log(f"[DEBUG] No enabled grades to check in panel")
+            return None
+
+        self.log(f"[DEBUG] Checking panel for grades in priority order: {enabled_priority_grades}")
+
+        # Check each grade in priority order
+        for grade in enabled_priority_grades:
+            grade_matches = self._find_grade_and_match_track_pair(panel_region, grade)
+
+            if grade_matches:
+                # Return the first (highest priority) match found
+                self.log(f"[DEBUG] Found {grade.upper()} race with match_track in panel")
+                return (grade.upper(), grade_matches[0])
+
+        return None
+
+    def _find_grade_and_match_track_pair(self, panel_region: tuple, grade: str) -> Optional[tuple]:
+        """
+        Find single grade indicator + match_track pair in the same panel
+        Returns: match_track position if both are found in the same race entry
+        """
+        try:
+            # Find first grade indicator in this panel
+            template_path = f"assets/ui/{grade}_race2.png"
+            grade_location = find_template_position(
+                template_path=template_path,
+                region=panel_region,
+                threshold=0.9
+            )
+
+            if not grade_location:
+                self.log(f"[DEBUG] No {grade_location} indicator found in panel")
+                return None
+
+            # Find first match_track indicator in this panel
+            match_track_location = pyautogui.locateCenterOnScreen(
+                "assets/ui/match_track.png",
+                confidence=0.8,
+                minSearchTime=0.3,
+                region=panel_region
+            )
+
+            if not match_track_location:
+                self.log(f"[DEBUG] No match_track found in panel for {grade.upper()}")
+                return None
+
+            self.log(f"[DEBUG] Found match_track at {match_track_location}")
+
+            # Check if they are in the same race entry (vertically close)
+            vertical_distance = abs(grade_location[1] - match_track_location.y)
+            horizontal_distance = abs(grade_location[0] - match_track_location.x)
+
+            if vertical_distance <= 50 and horizontal_distance <= 300:  # Same race entry
+                self.log(f"[DEBUG] Found {grade.upper()} + match_track pair (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
+                return match_track_location
+            else:
+                self.log(f"[DEBUG] {grade.upper()} and match_track too far apart (v_dist: {vertical_distance}px, h_dist: {horizontal_distance}px)")
+                return None
+
+        except Exception as e:
+            self.log(f"[DEBUG] Error finding {grade.upper()} + match_track pair: {e}")
+            return None
+
+    def _check_horizontal_overlap(self, rect1, rect2) -> bool:
+        """Check if two rectangles have horizontal overlap (same race row) - REMOVED"""
+        pass
+
+    def _get_enabled_grades(self) -> list:
+        """Get list of enabled grade filters"""
+        try:
+            import json
+            with open('bot_settings.json', 'r') as f:
+                settings = json.load(f)
+                filters = settings.get('grade', {})
+
+            enabled_grades = [grade for grade, enabled in filters.items() if enabled]
+            return enabled_grades
+        except Exception as e:
+            self.log(f"[DEBUG] Could not get grade filters, defaulting to all: {e}")
+            return ['g1', 'g2', 'g3']
+
     def _click_race_buttons_original(self) -> bool:
-        """UNCHANGED: Exact original logic"""
+        """Click race buttons to confirm selection"""
         for i in range(2):
             if self.check_stop():
                 return False
@@ -503,50 +277,203 @@ class RaceHandler:
 
         return True
 
-    # Keep all other methods unchanged...
-    def get_race_status_info(self, race_manager, current_date: Optional[Dict]) -> Dict:
-        """Get comprehensive race status information (unchanged)"""
-        if not current_date:
-            return {
-                'available_races': [],
-                'filtered_races': [],
-                'is_restricted': True,
-                'restriction_reason': 'No date information',
-                'total_available': 0,
-                'total_filtered': 0
-            }
+    def prepare_race(self) -> bool:
+        """Prepare for race using original timing"""
+        if self.check_stop():
+            return False
+
+        if not self.check_window():
+            return False
+
+        view_result_btn_region = pyautogui.locateOnScreen(
+            "assets/buttons/view_results.png",
+            confidence=0.8,
+            minSearchTime=20
+        )
+
+        if view_result_btn_region:
+            if self.check_stop():
+                return False
+
+            random_click_in_region(
+                view_result_btn_region.left, view_result_btn_region.top,
+                view_result_btn_region.width, view_result_btn_region.height
+            )
+
+            time.sleep(5)
+
+            for i in range(3):
+                if self.check_stop():
+                    return False
+
+                random_screen_click(offset_range=0)
+                time.sleep(0.5)
+
+        return True
+
+    def handle_after_race(self) -> bool:
+        """Handle post-race using original timing"""
+        if self.check_stop():
+            return False
+
+        if not self.check_window():
+            return False
+
+        if not enhanced_click(
+                "assets/buttons/next_btn.png",
+                minSearch=5,
+                check_stop_func=self.check_stop,
+                check_window_func=self.check_window,
+                log_func=self.log
+        ):
+            return False
+
+        if self.check_stop():
+            return False
+
+        time.sleep(0.3)
+        random_screen_click(offset_range=100)
+
+        if self.check_stop():
+            return False
+
+        enhanced_click(
+            "assets/buttons/next2_btn.png",
+            minSearch=5,
+            check_stop_func=self.check_stop,
+            check_window_func=self.check_window,
+            log_func=self.log
+        )
+
+        return True
+
+    def handle_race_day(self) -> bool:
+        """Handle race day using original timing"""
+        if self.check_stop():
+            self.log("[STOP] Race day cancelled due to F3 press")
+            return False
+
+        if not self.check_window():
+            return False
+
+        if not enhanced_click(
+                "assets/buttons/race_day_btn.png",
+                minSearch=10,
+                check_stop_func=self.check_stop,
+                check_window_func=self.check_window,
+                log_func=self.log
+        ):
+            return False
+
+        if self.check_stop():
+            return False
+
+        enhanced_click(
+            "assets/buttons/ok_btn.png",
+            minSearch=0.7,
+            check_stop_func=self.check_stop,
+            check_window_func=self.check_window,
+            log_func=self.log
+        )
+        time.sleep(0.5)
+
+        for i in range(2):
+            if self.check_stop():
+                return False
+
+            if not enhanced_click(
+                    "assets/buttons/race_btn.png",
+                    minSearch=2,
+                    check_stop_func=self.check_stop,
+                    check_window_func=self.check_window,
+                    log_func=self.log
+            ):
+                break
+            time.sleep(0.5)
+
+        if self.check_stop():
+            return False
+
+        if not self.prepare_race():
+            return False
+
+        time.sleep(1)
+
+        if not self.handle_after_race():
+            return False
+
+        self._verify_lobby_return()
+        return True
+
+    def handle_ura_finale(self) -> bool:
+        """Handle URA finale using original timing"""
+        if self.check_stop():
+            return False
+
+        self.log("URA Finale")
 
         try:
-            available_races = race_manager.get_available_races(current_date)
-            all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
+            from utils.scenario import ura
+            ura()
+        except ImportError:
+            self.log("[WARNING] URA scenario not available")
 
-            from core.race_manager import DateManager
-            is_restricted = DateManager.is_restricted_period(current_date)
+        for i in range(2):
+            if self.check_stop():
+                return False
 
-            restriction_reason = ""
-            if is_restricted:
-                if current_date.get('is_pre_debut', False):
-                    restriction_reason = "Pre-Debut period"
-                elif current_date.get('absolute_day', 0) <= 16:
-                    restriction_reason = f"Career days 1-16 restriction (current: Day {current_date['absolute_day']}/72)"
-                else:
-                    restriction_reason = "July-August restriction"
+            if enhanced_click(
+                    "assets/buttons/race_btn.png",
+                    minSearch=2,
+                    check_stop_func=self.check_stop,
+                    check_window_func=self.check_window,
+                    log_func=self.log
+            ):
+                time.sleep(0.5)
 
-            return {
-                'available_races': available_races,
-                'filtered_races': all_filtered_races,
-                'is_restricted': is_restricted,
-                'restriction_reason': restriction_reason,
-                'total_available': len(available_races),
-                'total_filtered': len(all_filtered_races)
-            }
-        except Exception as e:
-            self.log(f"[WARNING] Error getting race status: {e}")
-            return {
-                'available_races': [],
-                'filtered_races': [],
-                'is_restricted': True,
-                'restriction_reason': f'Error: {e}',
-                'total_available': 0,
-                'total_filtered': 0
-            }
+        if self.check_stop():
+            return False
+
+        self.prepare_race()
+        time.sleep(1)
+        self.handle_after_race()
+        self._verify_lobby_return()
+        return True
+
+    def _verify_lobby_return(self, max_attempts: int = 5) -> bool:
+        """Verify return to lobby after race completion"""
+        for attempt in range(max_attempts):
+            if self.check_stop():
+                return False
+
+            tazuna_hint = pyautogui.locateCenterOnScreen(
+                "assets/ui/tazuna_hint.png",
+                confidence=0.8,
+                minSearchTime=0.5
+            )
+
+            if tazuna_hint:
+                if attempt > 0:
+                    self.log(f"[DEBUG] Successfully returned to lobby (attempt {attempt + 1})")
+                return True
+
+            self.log(f"[DEBUG] Not yet in lobby, waiting... (attempt {attempt + 1}/{max_attempts})")
+
+            remaining_elements = [
+                "assets/buttons/next_btn.png",
+                "assets/buttons/next2_btn.png"
+            ]
+
+            for element in remaining_elements:
+                enhanced_click(
+                    element,
+                    minSearch=0.3,
+                    check_stop_func=self.check_stop,
+                    check_window_func=self.check_window,
+                    log_func=lambda msg: None
+                )
+
+            time.sleep(0.5)
+
+        self.log("[WARNING] Could not verify return to lobby, but continuing...")
+        return True

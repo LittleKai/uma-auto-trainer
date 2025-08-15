@@ -785,52 +785,102 @@ class MainExecutor:
         self.status_logger = StatusLogger(self.controller)
 
     def execute_single_iteration(self, race_manager, gui=None) -> bool:
+        """Execute single iteration of main bot logic with proper event handling order"""
         try:
             if self.controller.check_should_stop():
                 return False
 
-            # Handle events and UI interactions 
-            if self.event_handler.handle_ui_elements(gui):
+            # Priority 1: Handle event choices first (highest priority)
+            event_choice_found = pyautogui.locateCenterOnScreen(
+                "assets/icons/event_choice_1.png",
+                confidence=0.8,
+                minSearchTime=0.2
+            )
+
+            if event_choice_found:
+                # Get manual event handling setting
+                manual_event_handling = False
+                if gui:
+                    settings = gui.get_current_settings()
+                    manual_event_handling = settings.get('manual_event_handling', False)
+
+                if manual_event_handling:
+                    # Manual event handling - pause bot and wait for user action
+                    self.controller.log_message("🎭 EVENT DETECTED! Manual event handling enabled.")
+                    self.controller.log_message("⏳ Waiting for you to select event choice manually...")
+
+                    if gui:
+                        # Automatically pause the bot
+                        gui.root.after(0, gui.pause_bot)
+
+                    # Wait with improved logic
+                    event_handled = self.event_handler._wait_for_event_completion(gui)
+
+                    if not event_handled:
+                        return False  # Bot was stopped
+
+                    self.controller.log_message("✅ Event completed! Continuing bot...")
+                    return True
+                else:
+                    # Automatic event handling (original behavior)
+                    if self.event_handler._click("assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
+                        return True
+
+            # Priority 2: Handle other UI elements (buttons, inspiration, etc.)
+            if self.event_handler._click("assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
                 return True
 
-            # Verify we're in career lobby
+            if self.event_handler._click("assets/buttons/next_btn.png", minSearch=0.2):
+                return True
+
+            if self.event_handler._click("assets/buttons/cancel_btn.png", minSearch=0.2):
+                return True
+
+            if self.event_handler._click("assets/buttons/next2_btn.png", minSearch=0.2):
+                return True
+
+            # Priority 3: Check if we're in career lobby (after handling all UI elements)
             if not self.lobby_manager.verify_lobby_state(gui):
+                # Not in lobby - wait and try again in next iteration
+                time.sleep(1)
                 return True
 
+            # Only proceed with status checks and game logic if confirmed in lobby
             if self.controller.check_should_stop():
                 return False
 
             time.sleep(1)
 
-            # Handle debuff status
+            # Handle debuff status (only if in lobby)
             if self.lobby_manager.handle_debuff_status():
                 return True
 
             if self.controller.check_should_stop():
                 return False
 
-            # Update game state (unchanged)
+            # Update game state (only if in lobby)
             game_state = self.game_state_manager.update_game_state()
 
-            # Check if career is completed (unchanged)
+            # Check if career is completed (only if in lobby)
             if self.game_state_manager.is_career_completed():
                 return self._handle_career_completion(gui)
 
             if self.controller.check_should_stop():
                 return False
 
-            # Get strategy settings (unchanged)
+            # Get strategy settings (only if in lobby)
             strategy_settings = self._get_strategy_settings(gui)
 
-            # Update GUI status (unchanged)
+            # Update GUI status (only if in lobby)
             self.status_logger.update_gui_status(gui, game_state)
 
-            # Log current status (unchanged)
+            # Log current status (only if in lobby)
             self.status_logger.log_current_status(game_state, strategy_settings, race_manager)
 
             if self.controller.check_should_stop():
                 return False
 
+            # Make training/racing decisions (only if in lobby)
             self.decision_engine.make_decision(game_state, strategy_settings, race_manager, gui)
 
             time.sleep(1)
@@ -873,25 +923,33 @@ class CareerLobbyManager:
         self.controller = controller
 
     def verify_lobby_state(self, gui=None) -> bool:
+        """
+        Verify if currently in career lobby
+        Returns True only if confirmed in lobby, False otherwise
+        """
         tazuna_hint = pyautogui.locateCenterOnScreen(
             "assets/ui/tazuna_hint.png",
             confidence=0.8,
-            minSearchTime=0.2  
+            minSearchTime=0.2
         )
 
         if tazuna_hint is None:
+            # Not in lobby - log and increment counter
             self.controller.log_message("Should be in career lobby.")
+
             # Check if we've exceeded maximum attempts
             if self.controller.increment_career_lobby_counter():
-                # Force stop the bot
+                # Force stop the bot if too many failed attempts
                 if gui:
                     gui.root.after(0, gui.stop_bot)
                 return False
-            time.sleep(1)  
-            return True
+
+            # Return False because we're NOT in lobby
+            return False
         else:
             # Successfully detected career lobby, reset counter
             self.controller.reset_career_lobby_counter()
+            # Return True because we ARE in lobby
             return True
 
     def handle_debuff_status(self) -> bool:

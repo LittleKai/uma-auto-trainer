@@ -427,10 +427,6 @@ class DecisionEngine:
             should_race, available_races = race_manager.should_race_today(current_date)
 
             if should_race and available_races:
-                self.controller.log_message(f"Found {len(available_races)} races matching filters today:")
-                for race in available_races:
-                    props = race_manager.extract_race_properties(race)
-                    self.controller.log_message(f"  - {race['name']} ({props['track_type']}, {props['distance_type']}, {props['grade_type']})")
 
                 race_matches_priority = False
 

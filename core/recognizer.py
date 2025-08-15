@@ -4,7 +4,7 @@ from PIL import ImageGrab, ImageStat
 
 from utils.screenshot import capture_region
 
-def match_template(template_path, region=None, threshold=0.85):
+def match_template(template_path, region=None, threshold=0.85, debug = False):
   # Get screenshot
   if region:
     screen = np.array(ImageGrab.grab(bbox=region))  # (left, top, right, bottom)
@@ -21,6 +21,12 @@ def match_template(template_path, region=None, threshold=0.85):
 
   h, w = template.shape[:2]
   boxes = [(x, y, w, h) for (x, y) in zip(*loc[::-1])]
+
+  # print confidence
+  if debug:
+    for i, (x, y, w, h) in enumerate(boxes):
+      confidence = result[y, x]
+      print(f"  Match {i+1}: ({x}, {y}) - Confidence: {confidence:.3f}")
 
   return deduplicate_boxes(boxes)
 

@@ -1,6 +1,6 @@
 import re
 from PIL import Image
-
+import time
 from utils.screenshot import capture_region, enhanced_screenshot
 from core.ocr import extract_text, extract_number
 from core.recognizer import match_template
@@ -132,7 +132,7 @@ def match_mood_with_patterns(ocr_text):
 # Check support card in each training with NPC grouping
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   SUPPORT_ICONS = {
-    "spd": "assets/icons/support_card_type_spd2.png",
+    "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
     "pwr": "assets/icons/support_card_type_pwr.png",
     "guts": "assets/icons/support_card_type_guts.png",
@@ -147,6 +147,8 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   }
 
   count_result = {}
+
+  time.sleep(0.3)
 
   # Count regular support cards
   for key, icon_path in SUPPORT_ICONS.items():

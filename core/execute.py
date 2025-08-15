@@ -467,9 +467,7 @@ class DecisionEngine:
                             time.sleep(0.5)
             else:
                 if DateManager.is_restricted_period(current_date):
-                    if current_date.get('is_pre_debut', False):
-                        self.controller.log_message("In Pre-Debut period. No racing allowed.")
-                    elif current_date['absolute_day'] <= 16:
+                    if current_date['absolute_day'] <= 16:
                         self.controller.log_message("In restricted racing period (Career days 1-16). No racing allowed.")
                     else:
                         self.controller.log_message("In restricted racing period (Jul-Aug). No racing allowed.")

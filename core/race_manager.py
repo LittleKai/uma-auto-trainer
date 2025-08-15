@@ -221,10 +221,6 @@ class DateManager:
         if not date_info:
             return True
 
-        # Special case: Pre-Debut is always restricted
-        if date_info.get('is_pre_debut', False):
-            return True
-
         absolute_day = date_info['absolute_day']
 
         # Days 1-16 of ENTIRE CAREER (absolute days 1-16)
@@ -234,7 +230,7 @@ class DateManager:
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
         month_num = date_info.get('month_num', 0)
 
-        if (month_num == 7 or month_num == 8) and date_info['day'] > 24:
+        if (month_num == 7 or month_num == 8) and absolute_day > 24:
             return True
         
         return False

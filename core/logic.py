@@ -121,7 +121,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
 
-  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 16
 
   # Filter trainings that meet minimum score - use total_score from results
   valid_trainings = {}
@@ -138,7 +138,7 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   if not valid_trainings:
     print(f"\n[INFO] No training meets minimum score threshold {min_score_threshold}")
 
-    # FIXED: In pre-debut, try any training with score > 0, prioritize by score then WIT priority
+    # In pre-debut, try any training with score > 0, prioritize by score then WIT priority
     if is_pre_debut:
       # Find training with highest score > 0
       valid_pre_debut = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
@@ -205,7 +205,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   # Mid-game energy restriction for low score training
   absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-  if (absolute_day > 24 and
+  if (absolute_day > 16 and
           MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < 50 and
           energy_percentage >= CRITICAL_ENERGY_PERCENTAGE):
 
@@ -221,7 +221,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   # Get strategy and date info
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
-  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+  is_pre_debut = current_date and current_date.get('absolute_day', 0) < 16
 
   # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
@@ -238,6 +238,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
     else:
       # In Pre-Debut, use fallback to most_support_card logic if no training meets threshold
       if is_pre_debut:
+        print('is_pre_debut true')
         return most_support_card(filtered_results, current_date)
 
       return None

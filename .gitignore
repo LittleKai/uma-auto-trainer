@@ -3,12 +3,13 @@ debug_rest_fail.png
 UmaAutoTrain_Package.rar
 simple_uma.spec
 uma_auto.spec
-build_script.py
 pass_link.txt
 
 # Ignore specific folders
 venv/
 __pycache__/
+**/__pycache__/
 .idea/
 UmaAutoTrain_Package/
-
+dist/
+build/

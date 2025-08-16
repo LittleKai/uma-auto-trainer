@@ -11,6 +11,7 @@ import json
 
 from core.execute import set_log_callback, career_lobby, set_stop_flag
 from core.race_manager import RaceManager, DateManager
+from key_validator import validate_application_key, is_key_valid
 
 class UmaAutoGUI:
   def __init__(self):
@@ -21,7 +22,7 @@ class UmaAutoGUI:
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
     window_width = 650
-    window_height = 800
+    window_height = 850
     x = screen_width // 2 + 50
     y = (screen_height - window_height) // 2
 
@@ -34,6 +35,7 @@ class UmaAutoGUI:
     self.is_running = False
     self.is_paused = False
     self.bot_thread = None
+    self.key_valid = False
 
     # Race manager
     self.race_manager = RaceManager()
@@ -57,14 +59,12 @@ class UmaAutoGUI:
       'g3': tk.BooleanVar(value=True)
     }
 
-    # Updated dropdown variables with new priority options
+    # Strategy variables
     self.minimum_mood = tk.StringVar(value="NORMAL")
     self.priority_strategy = tk.StringVar(value="Train Score 2.5+")
 
-    # Continuous racing checkbox
+    # Option variables
     self.allow_continuous_racing = tk.BooleanVar(value=True)
-
-    # NEW: Manual event handling checkbox
     self.manual_event_handling = tk.BooleanVar(value=False)
 
     # Setup GUI
@@ -79,10 +79,14 @@ class UmaAutoGUI:
     # Bind window close event
     self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # Load settings from memory if exists
+    # Load settings from file if exists
     self.load_settings()
 
+    # Check key validation on startup
+    self.check_key_validation()
+
   def setup_gui(self):
+    """Setup the main GUI interface"""
     # Main frame with scrollbar
     canvas = tk.Canvas(self.root)
     scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
@@ -102,25 +106,73 @@ class UmaAutoGUI:
     # Configure grid weights
     main_frame.columnconfigure(1, weight=1)
 
-    # Title
-    title_label = ttk.Label(main_frame, text="Uma Musume Auto Train",
-                            font=("Arial", 16, "bold"))
-    title_label.grid(row=0, column=0, columnspan=3, pady=(0, 10))
+    # Header section
+    self.setup_header_section(main_frame)
 
-    # Status frame
-    status_frame = ttk.LabelFrame(main_frame, text="Status", padding="5")
+    # Status section
+    self.setup_status_section(main_frame)
+
+    # Strategy settings section
+    self.setup_strategy_section(main_frame)
+
+    # Race filters section
+    self.setup_race_filters_section(main_frame)
+
+    # Control buttons section
+    self.setup_control_buttons_section(main_frame)
+
+    # Activity log section
+    self.setup_activity_log_section(main_frame)
+
+    # Keyboard shortcuts info section
+    self.setup_shortcuts_info_section(main_frame)
+
+    # Pack canvas and scrollbar
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+  def setup_header_section(self, parent):
+    """Setup the header section with title and settings button"""
+    title_frame = ttk.Frame(parent)
+    title_frame.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15))
+    title_frame.columnconfigure(0, weight=1)
+
+    # Title container
+    title_container = ttk.Frame(title_frame)
+    title_container.grid(row=0, column=0, sticky=tk.W)
+
+    # Main title
+    title_label = ttk.Label(title_container, text="Uma Musume Auto Train",
+                            font=("Arial", 16, "bold"))
+    title_label.grid(row=0, column=0, sticky=tk.W)
+
+    # Subtitle
+    subtitle_label = ttk.Label(title_container, text="(Developed by LittleKai!)",
+                               font=("Arial", 10), foreground="gray")
+    subtitle_label.grid(row=1, column=0, sticky=tk.W)
+
+    # Settings button
+    settings_button = ttk.Button(title_frame, text="⚙ Region Settings",
+                                 command=self.open_region_settings)
+    settings_button.grid(row=0, column=1, sticky=tk.E)
+
+  def setup_status_section(self, parent):
+    """Setup the status monitoring section"""
+    status_frame = ttk.LabelFrame(parent, text="Status", padding="5")
     status_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     status_frame.columnconfigure(1, weight=1)
 
-    # Status labels
+    # Bot status
     ttk.Label(status_frame, text="Bot Status:").grid(row=0, column=0, sticky=tk.W)
     self.status_label = ttk.Label(status_frame, text="Stopped", foreground="red")
     self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(5, 0))
 
+    # Game window status
     ttk.Label(status_frame, text="Game Window:").grid(row=1, column=0, sticky=tk.W)
     self.game_status_label = ttk.Label(status_frame, text="Not Found", foreground="red")
     self.game_status_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
 
+    # Current date
     ttk.Label(status_frame, text="Current Date:").grid(row=2, column=0, sticky=tk.W)
     self.date_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
     self.date_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
@@ -130,13 +182,19 @@ class UmaAutoGUI:
     self.energy_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
     self.energy_label.grid(row=3, column=1, sticky=tk.W, padx=(5, 0))
 
-    # Strategy Settings Frame
-    strategy_frame = ttk.LabelFrame(main_frame, text="Strategy Settings", padding="5")
+    # Key validation status
+    ttk.Label(status_frame, text="Key Status:").grid(row=4, column=0, sticky=tk.W)
+    self.key_status_label = ttk.Label(status_frame, text="Checking...", foreground="orange")
+    self.key_status_label.grid(row=4, column=1, sticky=tk.W, padx=(5, 0))
+
+  def setup_strategy_section(self, parent):
+    """Setup the strategy settings section"""
+    strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="5")
     strategy_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     strategy_frame.columnconfigure(1, weight=1)
     strategy_frame.columnconfigure(3, weight=1)
 
-    # Row 0: Minimum Mood and Priority Strategy on same row
+    # Row 0: Minimum Mood and Priority Strategy
     ttk.Label(strategy_frame, text="Minimum Mood:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
     mood_dropdown = ttk.Combobox(strategy_frame, textvariable=self.minimum_mood,
                                  values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
@@ -159,22 +217,22 @@ class UmaAutoGUI:
     priority_dropdown.grid(row=0, column=3, sticky=tk.W)
     priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    # Row 1: Continuous Racing checkbox
+    # Row 1: Checkboxes
     continuous_racing_check = ttk.Checkbutton(strategy_frame,
                                               text="Allow Continuous Racing (>3 races)",
                                               variable=self.allow_continuous_racing,
                                               command=self.save_settings)
     continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 0))
 
-    # Row 1: Manual Event Handling checkbox (right side)
     manual_event_check = ttk.Checkbutton(strategy_frame,
                                          text="Manual Event Handling (pause on events)",
                                          variable=self.manual_event_handling,
                                          command=self.save_settings)
     manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 0))
 
-    # Race Filter Frame
-    filter_frame = ttk.LabelFrame(main_frame, text="Race Filters", padding="5")
+  def setup_race_filters_section(self, parent):
+    """Setup the race filters section"""
+    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="5")
     filter_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
 
     # Track filters
@@ -210,28 +268,32 @@ class UmaAutoGUI:
     ttk.Checkbutton(grade_frame, text="G3", variable=self.grade_filters['g3'],
                     command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
 
-    # Control buttons frame
-    button_frame = ttk.Frame(main_frame)
+  def setup_control_buttons_section(self, parent):
+    """Setup the control buttons section"""
+    button_frame = ttk.Frame(parent)
     button_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
     button_frame.columnconfigure(2, weight=1)
 
-    # Buttons
+    # Start button
     self.start_button = ttk.Button(button_frame, text="Start (F1)",
                                    command=self.start_bot)
     self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E))
 
+    # Pause button
     self.pause_button = ttk.Button(button_frame, text="Pause (F2)",
                                    command=self.pause_bot, state="disabled")
     self.pause_button.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E))
 
+    # Stop button
     self.stop_button = ttk.Button(button_frame, text="Stop (F3)",
                                   command=self.stop_bot, state="disabled")
     self.stop_button.grid(row=0, column=2, padx=(5, 0), sticky=(tk.W, tk.E))
 
-    # Log frame
-    log_frame = ttk.LabelFrame(main_frame, text="Activity Log", padding="5")
+  def setup_activity_log_section(self, parent):
+    """Setup the activity log section"""
+    log_frame = ttk.LabelFrame(parent, text="Activity Log", padding="5")
     log_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
     log_frame.columnconfigure(0, weight=1)
     log_frame.rowconfigure(0, weight=1)
@@ -244,23 +306,55 @@ class UmaAutoGUI:
     clear_button = ttk.Button(log_frame, text="Clear Log", command=self.clear_log)
     clear_button.grid(row=1, column=0, sticky=tk.W, pady=(5, 0))
 
-    # Keyboard shortcuts info
-    shortcuts_frame = ttk.LabelFrame(main_frame, text="Keyboard Shortcuts", padding="5")
+  def setup_shortcuts_info_section(self, parent):
+    """Setup the keyboard shortcuts info section"""
+    shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="5")
     shortcuts_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
 
     shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Force Exit Program")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
 
-    # Pack canvas and scrollbar
-    canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
+  def check_key_validation(self):
+    """Check key validation status on startup"""
+    def check_in_background():
+      try:
+        is_valid, message = validate_application_key()
+        self.key_valid = is_valid
+
+        # Update UI in main thread
+        self.root.after(0, self.update_key_status, is_valid, message)
+
+      except Exception as e:
+        self.root.after(0, self.update_key_status, False, f"Validation error: {e}")
+
+    # Run validation in background thread
+    threading.Thread(target=check_in_background, daemon=True).start()
+
+  def update_key_status(self, is_valid, message):
+    """Update key status in UI"""
+    if is_valid:
+      self.key_status_label.config(text="Valid ✓", foreground="green")
+    else:
+      self.key_status_label.config(text="Invalid ✗", foreground="red")
+
+  def open_region_settings(self):
+    """Open the region settings window"""
+    try:
+      from region_settings import RegionSettingsWindow
+      RegionSettingsWindow(self.root)
+    except ImportError as e:
+      self.log_message(f"Error: Could not import region settings: {e}")
+      messagebox.showerror("Error", "Region settings module not found. Please ensure region_settings.py is available.")
+    except Exception as e:
+      self.log_message(f"Error opening region settings: {e}")
+      messagebox.showerror("Error", f"Failed to open region settings: {e}")
 
   def setup_keyboard_shortcuts(self):
-    """Setup global keyboard shortcuts with enhanced F3 functionality"""
+    """Setup global keyboard shortcuts"""
     try:
       keyboard.add_hotkey('f1', self.start_bot)
       keyboard.add_hotkey('f2', self.pause_bot)
-      keyboard.add_hotkey('f3', self.enhanced_stop_bot)  # Enhanced F3 functionality
+      keyboard.add_hotkey('f3', self.enhanced_stop_bot)
       keyboard.add_hotkey('esc', self.force_exit_program)
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
@@ -268,15 +362,11 @@ class UmaAutoGUI:
   def enhanced_stop_bot(self):
     """Enhanced F3 stop functionality that immediately stops all operations"""
     self.log_message("[F3] Emergency stop triggered - Stopping all bot operations immediately")
-
-    # Set the stop flag in execute module first
     set_stop_flag(True)
-
-    # Then stop the GUI bot
     self.stop_bot()
 
   def save_settings(self):
-    """Save all settings to memory"""
+    """Save all settings to file"""
     settings = {
       'track': {k: v.get() for k, v in self.track_filters.items()},
       'distance': {k: v.get() for k, v in self.distance_filters.items()},
@@ -289,7 +379,7 @@ class UmaAutoGUI:
 
     try:
       with open('bot_settings.json', 'w') as f:
-        json.dump(settings, f)
+        json.dump(settings, f, indent=2)
 
       # Update race manager with new filters
       race_filters = {
@@ -303,7 +393,7 @@ class UmaAutoGUI:
       self.log_message(f"Warning: Could not save settings: {e}")
 
   def load_settings(self):
-    """Load settings from memory"""
+    """Load settings from file"""
     try:
       if os.path.exists('bot_settings.json'):
         with open('bot_settings.json', 'r') as f:
@@ -330,10 +420,8 @@ class UmaAutoGUI:
           # Handle old settings migration
           old_strategy = settings['priority_strategy']
           if old_strategy in ["Train 1+ Rainbow", "Train 2+ Rainbow", "Train 3+ Rainbow"]:
-            # Migrate old rainbow strategies to new score-based system
             self.priority_strategy.set("Train Score 2.5+")
           elif "với score" in old_strategy:
-            # Migrate Vietnamese to English
             if "2 +" in old_strategy:
               self.priority_strategy.set("Train Score 2+")
             elif "2.5 +" in old_strategy:
@@ -351,11 +439,10 @@ class UmaAutoGUI:
           else:
             self.priority_strategy.set(old_strategy)
 
-        # Apply continuous racing setting
+        # Apply option settings
         if 'allow_continuous_racing' in settings:
           self.allow_continuous_racing.set(settings['allow_continuous_racing'])
 
-        # Apply manual event handling setting
         if 'manual_event_handling' in settings:
           self.manual_event_handling.set(settings['manual_event_handling'])
 
@@ -414,15 +501,15 @@ class UmaAutoGUI:
       with open('config.json', 'r') as f:
         config = json.load(f)
       minimum_energy = config.get('minimum_energy_percentage', 40)
-      critical_energy = config.get('critical_energy_percentage', 15)
+      critical_energy = config.get('critical_energy_percentage', 20)
 
       # Determine color based on energy level
       if energy_percentage >= minimum_energy:
         color = "green"
       elif energy_percentage >= critical_energy:
-        color = "orange"  # Low energy (15-40%)
+        color = "orange"
       else:
-        color = "red"     # Critical energy (<15%)
+        color = "red"
 
       energy_str = f"{energy_percentage}%"
       self.root.after(0, lambda: self.energy_label.config(text=energy_str, foreground=color))
@@ -472,8 +559,16 @@ class UmaAutoGUI:
       return False
 
   def start_bot(self):
-    """Start the bot"""
+    """Start the bot with key validation"""
     if self.is_running:
+      return
+
+    # Validate key before starting
+    is_valid, message = validate_application_key(show_success=True)
+    if not is_valid:
+      # Simple error message with just OK button
+      messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
+      self.log_message("Bot start failed: Invalid key")
       return
 
     if not self.focus_umamusume():
@@ -496,7 +591,8 @@ class UmaAutoGUI:
     self.bot_thread = threading.Thread(target=self.bot_loop, daemon=True)
     self.bot_thread.start()
 
-    self.log_message("Bot started successfully!")
+    self.log_message("🔑 Key validation successful!")
+    self.log_message("🚀 Bot started successfully!")
 
   def pause_bot(self):
     """Pause/Resume the bot"""
@@ -553,7 +649,7 @@ class UmaAutoGUI:
   def bot_loop(self):
     """Main bot loop running in separate thread"""
     try:
-      # Use the modified career_lobby with pause/stop support
+      # Use the career_lobby function with pause/stop support
       self.modified_career_lobby()
     except Exception as e:
       self.log_message(f"Bot error: {e}")
@@ -563,7 +659,7 @@ class UmaAutoGUI:
 
   def modified_career_lobby(self):
     """Modified career_lobby that respects GUI controls"""
-    # Simply call the career_lobby function with GUI instance
+    # Call the career_lobby function with GUI instance
     career_lobby(self)
 
   def on_closing(self):
@@ -577,20 +673,31 @@ class UmaAutoGUI:
 
   def run(self):
     """Start the GUI"""
+    # Display startup messages
     self.log_message("Uma Musume Auto Train started!")
+
+    # Check key validation status
+    if self.key_valid:
+      self.log_message("✅ Key validation successful")
+    else:
+      self.log_message("⚠️ Key validation failed - Bot start will be disabled until key is validated")
+
     self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Priority Strategies:")
     self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
     self.log_message("• Train Score 2+/2.5+/3+/3.5+: Train only if score meets threshold")
     self.log_message("• Score = support cards + hints (1.0 or 0.5) + rainbow bonus")
     self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC to force exit program.")
+
     self.root.mainloop()
+
 
 def main():
   """Main function - create and run GUI"""
   print("Uma Auto - Developed by LittleKai!")
   app = UmaAutoGUI()
   app.run()
+
 
 if __name__ == "__main__":
   main()

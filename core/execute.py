@@ -229,7 +229,8 @@ class EventHandler:
                 return True
             else:
                 # Automatic event handling (original behavior)
-                if self._click("assets/icons/event_choice_1.png", minSearch=0.2, text="Event found, automatically select top choice."):
+                if self._click("assets/icons/event_choice_1.png", minSearch=0.2,
+                               text="Event found, automatically select top choice."):
                     return True
 
         # Priority 2: Handle other UI elements
@@ -305,12 +306,14 @@ class EventHandler:
                     return True
                 else:
                     # Check for other game states that indicate event is progressing
-                    next_btn = pyautogui.locateCenterOnScreen(
-                        "assets/buttons/next_btn.png",
-                        confidence=0.8,
-                        minSearchTime=0.2
-                    )
-                    if next_btn:
+                    other_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
+                                                                minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
+                        "assets/buttons/inspiration_btn.png", confidence=0.8, minSearchTime=0.2)
+                    if other_btn:
+                        if gui and gui.is_paused:
+                            gui.root.after(0, gui.pause_bot)  # Resume if still paused
+                        return True
+                    else:
                         # Event is progressing, continue waiting
                         continue
 
@@ -367,7 +370,8 @@ class DecisionEngine:
             is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
             if not is_junior_year:
-                self.controller.log_message(f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
+                self.controller.log_message(
+                    f"Mood is {mood}, below minimum {strategy_settings.get('minimum_mood', 'NORMAL')}. Trying recreation to increase mood")
                 if self.controller.check_should_stop():
                     return False
                 self.controller.rest_handler.execute_recreation()
@@ -383,10 +387,12 @@ class DecisionEngine:
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
-                self.controller.log_message(f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
+                self.controller.log_message(
+                    f"Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
                 if self.controller.check_should_stop():
                     return False
-                race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
+                race_found = self.controller.race_handler.start_race_flow(
+                    allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
@@ -396,7 +402,8 @@ class DecisionEngine:
                         self.controller.rest_handler.execute_rest()
                     return True
             else:
-                self.controller.log_message(f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
+                self.controller.log_message(
+                    f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
                 if self.controller.check_should_stop():
                     return False
                 self.controller.rest_handler.execute_rest()
@@ -406,18 +413,22 @@ class DecisionEngine:
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
-                self.controller.log_message(f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
+                self.controller.log_message(
+                    f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
                 if self.controller.check_should_stop():
                     return False
-                race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
+                race_found = self.controller.race_handler.start_race_flow(
+                    allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
                 else:
                     if not self.controller.check_should_stop():
-                        self._click_back_button("Matching race not found in game. Low energy - will check WIT training.")
+                        self._click_back_button(
+                            "Matching race not found in game. Low energy - will check WIT training.")
                         time.sleep(0.5)
             else:
-                self.controller.log_message(f"Low energy ({energy_percentage}%) and no matching races today. Will check WIT training or rest.")
+                self.controller.log_message(
+                    f"Low energy ({energy_percentage}%) and no matching races today. Will check WIT training or rest.")
 
         if self.controller.check_should_stop():
             return False
@@ -436,7 +447,8 @@ class DecisionEngine:
                                 if race_manager.extract_race_properties(race)['grade_type'] == 'g1']
                     if g1_races:
                         race_matches_priority = True
-                        self.controller.log_message(f"G1 priority: Found {len(g1_races)} G1 races matching filters - Racing immediately")
+                        self.controller.log_message(
+                            f"G1 priority: Found {len(g1_races)} G1 races matching filters - Racing immediately")
                     else:
                         self.controller.log_message(f"G1 priority: No G1 races found, will check training first")
 
@@ -446,19 +458,22 @@ class DecisionEngine:
                                         if race_manager.extract_race_properties(race)['grade_type'] in ['g1', 'g2']]
                     if high_grade_races:
                         race_matches_priority = True
-                        self.controller.log_message(f"G2 priority: Found {len(high_grade_races)} G1/G2 races matching filters - Racing immediately")
+                        self.controller.log_message(
+                            f"G2 priority: Found {len(high_grade_races)} G1/G2 races matching filters - Racing immediately")
                     else:
                         self.controller.log_message(f"G2 priority: No G1/G2 races found, will check training first")
 
                 elif "Train Score" in priority_strategy:
                     # For score strategies, always check training first
-                    self.controller.log_message(f"{priority_strategy}: Will check training first, then race if requirements not met")
+                    self.controller.log_message(
+                        f"{priority_strategy}: Will check training first, then race if requirements not met")
                     race_matches_priority = False
 
                 if race_matches_priority:
                     if self.controller.check_should_stop():
                         return False
-                    race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
+                    race_found = self.controller.race_handler.start_race_flow(
+                        allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -468,7 +483,8 @@ class DecisionEngine:
             else:
                 if DateManager.is_restricted_period(current_date):
                     if current_date['absolute_day'] <= 16:
-                        self.controller.log_message("In restricted racing period (Career days 1-16). No racing allowed.")
+                        self.controller.log_message(
+                            "In restricted racing period (Career days 1-16). No racing allowed.")
                     else:
                         self.controller.log_message("In restricted racing period (Jul-Aug). No racing allowed.")
 
@@ -514,10 +530,12 @@ class DecisionEngine:
                 should_race, available_races = race_manager.should_race_today(current_date)
 
                 if should_race:
-                    self.controller.log_message(f"Attempting race from {len(available_races)} available races as fallback.")
+                    self.controller.log_message(
+                        f"Attempting race from {len(available_races)} available races as fallback.")
                     if self.controller.check_should_stop():
                         return False
-                    race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
+                    race_found = self.controller.race_handler.start_race_flow(
+                        allow_continuous_racing=allow_continuous_racing)
                     if race_found:
                         return True
                     else:
@@ -533,7 +551,8 @@ class DecisionEngine:
                 self.controller.log_message(f"Low energy ({energy_percentage}%) - Resting")
             else:
                 # Energy is normal but no suitable strategy training found
-                self.controller.log_message(f"Normal energy but no {priority_strategy} training found - doing fallback training")
+                self.controller.log_message(
+                    f"Normal energy but no {priority_strategy} training found - doing fallback training")
 
                 # Use fallback training logic from core.logic directly
                 if results_training:
@@ -649,9 +668,11 @@ class StatusLogger:
         if current_date.get('is_finale', False):
             self.controller.log_message(f"Current Date: Finale Season (Career Completed)")
         elif current_date.get('is_pre_debut', False):
-            self.controller.log_message(f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/72)")
+            self.controller.log_message(
+                f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/72)")
         else:
-            self.controller.log_message(f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
+            self.controller.log_message(
+                f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
 
         available_races = race_manager.get_available_races(current_date)
         all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
@@ -659,10 +680,12 @@ class StatusLogger:
         if DateManager.is_restricted_period(current_date):
             # Show filtered races that would be available if not restricted
             if all_filtered_races:
-                self.controller.log_message(f"📍 Today's Races: {len(all_filtered_races)} matching filters (restricted)")
+                self.controller.log_message(
+                    f"📍 Today's Races: {len(all_filtered_races)} matching filters (restricted)")
                 for race in all_filtered_races[:3]:  # Show max 3
                     race_props = race_manager.extract_race_properties(race)
-                    self.controller.log_message(f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                    self.controller.log_message(
+                        f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
                 if len(all_filtered_races) > 3:
                     self.controller.log_message(f"  ... and {len(all_filtered_races) - 3} more")
             else:
@@ -673,7 +696,8 @@ class StatusLogger:
                 self.controller.log_message(f"📍 Today's Races: {len(available_races)} matching filters")
                 for race in available_races:
                     race_props = race_manager.extract_race_properties(race)
-                    self.controller.log_message(f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                    self.controller.log_message(
+                        f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
             else:
                 self.controller.log_message("📍 Today's Races: None match current filters")
 

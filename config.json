@@ -1,5 +1,5 @@
 {
-  "priority_stat": ["spd", "pwr", "sta",  "wit", "guts"],
+  "priority_stat": ["spd", "pwr", "sta", "wit", "guts"],
   "maximum_failure": 15,
   "minimum_energy_percentage": 40,
   "critical_energy_percentage": 20,
@@ -9,5 +9,6 @@
     "pwr": 1120,
     "guts": 500,
     "wit": 500
-  }
+  },
+  "key": "jJ10uNHDwuPW9LGNWWZ2"
 }

@@ -1,15 +1,42 @@
 import json
 
 # UI Region Constants
-SUPPORT_CARD_ICON_REGION = (845, 155, 945, 700)
-# MOOD_REGION = (733, 123, 807 - 740, 153 - 123)
-MOOD_REGION = (740, 123, 806 - 740, 150 - 123)
-TURN_REGION = (260, 88, 371 - 263, 135 - 88)
-ENERGY_BAR = (441, 136, 676, 136)  # Hex Color 767576
-RACE_REGION = (260, 588, 840 - 260, 854 - 588)
-FAILURE_REGION = (275, 780, 826 - 275, 813 - 780)
-YEAR_REGION = (255, 35, 420 - 255, 60 - 35)
-CRITERIA_REGION = (455, 85, 625 - 455, 115 - 85)
+SUPPORT_CARD_ICON_REGION = (845, 155, 180, 700)
+MOOD_REGION = (740, 123, 63, 27)
+TURN_REGION = (260, 84, 108, 47)
+ENERGY_BAR = (441, 136, 676, 136)  # Energy bar endpoints (x1, y1, x2, y2)
+RACE_REGION = (260, 588, 580, 266)
+FAILURE_REGION = (275, 780, 551, 33)
+YEAR_REGION = (255, 35, 165, 22)
+CRITERIA_REGION = (455, 85, 170, 26)
+
+# Stat regions for OCR recognition
+STAT_REGIONS = {
+    "spd": (310, 723, 55, 20),
+    "sta": (405, 723, 55, 20),
+    "pwr": (500, 723, 55, 20),
+    "guts": (595, 723, 55, 20),
+    "wit": (690, 723, 55, 20)
+}
+
+# Default regions for settings reset
+DEFAULT_REGIONS = {
+    'SUPPORT_CARD_ICON_REGION': (845, 155, 180, 700),
+    'MOOD_REGION': (740, 123, 63, 27),
+    'TURN_REGION': (260, 84, 108, 47),
+    'ENERGY_BAR': (441, 136, 676, 136),
+    'RACE_REGION': (260, 588, 580, 266),
+    'FAILURE_REGION': (275, 780, 551, 33),
+    'YEAR_REGION': (255, 35, 165, 22),
+    'CRITERIA_REGION': (455, 85, 170, 26),
+    'STAT_REGIONS': {
+        "spd": (310, 723, 55, 20),
+        "sta": (405, 723, 55, 20),
+        "pwr": (500, 723, 55, 20),
+        "guts": (595, 723, 55, 20),
+        "wit": (690, 723, 55, 20)
+    }
+}
 
 # Mood Recognition Constants
 MOOD_LIST = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT", "UNKNOWN"]
@@ -90,6 +117,7 @@ STABILITY_CHECK_RETRIES = 3
 RACE_DATA_FILE = "assets/race_list.json"
 CONFIG_FILE = "config.json"
 BOT_SETTINGS_FILE = "bot_settings.json"
+REGION_SETTINGS_FILE = "region_settings.json"
 
 # Asset Paths
 ASSETS_DIR = "assets"
@@ -188,3 +216,95 @@ ENERGY_COLORS = {
     'medium': 'orange', # critical_energy to minimum_energy
     'critical': 'red'   # < critical_energy
 }
+
+def load_region_settings():
+    """Load region settings from file or return defaults"""
+    try:
+        with open(REGION_SETTINGS_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return DEFAULT_REGIONS.copy()
+
+def save_region_settings(regions):
+    """Save region settings to file"""
+    try:
+        with open(REGION_SETTINGS_FILE, 'w') as f:
+            json.dump(regions, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving region settings: {e}")
+        return False
+
+def get_current_regions():
+    """Get current region values, loading from file if available"""
+    global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
+    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS
+
+    settings = load_region_settings()
+
+    # Update global variables with loaded settings
+    SUPPORT_CARD_ICON_REGION = tuple(settings.get('SUPPORT_CARD_ICON_REGION', DEFAULT_REGIONS['SUPPORT_CARD_ICON_REGION']))
+    MOOD_REGION = tuple(settings.get('MOOD_REGION', DEFAULT_REGIONS['MOOD_REGION']))
+    TURN_REGION = tuple(settings.get('TURN_REGION', DEFAULT_REGIONS['TURN_REGION']))
+    ENERGY_BAR = tuple(settings.get('ENERGY_BAR', DEFAULT_REGIONS['ENERGY_BAR']))
+    RACE_REGION = tuple(settings.get('RACE_REGION', DEFAULT_REGIONS['RACE_REGION']))
+    FAILURE_REGION = tuple(settings.get('FAILURE_REGION', DEFAULT_REGIONS['FAILURE_REGION']))
+    YEAR_REGION = tuple(settings.get('YEAR_REGION', DEFAULT_REGIONS['YEAR_REGION']))
+    CRITERIA_REGION = tuple(settings.get('CRITERIA_REGION', DEFAULT_REGIONS['CRITERIA_REGION']))
+    STAT_REGIONS = settings.get('STAT_REGIONS', DEFAULT_REGIONS['STAT_REGIONS'])
+
+    return {
+        'SUPPORT_CARD_ICON_REGION': SUPPORT_CARD_ICON_REGION,
+        'MOOD_REGION': MOOD_REGION,
+        'TURN_REGION': TURN_REGION,
+        'ENERGY_BAR': ENERGY_BAR,
+        'RACE_REGION': RACE_REGION,
+        'FAILURE_REGION': FAILURE_REGION,
+        'YEAR_REGION': YEAR_REGION,
+        'CRITERIA_REGION': CRITERIA_REGION,
+        'STAT_REGIONS': STAT_REGIONS
+    }
+
+def update_regions(new_regions):
+    """Update region values and save to file"""
+    global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
+    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS
+
+    # Update global variables
+    SUPPORT_CARD_ICON_REGION = tuple(new_regions.get('SUPPORT_CARD_ICON_REGION', SUPPORT_CARD_ICON_REGION))
+    MOOD_REGION = tuple(new_regions.get('MOOD_REGION', MOOD_REGION))
+    TURN_REGION = tuple(new_regions.get('TURN_REGION', TURN_REGION))
+    ENERGY_BAR = tuple(new_regions.get('ENERGY_BAR', ENERGY_BAR))
+    RACE_REGION = tuple(new_regions.get('RACE_REGION', RACE_REGION))
+    FAILURE_REGION = tuple(new_regions.get('FAILURE_REGION', FAILURE_REGION))
+    YEAR_REGION = tuple(new_regions.get('YEAR_REGION', YEAR_REGION))
+    CRITERIA_REGION = tuple(new_regions.get('CRITERIA_REGION', CRITERIA_REGION))
+    STAT_REGIONS = new_regions.get('STAT_REGIONS', STAT_REGIONS)
+
+    # Save to file
+    current_regions = {
+        'SUPPORT_CARD_ICON_REGION': SUPPORT_CARD_ICON_REGION,
+        'MOOD_REGION': MOOD_REGION,
+        'TURN_REGION': TURN_REGION,
+        'ENERGY_BAR': ENERGY_BAR,
+        'RACE_REGION': RACE_REGION,
+        'FAILURE_REGION': FAILURE_REGION,
+        'YEAR_REGION': YEAR_REGION,
+        'CRITERIA_REGION': CRITERIA_REGION,
+        'STAT_REGIONS': STAT_REGIONS
+    }
+
+    return save_region_settings(current_regions)
+
+# Initialize regions on module import
+_regions_initialized = False
+
+def _initialize_regions():
+    """Initialize regions from saved settings"""
+    global _regions_initialized
+    if not _regions_initialized:
+        get_current_regions()
+        _regions_initialized = True
+
+# Ensure regions are loaded when module is imported
+_initialize_regions()

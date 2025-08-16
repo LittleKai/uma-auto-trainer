@@ -6,21 +6,20 @@ from core.ocr import extract_text, extract_number
 from core.recognizer import match_template
 from core.race_manager import DateManager
 
-from utils.constants import SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION, YEAR_REGION, MOOD_LIST, CRITERIA_REGION, ENERGY_BAR, MOOD_PATTERNS
+from utils.constants import (
+  SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, FAILURE_REGION,
+  YEAR_REGION, MOOD_LIST, CRITERIA_REGION, ENERGY_BAR, MOOD_PATTERNS,
+  STAT_REGIONS, get_current_regions
+)
 
 # Global variable to store current date info
 current_date_info = None
 
-# Get Stat
 def stat_state():
-
-  stat_regions = {
-    "spd": (310, 723, 55, 20),
-    "sta": (405, 723, 55, 20),
-    "pwr": (500, 723, 55, 20),
-    "guts": (595, 723, 55, 20),
-    "wit": (690, 723, 55, 20)
-  }
+  """Get current character stats using configurable regions"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  stat_regions = current_regions['STAT_REGIONS']
 
   raw_values = {}
   result = {}
@@ -43,16 +42,18 @@ def stat_state():
 
   return result
 
-# Check energy percentage by counting gray pixels in energy bar
 def check_energy_percentage():
-  """
-  Check energy percentage by counting pixels with color 767576 in energy bar
-  Returns energy percentage (0-100)
-  """
+  """Check energy percentage by counting gray pixels in energy bar"""
   try:
-    # Capture the energy bar region - create a region with height of 1 pixel
-    x1, y1, x2, y2 = ENERGY_BAR
-    # Create region (left, top, width, height)
+    # Get current region settings in case they were updated
+    current_regions = get_current_regions()
+    energy_bar = current_regions['ENERGY_BAR']
+
+    # Energy bar is stored as (x1, y1, x2, y2) format
+    x1, y1, x2, y2 = energy_bar
+
+    # Convert to region format (left, top, width, height) for capture
+    # Use 1 pixel height for energy bar scanning
     region = (x1, y1, x2 - x1, 1)
 
     screenshot = capture_region(region)
@@ -91,8 +92,8 @@ def check_energy_percentage():
     print(f"[WARNING] Energy detection failed: {e}")
     return 100  # Return 100% if detection fails (safe default)
 
-# Enhanced mood detection with pattern matching for OCR errors
 def match_mood_with_patterns(ocr_text):
+  """Enhanced mood detection with pattern matching for OCR errors"""
   ocr_text = ocr_text.upper().strip()
 
   # First try exact match
@@ -129,8 +130,12 @@ def match_mood_with_patterns(ocr_text):
   print(f"[WARNING] Mood not recognized with patterns: '{ocr_text}'")
   return "UNKNOWN"
 
-# Check support card in each training with NPC grouping
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
+  """Check support card in each training with NPC grouping"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  support_region = current_regions['SUPPORT_CARD_ICON_REGION']
+
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
@@ -152,13 +157,13 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   # Count regular support cards
   for key, icon_path in SUPPORT_ICONS.items():
-    matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
+    matches = match_template(icon_path, support_region, threshold)
     count_result[key] = len(matches)
 
   # Count NPC support cards and group them as 'npc'
   total_npc_count = 0
   for npc_name, icon_path in NPC_ICONS.items():
-    matches = match_template(icon_path, SUPPORT_CARD_ICON_REGION, threshold)
+    matches = match_template(icon_path, support_region, threshold)
     npc_found = len(matches)
     total_npc_count += npc_found
 
@@ -166,7 +171,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["npc"] = total_npc_count
 
   # Find hint cards
-  hint_matches = match_template("assets/icons/support_card_hint.png", SUPPORT_CARD_ICON_REGION, threshold)
+  hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
   hint_count = len(hint_matches)
 
   # Calculate hint score based on day - maximum 1 hint counts for score
@@ -263,15 +268,19 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   return count_result
 
-# Get failure chance (kept for compatibility but not used in low energy logic)
 def check_failure():
-  failure = enhanced_screenshot(FAILURE_REGION)
+  """Get failure chance from UI region"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  failure_region = current_regions['FAILURE_REGION']
+
+  failure = enhanced_screenshot(failure_region)
   failure_text = extract_text(failure).lower()
 
   if not failure_text.startswith("failure"):
     return -1
 
-  # SAFE CHECK
+  # Extract percentage from failure text
   # 1. If there is a %, extract the number before the %
   match_percent = re.search(r"failure\s+(\d{1,3})%", failure_text)
   if match_percent:
@@ -290,9 +299,13 @@ def check_failure():
 
   return -1
 
-# Enhanced mood check with pattern matching
 def check_mood():
-  mood = capture_region(MOOD_REGION)
+  """Enhanced mood check with pattern matching"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  mood_region = current_regions['MOOD_REGION']
+
+  mood = capture_region(mood_region)
   mood_text = extract_text(mood).upper()
 
   # Use enhanced pattern matching for mood detection
@@ -309,17 +322,20 @@ def check_mood():
   print(f"[WARNING] Mood not recognized: {mood_text}")
   return "UNKNOWN"
 
-# Check turn
 def check_turn():
-  turn = enhanced_screenshot(TURN_REGION)
+  """Check current turn number or race day"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  turn_region = current_regions['TURN_REGION']
+
+  turn = enhanced_screenshot(turn_region)
   turn_text = extract_text(turn)
   print(f"Turn detected: {turn_text}")
 
   if "Race" in turn_text:
-    # if "Race Day" in turn_text:
     return "Race Day"
 
-  # sometimes easyocr misreads characters instead of numbers
+  # Sometimes OCR misreads characters instead of numbers
   cleaned_text = (
     turn_text
       .replace("T", "1")
@@ -335,11 +351,15 @@ def check_turn():
 
   return -1
 
-# Enhanced year checking with date parsing
 def check_current_year():
+  """Enhanced year checking with date parsing"""
   global current_date_info
 
-  year = enhanced_screenshot(YEAR_REGION)
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  year_region = current_regions['YEAR_REGION']
+
+  year = enhanced_screenshot(year_region)
   text = extract_text(year)
 
   # Parse the year text to extract date information
@@ -356,8 +376,12 @@ def get_current_date_info():
   """Get the current parsed date information"""
   return current_date_info
 
-# Check criteria
 def check_criteria():
-  img = enhanced_screenshot(CRITERIA_REGION)
+  """Check criteria text from UI region"""
+  # Get current region settings in case they were updated
+  current_regions = get_current_regions()
+  criteria_region = current_regions['CRITERIA_REGION']
+
+  img = enhanced_screenshot(criteria_region)
   text = extract_text(img)
   return text

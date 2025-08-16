@@ -1,6 +1,7 @@
 build_script.py
 debug_rest_fail.png
 UmaAutoTrain_Package.rar
+Uma_Musume_Auto_Train_Distribution.rar
 simple_uma.spec
 uma_auto.spec
 pass_link.txt
@@ -11,5 +12,6 @@ __pycache__/
 **/__pycache__/
 .idea/
 UmaAutoTrain_Package/
+Uma_Musume_Auto_Train_Distribution/
 dist/
 build/

@@ -308,7 +308,8 @@ class EventHandler:
                     # Check for other game states that indicate event is progressing
                     other_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
                                                                 minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
-                        "assets/buttons/inspiration_btn.png", confidence=0.8, minSearchTime=0.2)
+                        "assets/buttons/inspiration_btn.png", confidence=0.8, minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
+                        "assets/buttons/next_btn.png", confidence=0.8, minSearchTime=0.2)
                     if other_btn:
                         if gui and gui.is_paused:
                             gui.root.after(0, gui.pause_bot)  # Resume if still paused
@@ -656,8 +657,6 @@ class StatusLogger:
         self.controller.log_message(f"Year: {game_state['year']}")
         self.controller.log_message(f"Mood: {game_state['mood']}")
         self.controller.log_message(f"Energy: {game_state['energy_percentage']}%")
-        self.controller.log_message(f"Strategy: {strategy_settings.get('priority_strategy', 'Train Score 2.5+')}")
-
         self._log_date_and_race_info(game_state['current_date'], race_manager)
 
     def _log_date_and_race_info(self, current_date: Dict[str, Any], race_manager):

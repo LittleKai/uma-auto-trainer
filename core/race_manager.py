@@ -215,24 +215,24 @@ class DateManager:
     @staticmethod
     def is_restricted_period(date_info: Dict) -> bool:
         """
-        Check if current date is in restricted racing period
-        Restricted: Day 1-16 of ENTIRE CAREER OR Jul 1 - Aug 2 OR Pre-Debut
+        Check if current date is in restricted racing period with corrected definitions
+        Restricted: Pre-Debut period (Days 1-16) OR Jul 1 - Aug 2
         """
         if not date_info:
             return True
 
         absolute_day = date_info['absolute_day']
 
-        # Days 1-16 of ENTIRE CAREER (absolute days 1-16)
+        # Pre-Debut period: Days 1-16 (corrected from previous 1-24)
         if absolute_day <= 16:
             return True
 
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
         month_num = date_info.get('month_num', 0)
 
-        if (month_num == 7 or month_num == 8) and absolute_day > 24:
+        if (month_num == 7 or month_num == 8) and absolute_day > 16:  # Updated from > 24
             return True
-        
+
         return False
 
 
@@ -314,12 +314,13 @@ class RaceManager:
         return priority_map.get(grade.lower(), 6)
 
     def is_race_allowed(self, race: Dict, current_date: Dict) -> bool:
-        """Check if race matches current filters and date"""
+        """Check if race matches current filters and date with corrected restrictions"""
         if not current_date:
             return False
 
-        # Pre-Debut period: no racing allowed
-        if current_date.get('is_pre_debut', False):
+        # Pre-Debut period: Days 1-16 (corrected definition)
+        absolute_day = current_date.get('absolute_day', 0)
+        if absolute_day <= 16:
             return False
 
         # Check if race matches current date
@@ -360,11 +361,11 @@ class RaceManager:
         return True
 
     def get_available_races(self, current_date: Dict) -> List[Dict]:
-        """Get all races available for current date with current filters"""
+        """Get all races available for current date with current filters and corrected restrictions"""
         if not current_date:
             return []
 
-        # Check if in restricted period
+        # Check if in restricted period with corrected definitions
         if DateManager.is_restricted_period(current_date):
             return []
 
@@ -382,14 +383,14 @@ class RaceManager:
 
     def get_highest_grade_race_for_date(self, current_date: Dict) -> Optional[Dict]:
         """
-        Get the highest grade race available for the current date (ignoring filters)
-        Returns the race with highest grade (G1 > G2 > G3 > OP > Unknown)
+        Get the highest grade race available for the current date with corrected restrictions
         """
         if not current_date:
             return None
 
-        # Pre-Debut period: no racing allowed
-        if current_date.get('is_pre_debut', False):
+        # Pre-Debut period: Days 1-16 (corrected definition)
+        absolute_day = current_date.get('absolute_day', 0)
+        if absolute_day <= 16:
             return None
 
         # Find all races for this date regardless of filters

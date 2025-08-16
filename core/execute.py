@@ -327,7 +327,7 @@ class EventHandler:
 
             # Show waiting message every 30 seconds
             elapsed = time.time() - start_time
-            if elapsed > 0 and int(elapsed) % 30 == 0:
+            if elapsed > 20 and int(elapsed) % 30 == 0:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
 
@@ -788,11 +788,10 @@ class MainExecutor:
     def _handle_career_completion(self, gui) -> bool:
         """Handle career completion scenario"""
         self.controller.log_message("🎉 CAREER COMPLETED! Finale Season detected.")
-        self.controller.log_message("🎊 Congratulations! Your Uma Musume has finished their career!")
 
         if gui:
             gui.root.after(0, gui.stop_bot)
-            gui.root.after(0, lambda: gui.log_message("🎉 Career completed! Bot stopped automatically."))
+            gui.root.after(0, lambda: gui.log_message("🎉 Bot stopped automatically."))
 
         return False
 

@@ -7,7 +7,7 @@ from core.click_handler import enhanced_click, random_click_in_region, triple_cl
 from utils.constants import MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE
 
 class TrainingHandler:
-    """Handles all training-related operations with NPC grouping support"""
+    """Handles all training-related operations with corrected stage definitions"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -37,25 +37,21 @@ class TrainingHandler:
 
     def check_training_support_stable(self, training_type: str, max_retries: int = 3) -> Optional[Dict]:
         """
-        Check training support with stability verification based on execute_old logic
-
-        Args:
-            training_type: Type of training to check (spd, sta, pwr, guts, wit)
-            max_retries: Maximum retries for stability check
-
-        Returns:
-            Dict with training support information or None
+        Check training support with stability verification and correct stage definitions
         """
         if self.check_stop():
             return None
 
-        # Get current date info to check if in Pre-Debut period
+        # Get current date info to check stage with corrected definitions
         current_date = get_current_date_info()
-        is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
+        absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+
+        # Updated stage logic: Pre-Debut is days 1-16
+        is_pre_debut = absolute_day <= 16
 
         # First check
         support_counts = check_support_card(
-            is_pre_debut=is_junior_year,
+            is_pre_debut=is_pre_debut,
             training_type=training_type,
             current_date=current_date
         )
@@ -89,11 +85,11 @@ class TrainingHandler:
             if self.check_stop():
                 return first_result
 
-            # Small delay between checks for stability (from execute_old)
+            # Small delay between checks for stability
             time.sleep(0.1)
 
             support_counts = check_support_card(
-                is_pre_debut=is_junior_year,
+                is_pre_debut=is_pre_debut,
                 training_type=training_type,
                 current_date=current_date
             )
@@ -129,13 +125,7 @@ class TrainingHandler:
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
         """
-        Check all available training options based on execute_old logic
-
-        Args:
-            energy_percentage: Current energy percentage
-
-        Returns:
-            Dict with training results for each type
+        Check all available training options with corrected stage definitions
         """
         if self.check_stop():
             return {}
@@ -143,17 +133,18 @@ class TrainingHandler:
         if not self.check_window():
             return {}
 
-        # Check if we're in Pre-Debut period
+        # Check stage with corrected definitions
         current_date = get_current_date_info()
-        is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+        absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+        is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16
 
-        # Define which training types to check based on energy level (execute_old logic)
+        # Define which training types to check based on energy level
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             # Critical energy: no training check at all
             self.log(f"Critical energy ({energy_percentage}%), skipping all training checks")
             return {}
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-            # Low energy: only check WIT (from execute_old)
+            # Low energy: only check WIT
             training_types = {
                 "wit": "assets/icons/train_wit.png"
             }
@@ -170,7 +161,7 @@ class TrainingHandler:
 
         results = {}
 
-        # Execute_old mouse handling logic
+        # Execute mouse handling logic for each training type
         for key, icon_path in training_types.items():
             if self.check_stop():
                 break
@@ -189,17 +180,16 @@ class TrainingHandler:
 
                 results[key] = training_result
 
-                # Enhanced logging with hint information (execute_old style)
+                # Enhanced logging with correct stage information
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
                 time.sleep(0.1)
 
-        # Execute_old mouse release and back logic
+        # Mouse release and back navigation
         pyautogui.mouseUp()
         if not self.check_stop():
             enhanced_click(
                 "assets/buttons/back_btn.png",
                 minSearch=1.0,
-                # text="Exiting training menu after checking",
                 check_stop_func=self.check_stop,
                 check_window_func=self.check_window,
                 log_func=self.log
@@ -208,7 +198,7 @@ class TrainingHandler:
         return results
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_pre_debut: bool) -> None:
-        """Log training result with detailed information following execute_old format"""
+        """Log training result with detailed information and correct stage info"""
         hint_info = ""
         if training_result.get('hint_count', 0) > 0:
             hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
@@ -217,7 +207,7 @@ class TrainingHandler:
         if training_result.get('npc_count', 0) > 0:
             npc_info = f" + {training_result['npc_count']} NPCs ({training_result['npc_score']} score)"
 
-        # Execute_old logging format
+        # Enhanced stage info
         if is_pre_debut:
             self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info}) (Pre-Debut)")
         else:
@@ -225,13 +215,7 @@ class TrainingHandler:
 
     def execute_training(self, training_type: str) -> bool:
         """
-        Execute the specified training with execute_old logic (tripleClick)
-
-        Args:
-            training_type: Type of training to execute (spd, sta, pwr, guts, wit)
-
-        Returns:
-            bool: True if training was executed successfully
+        Execute the specified training with triple click logic
         """
         if self.check_stop():
             self.log(f"[STOP] Training {training_type} cancelled due to F3 press")
@@ -240,7 +224,7 @@ class TrainingHandler:
         if not self.check_window():
             return False
 
-        # Execute_old logic: direct tripleClick without enhanced_click
+        # Direct triple click logic
         train_btn = pyautogui.locateCenterOnScreen(f"assets/icons/train_{training_type}.png", confidence=0.8)
         if train_btn:
             if self.check_stop():
@@ -253,20 +237,14 @@ class TrainingHandler:
 
     def get_training_energy_requirements(self, training_type: str, current_date: Optional[Dict] = None) -> Dict[str, float]:
         """
-        Get energy requirements for different training scenarios
-
-        Args:
-            training_type: Type of training
-            current_date: Current date information
-
-        Returns:
-            Dict with energy requirements for different scenarios
+        Get energy requirements for different training scenarios with corrected stage definitions
         """
-        is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
+        absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+        is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16
 
         if training_type == "wit" and current_date:
             # Medium energy WIT requirements
-            if is_junior_year:
+            if is_pre_debut:
                 return {
                     'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
                     'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,

@@ -263,15 +263,7 @@ class RestHandler:
 
     def get_rest_recommendation(self, energy_percentage: float, mood: str, current_date: Optional[dict] = None) -> dict:
         """
-        Get rest/recreation recommendation based on current state
-
-        Args:
-            energy_percentage: Current energy percentage
-            mood: Current mood
-            current_date: Current date information
-
-        Returns:
-            dict: Recommendation with action type and reason
+        Get rest/recreation recommendation based on current state with corrected stage definitions
         """
         from utils.constants import CRITICAL_ENERGY_PERCENTAGE, MINIMUM_ENERGY_PERCENTAGE
 
@@ -303,15 +295,16 @@ class RestHandler:
         mood_level = mood_priority.get(mood, 'low')
 
         if mood_level in ['critical', 'high']:
-            # Check if in periods where recreation should be skipped
-            is_pre_debut = current_date and current_date.get('absolute_day', 0) < 24
+            # Check if in periods where recreation should be skipped with corrected definitions
+            absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+            is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16 (corrected)
             is_junior_year = current_date and current_date.get('year') == 'Junior'
 
             if is_pre_debut or is_junior_year:
                 return {
                     'action': 'skip',
                     'priority': 'low',
-                    'reason': f'Poor mood ({mood}) but in restricted period',
+                    'reason': f'Poor mood ({mood}) but in restricted period (Pre-Debut: Days 1-16)',
                     'urgency': 'skip'
                 }
             else:

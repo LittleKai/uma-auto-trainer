@@ -36,6 +36,7 @@ class UmaAutoGUI:
     self.is_paused = False
     self.bot_thread = None
     self.key_valid = False
+    self.initial_key_validation_done = False
 
     # Race manager
     self.race_manager = RaceManager()
@@ -311,7 +312,7 @@ class UmaAutoGUI:
     shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="5")
     shortcuts_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
 
-    shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | ESC: Force Exit Program")
+    shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | F5: Force Exit Program")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
 
   def check_key_validation(self):
@@ -320,11 +321,13 @@ class UmaAutoGUI:
       try:
         is_valid, message = validate_application_key()
         self.key_valid = is_valid
+        self.initial_key_validation_done = True
 
         # Update UI in main thread
         self.root.after(0, self.update_key_status, is_valid, message)
 
       except Exception as e:
+        self.initial_key_validation_done = True
         self.root.after(0, self.update_key_status, False, f"Validation error: {e}")
 
     # Run validation in background thread
@@ -355,7 +358,7 @@ class UmaAutoGUI:
       keyboard.add_hotkey('f1', self.start_bot)
       keyboard.add_hotkey('f2', self.pause_bot)
       keyboard.add_hotkey('f3', self.enhanced_stop_bot)
-      keyboard.add_hotkey('esc', self.force_exit_program)
+      keyboard.add_hotkey('f5', self.force_exit_program)
     except Exception as e:
       self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
 
@@ -559,14 +562,17 @@ class UmaAutoGUI:
       return False
 
   def start_bot(self):
-    """Start the bot with key validation"""
+    """Start the bot using cached key validation result"""
     if self.is_running:
       return
 
-    # Validate key before starting
-    is_valid, message = validate_application_key(show_success=True)
-    if not is_valid:
-      # Simple error message with just OK button
+    # Wait for initial key validation to complete if still in progress
+    if not self.initial_key_validation_done:
+      self.log_message("Waiting for key validation to complete...")
+      return
+
+    # Use cached validation result instead of re-validating
+    if not self.key_valid:
       messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
       self.log_message("Bot start failed: Invalid key")
       return
@@ -591,8 +597,7 @@ class UmaAutoGUI:
     self.bot_thread = threading.Thread(target=self.bot_loop, daemon=True)
     self.bot_thread.start()
 
-    self.log_message("🔑 Key validation successful!")
-    self.log_message("🚀 Bot started successfully!")
+    self.log_message("Bot started successfully!")
 
   def pause_bot(self):
     """Pause/Resume the bot"""
@@ -630,8 +635,8 @@ class UmaAutoGUI:
     self.log_message("Bot stopped")
 
   def force_exit_program(self):
-    """Force exit program - ESC key handler"""
-    self.log_message("ESC pressed - Force exiting program...")
+    """Force exit program - F5 key handler"""
+    self.log_message("F5 pressed - Force exiting program...")
     self.stop_bot()
     try:
       keyboard.unhook_all()
@@ -676,18 +681,11 @@ class UmaAutoGUI:
     # Display startup messages
     self.log_message("Uma Musume Auto Train started!")
 
-    # Check key validation status
-    if self.key_valid:
-      self.log_message("✅ Key validation successful")
-    else:
-      self.log_message("⚠️ Key validation failed - Bot start will be disabled until key is validated")
-
     self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Priority Strategies:")
     self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
     self.log_message("• Train Score 2+/2.5+/3+/3.5+: Train only if score meets threshold")
-    self.log_message("• Score = support cards + hints (1.0 or 0.5) + rainbow bonus")
-    self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, ESC to force exit program.")
+    self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, F5 to force exit program.")
 
     self.root.mainloop()
 

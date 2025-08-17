@@ -157,7 +157,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
-  """Check support card in each training with correct stage-based NPC grouping"""
+  """Check support card in each training with correct Pre-Debut score calculation"""
   # Get current region settings in case they were updated
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
@@ -243,6 +243,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   # Calculate total score based on career stage
   if is_pre_debut:
     # Pre-debut (Days 1-16): all support = 1 point each, no rainbow bonus
+    # FIXED: Simple calculation for Pre-Debut
     total_score = total_support + hint_score + npc_score
 
   elif is_early_stage:

@@ -68,7 +68,7 @@ def check_pyinstaller():
             return False
 
 def create_spec_file():
-    """Create PyInstaller spec file for better control"""
+    """Create PyInstaller spec file with improved window detection support"""
     print_header("Creating PyInstaller Spec File")
 
     spec_content = """# -*- mode: python ; coding: utf-8 -*-
@@ -91,6 +91,9 @@ hidden_imports = [
     'pytesseract',
     'mss',
     'pygetwindow',
+    'pygetwindow._pygetwindow_win',
+    'pygetwindow._pygetwindow_macos', 
+    'pygetwindow._pygetwindow_linux',
     'keyboard',
     'requests',
     'tkinter',
@@ -105,6 +108,11 @@ hidden_imports = [
     'os',
     'sys',
     'pathlib',
+    'ctypes',
+    'ctypes.wintypes',
+    'win32gui',
+    'win32con',
+    'win32api',
 ]
 
 a = Analysis(
@@ -322,52 +330,38 @@ def create_distribution_package():
                 print_success(f"Copied {config_file}")
 
         # Create README file for users
-        readme_content = """# Uma Musume Auto Train
+        readme_content = """Uma Musume Auto Train
 
-## System Requirements
+System Requirements:
 - Windows 10/11
 - Screen resolution: 1920x1080
+- Download Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki
 - Tesseract OCR installed at: C:\\Program Files\\Tesseract-OCR\\
+- Run Uma Musume game in fullscreen mode
 
-## Installation Steps
-1. Download and install Tesseract OCR from:
-   https://github.com/UB-Mannheim/tesseract/wiki
-   
-2. Install Tesseract to the default location:
-   C:\\Program Files\\Tesseract-OCR\\
-
-3. Set your screen resolution to 1920x1080
-
-4. Run Uma Musume game in fullscreen mode
-
-## How to Use
+How to Use
 1. Double-click "Uma_Musume_Auto_Train.exe" to start
 2. Configure strategy settings in the GUI
 3. Set up race filters according to your preferences
 4. Press F1 to start the bot
 
-## Keyboard Shortcuts
+Keyboard Shortcuts:
 - F1: Start Bot
 - F2: Pause/Resume Bot
 - F3: Stop Bot
 - F5: Force Exit Program
 
-## Configuration Files
+Configuration Files:
 - config.json: Basic bot configuration
 - bot_settings.json: Strategy and filter settings
 - region_settings.json: OCR region coordinates (auto-generated)
 
-## Troubleshooting
+Troubleshooting:
 - If OCR detection fails, use "Region Settings" in the GUI to adjust coordinates
 - Make sure Tesseract is installed correctly
 - Ensure game window title contains "Umamusume"
 - Check that screen resolution is 1920x1080
-
-## Support
-If you encounter issues, please check:
-1. Tesseract installation path
-2. Screen resolution settings
-3. Game window configuration
+- Note: each time the game starts, the position of MOOD may change, leading to incorrect MOOD reading, so you will need to recheck the region position of MOOD.
 """
 
         with open(os.path.join(dist_dir, "README.txt"), "w", encoding="utf-8") as f:
@@ -379,47 +373,6 @@ If you encounter issues, please check:
 
     except Exception as e:
         print_error(f"Failed to create distribution package: {e}")
-        return False
-
-def create_installer_script():
-    """Create a simple installer script for Tesseract"""
-    print_header("Creating Installer Helper")
-
-    installer_content = """@echo off
-echo Uma Musume Auto Train - Tesseract Installer Helper
-echo ================================================
-
-echo.
-echo This script will help you install Tesseract OCR
-echo.
-
-echo Step 1: Downloading Tesseract installer...
-echo Please visit: https://github.com/UB-Mannheim/tesseract/wiki
-echo.
-
-echo Step 2: Install Tesseract to default location
-echo Default path: C:\\Program Files\\Tesseract-OCR\\
-echo.
-
-echo Step 3: Verify installation
-if exist "C:\\Program Files\\Tesseract-OCR\\tesseract.exe" (
-    echo [OK] Tesseract found at C:\\Program Files\\Tesseract-OCR\\tesseract.exe
-) else (
-    echo [ERROR] Tesseract not found! Please install it first.
-)
-
-echo.
-echo Press any key to continue...
-pause >nul
-"""
-
-    try:
-        with open("Uma_Musume_Auto_Train_Distribution/install_tesseract.bat", "w", encoding="utf-8") as f:
-            f.write(installer_content)
-        print_success("Created Tesseract installer helper")
-        return True
-    except Exception as e:
-        print_error(f"Failed to create installer script: {e}")
         return False
 
 def cleanup_build_files():
@@ -469,8 +422,7 @@ def main():
         ("Default Files", create_default_files),
         ("Spec File", create_spec_file),
         ("Executable", build_executable),
-        ("Distribution Package", create_distribution_package),
-        ("Installer Helper", create_installer_script)
+        ("Distribution Package", create_distribution_package)
     ]
 
     failed_steps = []
@@ -502,7 +454,6 @@ def main():
         print_info("  - config.json (configuration file)")
         print_info("  - bot_settings.json (bot settings)")
         print_info("  - README.txt (user instructions)")
-        print_info("  - install_tesseract.bat (Tesseract helper)")
 
         print_colored("\n🚀 How to Distribute:", Colors.BOLD)
         print_info("1. Zip the 'Uma_Musume_Auto_Train_Distribution' folder")

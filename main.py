@@ -21,7 +21,7 @@ class UmaAutoGUI:
     # Position window on the right half of screen
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
-    window_width = 650
+    window_width = 700
     window_height = 850
     x = screen_width // 2 + 50
     y = (screen_height - window_height) // 2
@@ -158,35 +158,48 @@ class UmaAutoGUI:
     settings_button.grid(row=0, column=1, sticky=tk.E)
 
   def setup_status_section(self, parent):
-    """Setup the status monitoring section"""
+    """Setup the status monitoring section with 2-column layout"""
     status_frame = ttk.LabelFrame(parent, text="Status", padding="5")
     status_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    status_frame.columnconfigure(0, weight=1)
     status_frame.columnconfigure(1, weight=1)
 
+    # Left column frame
+    left_column = ttk.Frame(status_frame)
+    left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 10))
+    left_column.columnconfigure(1, weight=1)
+
+    # Right column frame
+    right_column = ttk.Frame(status_frame)
+    right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(10, 0))
+    right_column.columnconfigure(1, weight=1)
+
+    # Left column content
     # Bot status
-    ttk.Label(status_frame, text="Bot Status:").grid(row=0, column=0, sticky=tk.W)
-    self.status_label = ttk.Label(status_frame, text="Stopped", foreground="red")
+    ttk.Label(left_column, text="Bot Status:").grid(row=0, column=0, sticky=tk.W)
+    self.status_label = ttk.Label(left_column, text="Stopped", foreground="red")
     self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(5, 0))
 
-    # Game window status
-    ttk.Label(status_frame, text="Game Window:").grid(row=1, column=0, sticky=tk.W)
-    self.game_status_label = ttk.Label(status_frame, text="Not Found", foreground="red")
-    self.game_status_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
-
     # Current date
-    ttk.Label(status_frame, text="Current Date:").grid(row=2, column=0, sticky=tk.W)
-    self.date_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
-    self.date_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
+    ttk.Label(left_column, text="Current Date:").grid(row=1, column=0, sticky=tk.W)
+    self.date_label = ttk.Label(left_column, text="Unknown", foreground="blue")
+    self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
 
     # Energy status
-    ttk.Label(status_frame, text="Energy:").grid(row=3, column=0, sticky=tk.W)
-    self.energy_label = ttk.Label(status_frame, text="Unknown", foreground="blue")
-    self.energy_label.grid(row=3, column=1, sticky=tk.W, padx=(5, 0))
+    ttk.Label(left_column, text="Energy:").grid(row=2, column=0, sticky=tk.W)
+    self.energy_label = ttk.Label(left_column, text="Unknown", foreground="blue")
+    self.energy_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
+
+    # Right column content
+    # Game window status
+    ttk.Label(right_column, text="Game Window:").grid(row=0, column=0, sticky=tk.W)
+    self.game_status_label = ttk.Label(right_column, text="Not Found", foreground="red")
+    self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(5, 0))
 
     # Key validation status
-    ttk.Label(status_frame, text="Key Status:").grid(row=4, column=0, sticky=tk.W)
-    self.key_status_label = ttk.Label(status_frame, text="Checking...", foreground="orange")
-    self.key_status_label.grid(row=4, column=1, sticky=tk.W, padx=(5, 0))
+    ttk.Label(right_column, text="Key Status:").grid(row=1, column=0, sticky=tk.W)
+    self.key_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
+    self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
 
   def setup_strategy_section(self, parent):
     """Setup the strategy settings section"""

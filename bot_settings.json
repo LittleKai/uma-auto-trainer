@@ -1,13 +1,13 @@
 {
   "track": {
     "turf": true,
-    "dirt": false
+    "dirt": true
   },
   "distance": {
     "sprint": false,
     "mile": true,
     "medium": true,
-    "long": false
+    "long": true
   },
   "grade": {
     "g1": true,

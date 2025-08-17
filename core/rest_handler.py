@@ -187,16 +187,7 @@ class RestHandler:
 
     def _handle_rest_failure(self) -> None:
         """Handle case when all rest buttons fail"""
-        self.log("[WARNING] All rest buttons failed, trying screenshot analysis")
-
-        # Take a screenshot for debugging
-        try:
-            screenshot = pyautogui.screenshot()
-            screenshot.save("debug_rest_fail.png")
-            self.log("[DEBUG] Screenshot saved as debug_rest_fail.png for analysis")
-        except Exception as e:
-            self.log(f"[WARNING] Could not save debug screenshot: {e}")
-
+        self.log("[WARNING] All rest buttons failed")
         self.log("[ERROR] All rest attempts failed")
 
     def _ensure_main_menu(self) -> bool:

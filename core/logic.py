@@ -297,6 +297,7 @@ def medium_energy_wit_training(results, current_date):
 def most_support_card(results, current_date=None):
   """
   Fallback logic for Pre-Debut period and when no training meets strategy requirements
+  Fixed to properly prioritize highest score first, then WIT priority in Pre-Debut
   """
   stage_info = get_career_stage_info(current_date)
 
@@ -305,18 +306,22 @@ def most_support_card(results, current_date=None):
     valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
 
     if valid_trainings:
-      # Sort by score first (highest), then by WIT priority
+      # FIXED: Sort by score first (highest), then by WIT priority (lowest index = highest priority)
       best_training = max(
         valid_trainings.items(),
         key=lambda x: (
           x[1].get("total_score", 0),  # Highest score first
-          -get_priority_by_stage(x[0], current_date)  # Then WIT priority
+          -get_priority_by_stage(x[0], current_date)  # Then WIT priority (negative because lower index = higher priority)
         )
       )
 
       best_key, best_data = best_training
       score_info = format_score_info(best_key, best_data, current_date)
       print(f"\n[INFO] Pre-debut fallback training: {best_key.upper()} {score_info}")
+
+      # Debug log to verify selection
+      print(f"[DEBUG] Pre-debut selection - WIT score: {results.get('wit', {}).get('total_score', 0)}, STA score: {results.get('sta', {}).get('total_score', 0)}, Selected: {best_key.upper()}")
+
       return best_key
 
     print(f"\n[INFO] Pre-debut: No training with score > 0 found")

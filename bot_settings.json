@@ -11,11 +11,11 @@
   },
   "grade": {
     "g1": true,
-    "g2": false,
+    "g2": true,
     "g3": false
   },
-  "minimum_mood": "GOOD",
+  "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3+",
-  "allow_continuous_racing": false,
+  "allow_continuous_racing": true,
   "manual_event_handling": true
 }

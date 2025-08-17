@@ -204,13 +204,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   hint_score = 0
   if hint_count > 0 and current_date:
     absolute_day = current_date.get('absolute_day', 0)
-    # Only count 1 hint maximum for score calculation
-    effective_hints = min(hint_count, 1)
 
-    if absolute_day < 36:
-      hint_score = effective_hints * 1.0  # Each hint = 1 point (max 1)
+    if absolute_day < 24:
+      hint_score = 1.0
     else:
-      hint_score = effective_hints * 0.5  # Each hint = 0.5 point (max 1)
+      hint_score = 0.5
 
   # Calculate NPC score - each NPC adds 0.5 score
   npc_score = total_npc_count * 0.5

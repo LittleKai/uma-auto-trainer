@@ -184,6 +184,11 @@ class TrainingHandler:
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
                 time.sleep(0.1)
 
+        # Move mouse to specific position before releasing if only one training type to avoid accidental clicks
+        if len(training_types) == 1:
+            current_x, current_y = pyautogui.position()
+            pyautogui.moveTo(current_x, current_y-100, duration=0.1)
+
         # Mouse release and back navigation
         pyautogui.mouseUp()
         if not self.check_stop():

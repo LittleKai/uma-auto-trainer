@@ -99,7 +99,7 @@ def calculate_training_score(training_key, training_data, current_date):
     other_support = support_count - rainbow_count - friend_count
 
     rainbow_score = rainbow_count * 2.0
-    friend_score = friend_count * 0.75
+    friend_score = friend_count * 1.0
     other_score = other_support * 1.0
 
     total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
@@ -111,7 +111,7 @@ def calculate_training_score(training_key, training_data, current_date):
     other_support = support_count - rainbow_count - friend_count
 
     rainbow_score = rainbow_count * 2.5
-    friend_score = friend_count * 0.75
+    friend_score = friend_count * 1.0
     other_score = other_support * 1.0
 
     total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
@@ -306,7 +306,7 @@ def most_support_card(results, current_date=None):
     valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
 
     if valid_trainings:
-      # FIXED: Sort by score first (highest), then by WIT priority (lowest index = highest priority)
+      # Sort by score first (highest), then by WIT priority (lowest index = highest priority)
       best_training = max(
         valid_trainings.items(),
         key=lambda x: (

@@ -338,6 +338,7 @@ System Requirements:
 - Download Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki
 - Tesseract OCR installed at: C:\\Program Files\\Tesseract-OCR\\
 - Run Uma Musume game in fullscreen mode
+- Due to the tool's mouse control functionality, please add the exe file to Exclusions under Windows Security > Virus & threat protection to prevent interference.
 
 How to Use
 1. Double-click "Uma_Musume_Auto_Train.exe" to start

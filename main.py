@@ -18,15 +18,20 @@ class UmaAutoGUI:
     self.root = tk.Tk()
     self.root.title("Uma Musume Auto Train")
 
-    # Position window on the right half of screen
+    # Calculate window dimensions based on content
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
-    window_width = 700
-    window_height = 850
-    x = screen_width // 2 + 50
-    y = (screen_height - window_height) // 2
+
+    # Adjusted window dimensions for better content fit
+    window_width = 750
+    window_height = 900
+
+    # Position window on the right side with better spacing
+    x = x = screen_width // 2 + 20
+    y = max(50, (screen_height - window_height) // 2)
 
     self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    self.root.minsize(600, 700)  # Set minimum size to prevent content cutoff
 
     # Keep window always on top
     self.root.attributes('-topmost', True)
@@ -86,13 +91,21 @@ class UmaAutoGUI:
     # Check key validation on startup
     self.check_key_validation()
 
+    # Start game window monitoring
+    self.start_game_window_monitoring()
+
   def setup_gui(self):
-    """Setup the main GUI interface"""
-    # Main frame with scrollbar
-    canvas = tk.Canvas(self.root)
-    scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
+    """Setup the main GUI interface with improved layout"""
+    # Create main container with padding
+    main_container = ttk.Frame(self.root)
+    main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    # Create canvas and scrollbar for scrollable content
+    canvas = tk.Canvas(main_container)
+    scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
     scrollable_frame = ttk.Frame(canvas)
 
+    # Configure scrollable frame
     scrollable_frame.bind(
       "<Configure>",
       lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
@@ -101,122 +114,112 @@ class UmaAutoGUI:
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    main_frame = ttk.Frame(scrollable_frame, padding="10")
-    main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+    # Main content frame with proper padding
+    main_frame = ttk.Frame(scrollable_frame)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-    # Configure grid weights
-    main_frame.columnconfigure(1, weight=1)
+    # Configure grid weights for proper resizing
+    main_frame.columnconfigure(0, weight=1)
 
-    # Header section
+    # Setup all sections with improved spacing
     self.setup_header_section(main_frame)
-
-    # Status section
     self.setup_status_section(main_frame)
-
-    # Strategy settings section
     self.setup_strategy_section(main_frame)
-
-    # Race filters section
     self.setup_race_filters_section(main_frame)
-
-    # Control buttons section
     self.setup_control_buttons_section(main_frame)
-
-    # Activity log section
     self.setup_activity_log_section(main_frame)
-
-    # Keyboard shortcuts info section
     self.setup_shortcuts_info_section(main_frame)
 
-    # Pack canvas and scrollbar
+    # Pack canvas and scrollbar with proper fill
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
+
+    # Bind mousewheel to canvas for better scrolling
+    def on_mousewheel(event):
+      canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    canvas.bind("<MouseWheel>", on_mousewheel)
 
   def setup_header_section(self, parent):
     """Setup the header section with title and settings button"""
     title_frame = ttk.Frame(parent)
-    title_frame.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15))
+    title_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
     title_frame.columnconfigure(0, weight=1)
 
     # Title container
     title_container = ttk.Frame(title_frame)
-    title_container.grid(row=0, column=0, sticky=tk.W)
+    title_container.pack(side=tk.LEFT)
 
     # Main title
     title_label = ttk.Label(title_container, text="Uma Musume Auto Train",
                             font=("Arial", 16, "bold"))
-    title_label.grid(row=0, column=0, sticky=tk.W)
+    title_label.pack(anchor=tk.W)
 
     # Subtitle
     subtitle_label = ttk.Label(title_container, text="(Developed by LittleKai!)",
                                font=("Arial", 10), foreground="gray")
-    subtitle_label.grid(row=1, column=0, sticky=tk.W)
+    subtitle_label.pack(anchor=tk.W)
 
     # Settings button
     settings_button = ttk.Button(title_frame, text="⚙ Region Settings",
                                  command=self.open_region_settings)
-    settings_button.grid(row=0, column=1, sticky=tk.E)
+    settings_button.pack(side=tk.RIGHT)
 
   def setup_status_section(self, parent):
-    """Setup the status monitoring section with 2-column layout"""
-    status_frame = ttk.LabelFrame(parent, text="Status", padding="5")
-    status_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    """Setup the status monitoring section with improved layout"""
+    status_frame = ttk.LabelFrame(parent, text="Status", padding="10")
+    status_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
     status_frame.columnconfigure(0, weight=1)
     status_frame.columnconfigure(1, weight=1)
 
     # Left column frame
     left_column = ttk.Frame(status_frame)
-    left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 10))
+    left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 15))
     left_column.columnconfigure(1, weight=1)
 
     # Right column frame
     right_column = ttk.Frame(status_frame)
-    right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(10, 0))
+    right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
     right_column.columnconfigure(1, weight=1)
 
     # Left column content
-    # Bot status
-    ttk.Label(left_column, text="Bot Status:").grid(row=0, column=0, sticky=tk.W)
+    ttk.Label(left_column, text="Bot Status:", font=("Arial", 9, "bold")).grid(row=0, column=0, sticky=tk.W, pady=2)
     self.status_label = ttk.Label(left_column, text="Stopped", foreground="red")
-    self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(5, 0))
+    self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
-    # Current date
-    ttk.Label(left_column, text="Current Date:").grid(row=1, column=0, sticky=tk.W)
+    ttk.Label(left_column, text="Current Date:", font=("Arial", 9, "bold")).grid(row=1, column=0, sticky=tk.W, pady=2)
     self.date_label = ttk.Label(left_column, text="Unknown", foreground="blue")
-    self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
+    self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
-    # Energy status
-    ttk.Label(left_column, text="Energy:").grid(row=2, column=0, sticky=tk.W)
+    ttk.Label(left_column, text="Energy:", font=("Arial", 9, "bold")).grid(row=2, column=0, sticky=tk.W, pady=2)
     self.energy_label = ttk.Label(left_column, text="Unknown", foreground="blue")
-    self.energy_label.grid(row=2, column=1, sticky=tk.W, padx=(5, 0))
+    self.energy_label.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
     # Right column content
-    # Game window status
-    ttk.Label(right_column, text="Game Window:").grid(row=0, column=0, sticky=tk.W)
-    self.game_status_label = ttk.Label(right_column, text="Not Found", foreground="red")
-    self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(5, 0))
+    ttk.Label(right_column, text="Game Window:", font=("Arial", 9, "bold")).grid(row=0, column=0, sticky=tk.W, pady=2)
+    self.game_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
+    self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
-    # Key validation status
-    ttk.Label(right_column, text="Key Status:").grid(row=1, column=0, sticky=tk.W)
+    ttk.Label(right_column, text="Key Status:", font=("Arial", 9, "bold")).grid(row=1, column=0, sticky=tk.W, pady=2)
     self.key_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
-    self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(5, 0))
+    self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
   def setup_strategy_section(self, parent):
-    """Setup the strategy settings section"""
-    strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="5")
-    strategy_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    """Setup the strategy settings section with better spacing"""
+    strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="10")
+    strategy_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
     strategy_frame.columnconfigure(1, weight=1)
     strategy_frame.columnconfigure(3, weight=1)
 
     # Row 0: Minimum Mood and Priority Strategy
-    ttk.Label(strategy_frame, text="Minimum Mood:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+    ttk.Label(strategy_frame, text="Minimum Mood:", font=("Arial", 9)).grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
     mood_dropdown = ttk.Combobox(strategy_frame, textvariable=self.minimum_mood,
                                  values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
-                                 state="readonly", width=10)
-    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
+                                 state="readonly", width=12)
+    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20), pady=5)
     mood_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    ttk.Label(strategy_frame, text="Priority Strategy:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
+    ttk.Label(strategy_frame, text="Priority Strategy:", font=("Arial", 9)).grid(row=0, column=2, sticky=tk.W, padx=(0, 5), pady=5)
     priority_dropdown = ttk.Combobox(strategy_frame, textvariable=self.priority_strategy,
                                      values=[
                                        "G1 (no training)",
@@ -227,65 +230,76 @@ class UmaAutoGUI:
                                        "Train Score 3.5+",
                                        "Train Score 4+"
                                      ],
-                                     state="readonly", width=20)
-    priority_dropdown.grid(row=0, column=3, sticky=tk.W)
+                                     state="readonly", width=22)
+    priority_dropdown.grid(row=0, column=3, sticky=tk.W, pady=5)
     priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    # Row 1: Checkboxes
+    # Row 1: Checkboxes with better spacing
     continuous_racing_check = ttk.Checkbutton(strategy_frame,
                                               text="Allow Continuous Racing (>3 races)",
                                               variable=self.allow_continuous_racing,
                                               command=self.save_settings)
-    continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 0))
+    continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 5))
 
     manual_event_check = ttk.Checkbutton(strategy_frame,
                                          text="Manual Event Handling (pause on events)",
                                          variable=self.manual_event_handling,
                                          command=self.save_settings)
-    manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 0))
+    manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 5))
 
   def setup_race_filters_section(self, parent):
-    """Setup the race filters section"""
-    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="5")
-    filter_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    """Setup the race filters section with improved layout"""
+    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
+    filter_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+    filter_frame.columnconfigure(0, weight=1)
+    filter_frame.columnconfigure(1, weight=1)
+    filter_frame.columnconfigure(2, weight=1)
 
     # Track filters
-    track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding="5")
-    track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), padx=(0, 5))
+    track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding="8")
+    track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 5))
 
     ttk.Checkbutton(track_frame, text="Turf", variable=self.track_filters['turf'],
-                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
+                    command=self.save_settings).pack(anchor=tk.W, pady=2)
     ttk.Checkbutton(track_frame, text="Dirt", variable=self.track_filters['dirt'],
-                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
+                    command=self.save_settings).pack(anchor=tk.W, pady=2)
 
     # Distance filters
-    distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding="5")
-    distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5)
+    distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding="8")
+    distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N), padx=5)
 
-    ttk.Checkbutton(distance_frame, text="Sprint", variable=self.distance_filters['sprint'],
-                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
-    ttk.Checkbutton(distance_frame, text="Mile", variable=self.distance_filters['mile'],
-                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
-    ttk.Checkbutton(distance_frame, text="Medium", variable=self.distance_filters['medium'],
-                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
-    ttk.Checkbutton(distance_frame, text="Long", variable=self.distance_filters['long'],
-                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W)
+    # Create 2x2 grid for distance checkboxes
+    distance_inner = ttk.Frame(distance_frame)
+    distance_inner.pack(fill=tk.BOTH, expand=True)
+
+    ttk.Checkbutton(distance_inner, text="Sprint", variable=self.distance_filters['sprint'],
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=2)
+    ttk.Checkbutton(distance_inner, text="Mile", variable=self.distance_filters['mile'],
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=2)
+    ttk.Checkbutton(distance_inner, text="Medium", variable=self.distance_filters['medium'],
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
+    ttk.Checkbutton(distance_inner, text="Long", variable=self.distance_filters['long'],
+                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
     # Grade filters
-    grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding="5")
-    grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E), padx=(5, 0))
+    grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding="8")
+    grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N), padx=(5, 0))
 
-    ttk.Checkbutton(grade_frame, text="G1", variable=self.grade_filters['g1'],
-                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W)
-    ttk.Checkbutton(grade_frame, text="G2", variable=self.grade_filters['g2'],
-                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W)
-    ttk.Checkbutton(grade_frame, text="G3", variable=self.grade_filters['g3'],
-                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W)
+    # Create 2x2 grid for grade checkboxes
+    grade_inner = ttk.Frame(grade_frame)
+    grade_inner.pack(fill=tk.BOTH, expand=True)
+
+    ttk.Checkbutton(grade_inner, text="G1", variable=self.grade_filters['g1'],
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=2)
+    ttk.Checkbutton(grade_inner, text="G2", variable=self.grade_filters['g2'],
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=2)
+    ttk.Checkbutton(grade_inner, text="G3", variable=self.grade_filters['g3'],
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
   def setup_control_buttons_section(self, parent):
-    """Setup the control buttons section"""
+    """Setup the control buttons section with better sizing"""
     button_frame = ttk.Frame(parent)
-    button_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+    button_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
     button_frame.columnconfigure(2, weight=1)
@@ -293,40 +307,156 @@ class UmaAutoGUI:
     # Start button
     self.start_button = ttk.Button(button_frame, text="Start (F1)",
                                    command=self.start_bot)
-    self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E))
+    self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E), ipady=5)
 
     # Pause button
     self.pause_button = ttk.Button(button_frame, text="Pause (F2)",
                                    command=self.pause_bot, state="disabled")
-    self.pause_button.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E))
+    self.pause_button.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E), ipady=5)
 
     # Stop button
     self.stop_button = ttk.Button(button_frame, text="Stop (F3)",
                                   command=self.stop_bot, state="disabled")
-    self.stop_button.grid(row=0, column=2, padx=(5, 0), sticky=(tk.W, tk.E))
+    self.stop_button.grid(row=0, column=2, padx=(5, 0), sticky=(tk.W, tk.E), ipady=5)
 
   def setup_activity_log_section(self, parent):
-    """Setup the activity log section"""
-    log_frame = ttk.LabelFrame(parent, text="Activity Log", padding="5")
-    log_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+    """Setup the activity log section with proper sizing"""
+    log_frame = ttk.LabelFrame(parent, text="Activity Log", padding="10")
+    log_frame.grid(row=5, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 15))
     log_frame.columnconfigure(0, weight=1)
     log_frame.rowconfigure(0, weight=1)
 
-    # Log text area
-    self.log_text = scrolledtext.ScrolledText(log_frame, height=12, width=70)
+    # Log text area with appropriate height
+    self.log_text = scrolledtext.ScrolledText(log_frame, height=10, width=70, wrap=tk.WORD)
     self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
     # Clear log button
     clear_button = ttk.Button(log_frame, text="Clear Log", command=self.clear_log)
-    clear_button.grid(row=1, column=0, sticky=tk.W, pady=(5, 0))
+    clear_button.grid(row=1, column=0, sticky=tk.W, pady=(8, 0))
 
   def setup_shortcuts_info_section(self, parent):
     """Setup the keyboard shortcuts info section"""
-    shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="5")
-    shortcuts_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
+    shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="8")
+    shortcuts_frame.grid(row=6, column=0, sticky=(tk.W, tk.E))
 
     shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | F5: Force Exit Program")
-    ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).grid(row=0, column=0)
+    ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).pack()
+
+  def start_game_window_monitoring(self):
+    """Start monitoring game window status in background"""
+    def monitor_game_window():
+      while True:
+        try:
+          self.check_game_window()
+          time.sleep(2)  # Check every 2 seconds
+        except Exception as e:
+          # Silent fail to prevent spam
+          pass
+
+    monitor_thread = threading.Thread(target=monitor_game_window, daemon=True)
+    monitor_thread.start()
+
+  def check_game_window(self):
+    """Enhanced game window detection with multiple search patterns"""
+    try:
+      # List of possible window titles to search for
+      window_titles = ["Umamusume", "ウマ娘", "Uma Musume", "DMM GAME PLAYER"]
+
+      found_window = None
+      window_title_found = ""
+
+      # Try to find window with any of the possible titles
+      for title in window_titles:
+        try:
+          windows = gw.getWindowsWithTitle(title)
+          if windows:
+            found_window = windows[0]
+            window_title_found = title
+            break
+        except Exception:
+          continue
+
+      if found_window:
+        try:
+          is_active = found_window.isActive
+          window_info = f"Found ({window_title_found})"
+
+          if is_active:
+            self.root.after(0, self._update_game_status, f"{window_info} - Active", "green")
+            return True
+          else:
+            self.root.after(0, self._update_game_status, f"{window_info} - Inactive", "orange")
+            return False
+        except Exception as e:
+          self.root.after(0, self._update_game_status, f"{window_info} - Error", "red")
+          return False
+      else:
+        # No window found with any title
+        all_windows = []
+        try:
+          all_windows = gw.getAllWindows()
+          game_related = [w for w in all_windows if any(keyword in w.title.lower()
+                                                        for keyword in ['uma', 'ウマ', 'dmm', 'game']) and w.title.strip()]
+
+          if game_related:
+            titles = [w.title[:30] + "..." if len(w.title) > 30 else w.title for w in game_related[:3]]
+            hint = f"Similar: {', '.join(titles)}"
+            self.root.after(0, self._update_game_status, f"Not Found - {hint}", "red")
+          else:
+            self.root.after(0, self._update_game_status, "Not Found - Please start game", "red")
+        except Exception:
+          self.root.after(0, self._update_game_status, "Not Found - Detection Error", "red")
+
+        return False
+
+    except Exception as e:
+      self.root.after(0, self._update_game_status, f"Error: {str(e)[:30]}", "red")
+      return False
+
+  def focus_umamusume(self):
+    """Enhanced game window focusing with multiple title search"""
+    try:
+      window_titles = ["Umamusume", "ウマ娘", "Uma Musume", "DMM GAME PLAYER"]
+
+      found_window = None
+      for title in window_titles:
+        try:
+          windows = gw.getWindowsWithTitle(title)
+          if windows:
+            found_window = windows[0]
+            break
+        except Exception:
+          continue
+
+      if not found_window:
+        # Try to find any game-related window
+        all_windows = gw.getAllWindows()
+        game_windows = [w for w in all_windows if any(keyword in w.title.lower()
+                                                      for keyword in ['uma', 'ウマ', 'dmm']) and w.title.strip()]
+        if game_windows:
+          found_window = game_windows[0]
+
+      if not found_window:
+        raise Exception("No game window found with any recognized title")
+
+      # Focus the window
+      if found_window.isMinimized:
+        found_window.restore()
+      found_window.activate()
+
+      # Try to maximize if possible
+      try:
+        found_window.maximize()
+      except:
+        pass  # Some windows can't be maximized
+
+      time.sleep(0.5)
+      return True
+
+    except Exception as e:
+      self.log_message(f"Error focusing game window: {e}")
+      self.log_message("Please ensure the game is running and window title contains 'Umamusume', 'ウマ娘', 'Uma Musume', or 'DMM GAME PLAYER'")
+      return False
 
   def check_key_validation(self):
     """Check key validation status on startup"""
@@ -532,47 +662,9 @@ class UmaAutoGUI:
     except Exception as e:
       self.root.after(0, lambda: self.energy_label.config(text="Error", foreground="red"))
 
-  def check_game_window(self):
-    """Check if Umamusume window is active"""
-    try:
-      windows = gw.getWindowsWithTitle("Umamusume")
-      if windows:
-        win = windows[0]
-        is_active = win.isActive
-        if is_active:
-          self.root.after(0, self._update_game_status, "Active", "green")
-          return True
-        else:
-          self.root.after(0, self._update_game_status, "Inactive", "orange")
-          return False
-      else:
-        self.root.after(0, self._update_game_status, "Not Found", "red")
-        return False
-    except Exception as e:
-      self.root.after(0, self._update_game_status, f"Error: {e}", "red")
-      return False
-
   def _update_game_status(self, status, color):
     """Update game status label"""
     self.game_status_label.config(text=status, foreground=color)
-
-  def focus_umamusume(self):
-    """Focus Umamusume window"""
-    try:
-      windows = gw.getWindowsWithTitle("Umamusume")
-      if not windows:
-        raise Exception("Umamusume window not found.")
-
-      win = windows[0]
-      if win.isMinimized:
-        win.restore()
-      win.activate()
-      win.maximize()
-      time.sleep(0.5)
-      return True
-    except Exception as e:
-      self.log_message(f"Error focusing game window: {e}")
-      return False
 
   def start_bot(self):
     """Start the bot using cached key validation result"""
@@ -692,8 +784,6 @@ class UmaAutoGUI:
   def run(self):
     """Start the GUI"""
     # Display startup messages
-    self.log_message("Uma Musume Auto Train started!")
-
     self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Priority Strategies:")
     self.log_message("• G1/G2 (no training): Prioritize racing, skip training")

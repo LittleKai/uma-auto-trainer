@@ -576,8 +576,8 @@ class DecisionEngine:
                 else:
                     if self.controller.check_should_stop():
                         return False
-                    self.controller.rest_handler.execute_rest()
-                    self.controller.log_message("No training available - Resting")
+                    self.controller.log_message("No training available!")
+                    return True
 
         return True
 

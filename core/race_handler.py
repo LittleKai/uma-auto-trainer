@@ -187,7 +187,7 @@ class RaceHandler:
             grade_location = find_template_position(
                 template_path=template_path,
                 region=panel_region,
-                threshold=0.9,
+                threshold=0.8,
                 region_format='xywh'
             )
 

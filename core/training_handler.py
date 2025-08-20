@@ -229,11 +229,44 @@ class TrainingHandler:
         if training_result.get('npc_count', 0) > 0:
             npc_info = f" + {training_result['npc_count']} NPCs ({training_result['npc_score']} score)"
 
+        # Debug: Print detailed score breakdown
+        total_score = training_result.get('total_score', 0)
+
+        # Load scoring config locally to avoid import issues
+        try:
+            with open("config.json", "r", encoding="utf-8") as file:
+                config = json.load(file)
+            scoring_config = config.get("scoring_config", {})
+            support_config = scoring_config.get("support_score", {})
+            base_score = support_config.get("base_value", 1.0)
+        except:
+            base_score = 1.0
+
+        support_score = sum(count for k, count in training_result['support'].items() if k != 'npc') * base_score
+        hint_score = training_result.get('hint_score', 0)
+        npc_score = training_result.get('npc_score', 0)
+
+        print(f"[DEBUG] {key.upper()} Score Breakdown:")
+        print(f"[DEBUG]   Support cards: {training_result['support']}")
+        print(f"[DEBUG]   Support score: {support_score}")
+        print(f"[DEBUG]   Hint score: {hint_score}")
+        print(f"[DEBUG]   NPC score: {npc_score}")
+        print(f"[DEBUG]   Total calculated: {support_score + hint_score + npc_score}")
+        print(f"[DEBUG]   Total from data: {total_score}")
+
+        # Verify score consistency
+        calculated_total = support_score + hint_score + npc_score
+        if abs(calculated_total - total_score) > 0.01:
+            print(f"[DEBUG] WARNING: Score mismatch for {key.upper()}! Calculated={calculated_total}, Stored={total_score}")
+
         # Enhanced stage info
         if is_pre_debut:
             self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info}) (Pre-Debut)")
         else:
             self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info})")
+
+        # Additional debug for decision making
+        print(f"[DEBUG] {key.upper()} final data for decision: total_score={total_score}")
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

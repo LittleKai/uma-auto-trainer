@@ -513,6 +513,16 @@ class DecisionEngine:
             current_date
         )
 
+        # Handle special case: SHOULD_REST
+        if best_training == "SHOULD_REST":
+            self.controller.log_message(f"Medium energy ({energy_percentage}%) with low training scores - Resting instead of inefficient training")
+            if self.controller.check_should_stop():
+                return False
+            self._click_back_button("")
+            time.sleep(0.5)
+            self.controller.rest_handler.execute_rest()
+            return True
+
         if best_training:
             # Training found that meets strategy requirements
             if self.controller.check_should_stop():

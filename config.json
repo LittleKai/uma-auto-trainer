@@ -1,14 +1,14 @@
 {
   "priority_stat": ["spd", "pwr", "sta", "wit", "guts"],
   "maximum_failure": 15,
-  "minimum_energy_percentage": 40,
+  "minimum_energy_percentage": 42,
   "critical_energy_percentage": 20,
   "stat_caps": {
     "spd": 1130,
     "sta": 1130,
     "pwr": 1130,
-    "guts": 600,
-    "wit": 600
+    "guts": 1130,
+    "wit": 1130
   },
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
@@ -46,7 +46,7 @@
       }
     },
     "energy_restrictions": {
-      "medium_energy_upper_limit": 50,
+      "medium_energy_upper_limit": 52,
       "medium_energy_max_score_threshold": 2.5
     }
   }

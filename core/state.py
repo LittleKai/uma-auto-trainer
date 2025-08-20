@@ -218,6 +218,25 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
 
+  # Load scoring configuration locally to avoid circular imports
+  scoring_config = load_scoring_config()
+
+  def get_support_base_score_local():
+    """Get support card base score value from configuration"""
+    support_config = scoring_config.get("support_score", {})
+    return support_config.get("base_value", 1.0)
+
+  def get_friend_multiplier_local():
+    """Get friend card score multiplier from configuration"""
+    support_config = scoring_config.get("support_score", {})
+    return support_config.get("friend_multiplier", 1.0)
+
+  def get_rainbow_multiplier_local(stage):
+    """Get rainbow card multiplier based on stage from configuration"""
+    support_config = scoring_config.get("support_score", {})
+    rainbow_config = support_config.get("rainbow_multiplier", {})
+    return rainbow_config.get(stage, 1.0)
+
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
@@ -256,6 +275,13 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
   hint_count = len(hint_matches)
 
+  # Debug: Print raw detection results
+  print(f"[DEBUG] Raw detection for {training_type or 'unknown'} training:")
+  for key, count in count_result.items():
+    if count > 0:
+      print(f"[DEBUG]   {key}: {count}")
+  print(f"[DEBUG]   hints: {hint_count}")
+
   # Calculate hint score based on configuration - maximum 1 hint counts for score
   hint_score = 0
   if hint_count > 0 and current_date:
@@ -277,6 +303,9 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   is_mid_stage = stage_thresholds.get("early_stage", 24) < absolute_day <= stage_thresholds.get("mid_stage", 48)
   is_late_stage = absolute_day > stage_thresholds.get("mid_stage", 48)
 
+  # Debug: Print stage information
+  print(f"[DEBUG] Stage determination: day={absolute_day}, is_pre_debut={is_pre_debut}, is_early={is_early_stage}")
+
   # Handle friend cards in Pre-Debut period - convert to current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
     friend_count = count_result["friend"]
@@ -284,25 +313,34 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     count_result[training_type] = count_result.get(training_type, 0) + friend_count
     # Set friend count to 0 since they're now counted as training type
     count_result["friend"] = 0
+    print(f"[DEBUG] Pre-debut: Converted {friend_count} friend cards to {training_type}")
 
   # Calculate total support (excluding hint and NPC)
   total_support = sum(count for key, count in count_result.items()
                       if key not in ["hint", "npc"])
 
   # Get scoring configuration values
-  base_score = get_support_base_score()
-  friend_multiplier = get_friend_multiplier()
+  base_score = get_support_base_score_local()
+  friend_multiplier = get_friend_multiplier_local()
+
+  print(f"[DEBUG] Score calculation inputs:")
+  print(f"[DEBUG]   base_score: {base_score}")
+  print(f"[DEBUG]   friend_multiplier: {friend_multiplier}")
+  print(f"[DEBUG]   hint_score: {hint_score}")
+  print(f"[DEBUG]   npc_score: {npc_score}")
 
   # Calculate total score based on career stage using configuration
   if is_pre_debut:
     # Pre-debut: all support = base score each, no rainbow bonus
-    rainbow_multiplier = get_rainbow_multiplier('pre_debut')
+    rainbow_multiplier = get_rainbow_multiplier_local('pre_debut')
     total_score = total_support * base_score + hint_score + npc_score
+    print(f"[DEBUG] Pre-debut score: {total_support} * {base_score} + {hint_score} + {npc_score} = {total_score}")
 
   elif is_early_stage:
     # Early stage: all support = base score each, no rainbow bonus yet
-    rainbow_multiplier = get_rainbow_multiplier('early_stage')
+    rainbow_multiplier = get_rainbow_multiplier_local('early_stage')
     total_score = total_support * base_score + hint_score + npc_score
+    print(f"[DEBUG] Early stage score: {total_support} * {base_score} + {hint_score} + {npc_score} = {total_score}")
 
   elif is_mid_stage:
     # Mid stage: rainbow cards get multiplier, friend cards get friend multiplier, others = base score
@@ -311,12 +349,17 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
       friend_count = count_result.get("friend", 0)
       other_support = total_support - rainbow_count - friend_count
 
-      rainbow_multiplier = get_rainbow_multiplier('mid_stage')
+      rainbow_multiplier = get_rainbow_multiplier_local('mid_stage')
       rainbow_score = rainbow_count * rainbow_multiplier
       friend_score = friend_count * friend_multiplier
       other_score = other_support * base_score
 
       total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
+      print(f"[DEBUG] Mid stage score breakdown:")
+      print(f"[DEBUG]   Rainbow ({training_type}): {rainbow_count} * {rainbow_multiplier} = {rainbow_score}")
+      print(f"[DEBUG]   Friend: {friend_count} * {friend_multiplier} = {friend_score}")
+      print(f"[DEBUG]   Other: {other_support} * {base_score} = {other_score}")
+      print(f"[DEBUG]   Total: {total_score}")
     else:
       # No training type specified, treat friend cards with friend multiplier
       friend_count = count_result.get("friend", 0)
@@ -333,12 +376,17 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
       friend_count = count_result.get("friend", 0)
       other_support = total_support - rainbow_count - friend_count
 
-      rainbow_multiplier = get_rainbow_multiplier('late_stage')
+      rainbow_multiplier = get_rainbow_multiplier_local('late_stage')
       rainbow_score = rainbow_count * rainbow_multiplier
       friend_score = friend_count * friend_multiplier
       other_score = other_support * base_score
 
       total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
+      print(f"[DEBUG] Late stage score breakdown:")
+      print(f"[DEBUG]   Rainbow ({training_type}): {rainbow_count} * {rainbow_multiplier} = {rainbow_score}")
+      print(f"[DEBUG]   Friend: {friend_count} * {friend_multiplier} = {friend_score}")
+      print(f"[DEBUG]   Other: {other_support} * {base_score} = {other_score}")
+      print(f"[DEBUG]   Total: {total_score}")
     else:
       # No training type specified, treat friend cards with friend multiplier
       friend_count = count_result.get("friend", 0)
@@ -351,6 +399,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   else:
     # Fallback: all = base score
     total_score = total_support * base_score + hint_score + npc_score
+    print(f"[DEBUG] Fallback score: {total_support} * {base_score} + {hint_score} + {npc_score} = {total_score}")
 
   # Add additional info to results
   count_result["hint"] = hint_count
@@ -358,6 +407,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["npc_count"] = total_npc_count
   count_result["npc_score"] = npc_score
   count_result["total_score"] = total_score
+
+  # Debug: Print final result
+  print(f"[DEBUG] Final result for {training_type or 'unknown'}:")
+  print(f"[DEBUG]   Support breakdown: {count_result}")
+  print(f"[DEBUG]   Total score: {total_score}")
 
   return count_result
 

@@ -107,16 +107,40 @@ def get_priority_by_stage(stat_key, current_date):
   """Get stat priority based on career stage with WIT priority in pre-debut and early stage"""
   stage_info = get_career_stage_info(current_date)
 
+  # Debug: Print original config
+  print(f"[DEBUG] get_priority_by_stage({stat_key}) - Original PRIORITY_STAT: {PRIORITY_STAT}")
+  print(f"[DEBUG] Stage info: is_pre_debut={stage_info['is_pre_debut']}, stage={stage_info['stage']}, day={stage_info['absolute_day']}")
+
   if stage_info['is_pre_debut'] or (stage_info['stage'] == 'early' and stage_info['absolute_day'] <= 24):
     # Pre-debut and early stage (first 24 days): prioritize WIT first, then follow config order
     config_priority = PRIORITY_STAT.copy()
+
+    # Debug: Print before modification
+    print(f"[DEBUG] Config priority before modification: {config_priority}")
+
     if 'wit' in config_priority:
       config_priority.remove('wit')
+      print(f"[DEBUG] After removing WIT: {config_priority}")
+
     config_priority.insert(0, 'wit')
-    return config_priority.index(stat_key) if stat_key in config_priority else 999
+    print(f"[DEBUG] After inserting WIT at position 0: {config_priority}")
+
+    if stat_key in config_priority:
+      priority_index = config_priority.index(stat_key)
+      print(f"[DEBUG] {stat_key} priority index: {priority_index}")
+      return priority_index
+    else:
+      print(f"[DEBUG] {stat_key} not found in priority list, returning 999")
+      return 999
   else:
     # Normal priority from config
-    return get_stat_priority(stat_key)
+    if stat_key in PRIORITY_STAT:
+      priority_index = PRIORITY_STAT.index(stat_key)
+      print(f"[DEBUG] Normal stage - {stat_key} priority index: {priority_index}")
+      return priority_index
+    else:
+      print(f"[DEBUG] Normal stage - {stat_key} not found, returning 999")
+      return 999
 
 def filter_by_stat_caps(results, current_stats):
   """Filter training results by stat caps to exclude capped stats"""
@@ -261,20 +285,36 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   stage_info = get_career_stage_info(current_date)
 
+  # Debug: Print input data
+  print(f"[DEBUG] training_decision called:")
+  print(f"[DEBUG]   Energy: {energy_percentage}%")
+  print(f"[DEBUG]   Stage: {stage_info}")
+  print(f"[DEBUG]   Available trainings: {list(results_training.keys())}")
+
+  # Debug: Print all training scores
+  for key, data in results_training.items():
+    score = data.get('total_score', 0)
+    print(f"[DEBUG]   {key.upper()}: total_score={score}")
+
   # Get current stats for caps filtering
   current_stats = stat_state()
 
   # Filter by stat caps
   filtered_results = filter_by_stat_caps(results_training, current_stats)
   if not filtered_results:
+    print(f"[DEBUG] All stats capped or no valid training after filtering")
     return None
+
+  print(f"[DEBUG] After stat caps filtering: {list(filtered_results.keys())}")
 
   # Check energy level for critical energy (no training allowed)
   if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Critical energy ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training")
     return None
 
   # Check energy level for medium energy logic (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Medium energy ({energy_percentage}%), using WIT logic")
     return medium_energy_wit_training(filtered_results, current_date)
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
@@ -293,32 +333,41 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
       if total_score > best_score:
         best_score = total_score
 
+    print(f"[DEBUG] Energy restriction check: {energy_percentage}% in range [{MINIMUM_ENERGY_PERCENTAGE}%, {medium_upper_limit}%), best_score={best_score}, threshold={max_score_threshold}")
+
     if best_score <= max_score_threshold:
-      print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= {max_score_threshold}, should race instead")
-      return None
+      print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= {max_score_threshold}, should rest instead of low-value training")
+      # Return special marker to indicate "should rest" instead of "should race"
+      return "SHOULD_REST"
 
   # Get strategy
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
   score_threshold = extract_score_threshold(priority_strategy)
 
+  print(f"[DEBUG] Priority strategy: {priority_strategy}, threshold: {score_threshold}")
+
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
+    print(f"[DEBUG] Race priority strategy, no training")
     return None
   else:
     # Score-based training strategy
     if stage_info['is_pre_debut']:
       # Pre-Debut: Use fallback logic (most_support_card)
-      print(f'[INFO] Pre-debut period (Day {stage_info["absolute_day"]}/72): Using fallback logic instead of {priority_strategy}')
-      return most_support_card(filtered_results, current_date)
+      print(f'[DEBUG] Pre-debut period (Day {stage_info["absolute_day"]}/72): Using fallback logic instead of {priority_strategy}')
+      result = most_support_card(filtered_results, current_date)
+      print(f"[DEBUG] Pre-debut fallback result: {result}")
+      return result
     else:
       # Post Pre-Debut: Apply strategy scoring
-      print(f'[INFO] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy}')
+      print(f'[DEBUG] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy}')
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
+      print(f"[DEBUG] Strategy-based result: {result}")
 
       if result:
         return result
       else:
-        print(f'[INFO] No training meets {priority_strategy} requirements - should try racing instead')
+        print(f'[DEBUG] No training meets {priority_strategy} requirements - should try racing instead')
         return None
 
 def medium_energy_wit_training(results, current_date):
@@ -357,26 +406,61 @@ def most_support_card(results, current_date=None):
   """Fallback logic for Pre-Debut period and when no training meets strategy requirements"""
   stage_info = get_career_stage_info(current_date)
 
+  # Debug: Print stage information
+  print(f"[DEBUG] most_support_card - Stage: {stage_info['stage']}, Day: {stage_info['absolute_day']}, Pre-Debut: {stage_info['is_pre_debut']}")
+
   # In pre-debut, prioritize by highest score first, then WIT priority
   if stage_info['is_pre_debut']:
     valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
 
-    if valid_trainings:
-      # Sort by score first (highest), then by WIT priority (lowest index = highest priority)
-      best_training = max(
-        valid_trainings.items(),
-        key=lambda x: (
-          x[1].get("total_score", 0),
-          -get_priority_by_stage(x[0], current_date)
-        )
-      )
+    # Debug: Print all valid trainings with scores
+    print(f"[DEBUG] Pre-debut valid trainings:")
+    for k, v in valid_trainings.items():
+      priority_index = get_priority_by_stage(k, current_date)
+      print(f"[DEBUG]   {k.upper()}: score={v.get('total_score', 0)}, priority_index={priority_index}")
 
-      best_key, best_data = best_training
+    if valid_trainings:
+      # Create list of tuples for stable sorting
+      training_list = []
+      for key, data in valid_trainings.items():
+        score = data.get("total_score", 0)
+        priority_index = get_priority_by_stage(key, current_date)
+        training_list.append((key, data, score, priority_index))
+
+      # Debug: Print sorting data
+      print(f"[DEBUG] Training list before sorting:")
+      for key, data, score, priority_index in training_list:
+        print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}, sort_key=({score}, {-priority_index})")
+
+      # Sort by score (descending), then by priority (WIT=0 should be highest priority)
+      # Lower priority_index = higher priority, so we negate it
+      training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
+
+      # Debug: Print sorting result
+      print(f"[DEBUG] Training list after sorting:")
+      for key, data, score, priority_index in training_list:
+        print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}")
+
+      # Select the best training (first in sorted list)
+      best_key, best_data, best_score, best_priority = training_list[0]
+
       score_info = format_score_info(best_key, best_data, current_date)
       print(f"\n[INFO] Pre-debut fallback training: {best_key.upper()} {score_info}")
 
-      # Debug log to verify selection
-      print(f"[DEBUG] Pre-debut selection - WIT score: {results.get('wit', {}).get('total_score', 0)}, STA score: {results.get('sta', {}).get('total_score', 0)}, Selected: {best_key.upper()}")
+      # Debug: Verify selection
+      print(f"[DEBUG] Selected training: {best_key.upper()} with score={best_score}, priority_index={best_priority}")
+
+      # Double-check WIT priority
+      wit_data = results.get('wit')
+      if wit_data and wit_data.get('total_score', 0) > 0:
+        wit_score = wit_data.get('total_score', 0)
+        wit_priority = get_priority_by_stage('wit', current_date)
+        print(f"[DEBUG] WIT comparison: score={wit_score}, priority_index={wit_priority}")
+
+        if wit_score > best_score:
+          print(f"[DEBUG] WARNING: WIT has higher score ({wit_score} > {best_score}) but not selected!")
+        elif wit_score == best_score and wit_priority < best_priority:
+          print(f"[DEBUG] WARNING: WIT has same score but higher priority ({wit_priority} < {best_priority}) but not selected!")
 
       return best_key
 
@@ -388,17 +472,22 @@ def most_support_card(results, current_date=None):
     print("\n[INFO] No training found.")
     return None
 
-  # Find best training based on total score and priority
-  best_training = max(
-    results.items(),
-    key=lambda x: (
-      calculate_training_score(x[0], x[1], current_date)[0],
-      -get_priority_by_stage(x[0], current_date)
-    )
-  )
+  # Create list for stable sorting in post pre-debut
+  training_list = []
+  for key, data in results.items():
+    total_score = calculate_training_score(key, data, current_date)[0]
+    priority_index = get_priority_by_stage(key, current_date)
+    training_list.append((key, data, total_score, priority_index))
 
-  best_key, best_data = best_training
-  total_score = calculate_training_score(best_key, best_data, current_date)[0]
+  # Debug: Print post pre-debut data
+  print(f"[DEBUG] Post pre-debut training list:")
+  for key, data, score, priority_index in training_list:
+    print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}")
+
+  # Sort by score (descending), then by priority (lower index = higher priority)
+  training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
+
+  best_key, best_data, total_score, best_priority = training_list[0]
 
   # Check minimum score requirements
   if total_score <= 1:

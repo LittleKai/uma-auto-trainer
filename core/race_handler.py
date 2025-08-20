@@ -97,10 +97,10 @@ class RaceHandler:
         # Calculate panel dimensions (split race region into smaller panels)
         left, top, width, height = RACE_REGION
         panel_height = height // 2  # Split vertically into 2 panels
-        scroll_amount = panel_height  # Scroll by one panel height
+        scroll_amount = panel_height //2  # Scroll by one panel height
 
 
-        for scroll_attempt in range(3):
+        for scroll_attempt in range(8):
             if self.check_stop():
                 return False
 
@@ -127,9 +127,6 @@ class RaceHandler:
 
                     # Click race buttons
                     return self._click_race_buttons_original()
-
-            # Scroll down by panel height to see new races
-            self.log(f"[DEBUG] Scrolling down by {scroll_amount} pixels (attempt {scroll_attempt + 1})")
 
             # Move mouse to center of race region before scrolling
             center_x = left + width // 2

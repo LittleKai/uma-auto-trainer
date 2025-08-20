@@ -10,14 +10,68 @@ MINIMUM_ENERGY_PERCENTAGE = config["minimum_energy_percentage"]
 CRITICAL_ENERGY_PERCENTAGE = config["critical_energy_percentage"]
 STAT_CAPS = config["stat_caps"]
 
-# Career Stage Constants with corrected definitions
-PRE_DEBUT_THRESHOLD = 16      # Days 1-16: Pre-Debut period
-EARLY_STAGE_THRESHOLD = 24    # Days 1-24: Early stage (includes Pre-Debut)
-MID_STAGE_THRESHOLD = 48      # Days 25-48: Mid stage
-# Days 49-72: Late stage
+# Load scoring configuration
+SCORING_CONFIG = config.get("scoring_config", {})
+
+# Career Stage Constants
+PRE_DEBUT_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("pre_debut", 16)
+EARLY_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("early_stage", 24)
+MID_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("mid_stage", 48)
+
+def get_scoring_config():
+  """Get scoring configuration from config file"""
+  return SCORING_CONFIG
+
+def get_hint_score_value(absolute_day):
+  """Get hint score value based on day"""
+  hint_config = SCORING_CONFIG.get("hint_score", {})
+  day_threshold = hint_config.get("day_threshold", 24)
+  early_score = hint_config.get("early_stage", 1.0)
+  late_score = hint_config.get("late_stage", 0.5)
+
+  return early_score if absolute_day < day_threshold else late_score
+
+def get_npc_score_value():
+  """Get NPC base score value"""
+  npc_config = SCORING_CONFIG.get("npc_score", {})
+  return npc_config.get("base_value", 0.5)
+
+def get_support_base_score():
+  """Get support card base score value"""
+  support_config = SCORING_CONFIG.get("support_score", {})
+  return support_config.get("base_value", 1.0)
+
+def get_friend_multiplier():
+  """Get friend card score multiplier"""
+  support_config = SCORING_CONFIG.get("support_score", {})
+  return support_config.get("friend_multiplier", 0.75)
+
+def get_rainbow_multiplier(stage):
+  """Get rainbow card multiplier based on stage"""
+  support_config = SCORING_CONFIG.get("support_score", {})
+  rainbow_config = support_config.get("rainbow_multiplier", {})
+
+  return rainbow_config.get(stage, 1.0)
+
+def get_wit_score_requirement(energy_type, is_pre_debut):
+  """Get WIT training score requirement"""
+  wit_config = SCORING_CONFIG.get("wit_training", {})
+  requirement_type = wit_config.get(f"{energy_type}_score_requirement", {})
+
+  stage = "pre_debut" if is_pre_debut else "post_debut"
+  return requirement_type.get(stage, 2.0)
+
+def get_energy_restriction_config():
+  """Get energy restriction configuration"""
+  scoring_config = get_scoring_config()
+  energy_config = scoring_config.get("energy_restrictions", {})
+  return {
+    'medium_energy_upper_limit': energy_config.get("medium_energy_upper_limit", 50),
+    'medium_energy_max_score_threshold': energy_config.get("medium_energy_max_score_threshold", 2.5)
+  }
 
 def get_career_stage_info(current_date):
-  """Get comprehensive career stage information with corrected definitions"""
+  """Get comprehensive career stage information"""
   if not current_date:
     return {
       'is_pre_debut': False,
@@ -28,21 +82,21 @@ def get_career_stage_info(current_date):
 
   absolute_day = current_date.get('absolute_day', 0)
 
-  # Define stages with corrected thresholds
-  is_pre_debut = absolute_day <= PRE_DEBUT_THRESHOLD  # Days 1-16
+  # Define stages with configurable thresholds
+  is_pre_debut = absolute_day <= PRE_DEBUT_THRESHOLD
 
-  if absolute_day <= EARLY_STAGE_THRESHOLD:  # Days 1-24
+  if absolute_day <= EARLY_STAGE_THRESHOLD:
     stage = 'early'
-  elif absolute_day <= MID_STAGE_THRESHOLD:  # Days 25-48
+  elif absolute_day <= MID_STAGE_THRESHOLD:
     stage = 'mid'
-  else:  # Days 49-72
+  else:
     stage = 'late'
 
   return {
     'is_pre_debut': is_pre_debut,
     'stage': stage,
     'absolute_day': absolute_day,
-    'should_apply_strategy': absolute_day > PRE_DEBUT_THRESHOLD  # Apply strategy after day 16
+    'should_apply_strategy': absolute_day > PRE_DEBUT_THRESHOLD
   }
 
 def get_stat_priority(stat_key: str) -> int:
@@ -50,11 +104,11 @@ def get_stat_priority(stat_key: str) -> int:
   return PRIORITY_STAT.index(stat_key) if stat_key in PRIORITY_STAT else 999
 
 def get_priority_by_stage(stat_key, current_date):
-  """Get stat priority based on career stage with WIT priority in pre-debut"""
+  """Get stat priority based on career stage with WIT priority in pre-debut and early stage"""
   stage_info = get_career_stage_info(current_date)
 
-  if stage_info['is_pre_debut']:
-    # Pre-debut: prioritize WIT first, then follow config order
+  if stage_info['is_pre_debut'] or (stage_info['stage'] == 'early' and stage_info['absolute_day'] <= 24):
+    # Pre-debut and early stage (first 24 days): prioritize WIT first, then follow config order
     config_priority = PRIORITY_STAT.copy()
     if 'wit' in config_priority:
       config_priority.remove('wit')
@@ -72,53 +126,60 @@ def filter_by_stat_caps(results, current_stats):
   }
 
 def calculate_training_score(training_key, training_data, current_date):
-  """
-  Calculate training score with stage-based bonuses using corrected definitions
-  """
+  """Calculate training score with stage-based bonuses using configurable values"""
   support_counts = training_data["support"]
   hint_score = training_data.get("hint_score", 0)
   npc_score = training_data.get("npc_score", 0)
   support_count = sum(count for key, count in support_counts.items() if key != "npc")
 
   stage_info = get_career_stage_info(current_date)
+  base_score = get_support_base_score()
+  friend_multiplier = get_friend_multiplier()
 
   if stage_info['is_pre_debut']:
-    # Pre-debut (Days 1-16): No rainbow bonus, all support cards = 1 point
-    total_score = support_count + hint_score + npc_score
+    # Pre-debut: No rainbow bonus, all support cards = base score
+    rainbow_multiplier = get_rainbow_multiplier('pre_debut')
+    total_score = support_count * base_score + hint_score + npc_score
     rainbow_count = support_counts.get(training_key, 0)
     return total_score, rainbow_count, hint_score, npc_score, support_count
+
   elif stage_info['stage'] == 'early':
-    # Early stage (Days 17-24): Still no rainbow bonus but strategy applies
-    total_score = support_count + hint_score + npc_score
+    # Early stage: Still no rainbow bonus but strategy applies
+    rainbow_multiplier = get_rainbow_multiplier('early_stage')
+    total_score = support_count * base_score + hint_score + npc_score
     rainbow_count = support_counts.get(training_key, 0)
     return total_score, rainbow_count, hint_score, npc_score, support_count
+
   elif stage_info['stage'] == 'mid':
-    # Mid stage (Days 25-48): Rainbow cards = 2 points, friend cards = 0.75 points
+    # Mid stage: Rainbow cards get multiplier, friend cards get friend multiplier
     rainbow_count = support_counts.get(training_key, 0)
     friend_count = support_counts.get("friend", 0)
     other_support = support_count - rainbow_count - friend_count
 
-    rainbow_score = rainbow_count * 2.0
-    friend_score = friend_count * 1.0
-    other_score = other_support * 1.0
+    rainbow_multiplier = get_rainbow_multiplier('mid_stage')
+    rainbow_score = rainbow_count * rainbow_multiplier
+    friend_score = friend_count * friend_multiplier
+    other_score = other_support * base_score
 
     total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
     return total_score, rainbow_count, hint_score, npc_score, support_count
+
   else:
-    # Late stage (Days 49-72): Rainbow cards = 2.5 points, friend cards = 0.75 points
+    # Late stage: Higher rainbow multiplier
     rainbow_count = support_counts.get(training_key, 0)
     friend_count = support_counts.get("friend", 0)
     other_support = support_count - rainbow_count - friend_count
 
-    rainbow_score = rainbow_count * 2.5
-    friend_score = friend_count * 1.0
-    other_score = other_support * 1.0
+    rainbow_multiplier = get_rainbow_multiplier('late_stage')
+    rainbow_score = rainbow_count * rainbow_multiplier
+    friend_score = friend_count * friend_multiplier
+    other_score = other_support * base_score
 
     total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
     return total_score, rainbow_count, hint_score, npc_score, support_count
 
 def format_score_info(training_key, training_data, current_date):
-  """Format training score information for logging with corrected stage information"""
+  """Format training score information for logging"""
   total_score, rainbow_count, hint_score, npc_score, support_count = calculate_training_score(training_key, training_data, current_date)
 
   stage_info = get_career_stage_info(current_date)
@@ -131,9 +192,11 @@ def format_score_info(training_key, training_data, current_date):
   elif stage_info['stage'] == 'early':
     return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Early Stage: Strategy applies, no rainbow bonus)"
   elif stage_info['stage'] == 'mid':
-    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Mid Stage: 2x rainbow bonus)"
+    rainbow_multiplier = get_rainbow_multiplier('mid_stage')
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Mid Stage: {rainbow_multiplier}x rainbow bonus)"
   else:
-    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Late Stage: 2.5x rainbow bonus)"
+    rainbow_multiplier = get_rainbow_multiplier('late_stage')
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info} - Late Stage: {rainbow_multiplier}x rainbow bonus)"
 
 def extract_score_threshold(priority_strategy):
   """Extract score threshold from priority strategy string"""
@@ -153,10 +216,7 @@ def extract_score_threshold(priority_strategy):
     return 2.5  # Default threshold
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
-  """
-  Find best training that meets minimum score threshold with corrected stage logic
-  Only apply strategy scoring after Pre-Debut period (day > 16)
-  """
+  """Find best training that meets minimum score threshold"""
   if not results:
     return None
 
@@ -164,14 +224,14 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   print(f"[DEBUG] Stage: {stage_info['stage']}, Day: {stage_info['absolute_day']}, Pre-Debut: {stage_info['is_pre_debut']}, Apply Strategy: {stage_info['should_apply_strategy']}")
 
-  # In Pre-Debut period (Days 1-16), don't apply strategy scoring
+  # In Pre-Debut period, don't apply strategy scoring
   if stage_info['is_pre_debut']:
     print(f"[INFO] Pre-Debut period (Day {stage_info['absolute_day']}/72) - Strategy scoring disabled, will use fallback logic")
-    return None  # Let fallback logic handle this
+    return None
 
   print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
 
-  # After Pre-Debut (Days 17+), apply strategy scoring
+  # After Pre-Debut, apply strategy scoring
   valid_trainings = {}
   for key, data in results.items():
     total_score = data.get("total_score", 0)
@@ -186,19 +246,16 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   best_training = max(
     valid_trainings.items(),
     key=lambda x: (
-      x[1].get("total_score", 0),  # Highest score first
-      -get_priority_by_stage(x[0], current_date)  # Then priority (negative for max)
+      x[1].get("total_score", 0),
+      -get_priority_by_stage(x[0], current_date)
     )
   )
 
   best_key, best_data = best_training
-
   return best_key
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
-  """
-  Enhanced training decision with corrected stage definitions and strategy logic
-  """
+  """Enhanced training decision with configurable scoring parameters"""
   if not results_training:
     return None
 
@@ -220,20 +277,24 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
     return medium_energy_wit_training(filtered_results, current_date)
 
-  # Mid-game energy restriction for low score training (only after early stage)
+  # Mid-game energy restriction for low score training (only after early stage) - using config
+  energy_restrictions = get_energy_restriction_config()
+  medium_upper_limit = energy_restrictions['medium_energy_upper_limit']
+  max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
+
   if (stage_info['stage'] in ['mid', 'late'] and
-          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < 50 and
+          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit and
           energy_percentage >= CRITICAL_ENERGY_PERCENTAGE):
 
-    # Check if best available training score is <= 2.5
+    # Check if best available training score is <= threshold
     best_score = 0
     for key, data in filtered_results.items():
       total_score = data.get('total_score', 0)
       if total_score > best_score:
         best_score = total_score
 
-    if best_score <= 2.5:
-      print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= 2.5, should race instead")
+    if best_score <= max_score_threshold:
+      print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= {max_score_threshold}, should race instead")
       return None
 
   # Get strategy
@@ -246,11 +307,11 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   else:
     # Score-based training strategy
     if stage_info['is_pre_debut']:
-      # Pre-Debut (Days 1-16): Use fallback logic (most_support_card)
+      # Pre-Debut: Use fallback logic (most_support_card)
       print(f'[INFO] Pre-debut period (Day {stage_info["absolute_day"]}/72): Using fallback logic instead of {priority_strategy}')
       return most_support_card(filtered_results, current_date)
     else:
-      # Post Pre-Debut (Days 17+): Apply strategy scoring
+      # Post Pre-Debut: Apply strategy scoring
       print(f'[INFO] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy}')
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
 
@@ -261,9 +322,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
         return None
 
 def medium_energy_wit_training(results, current_date):
-  """
-  Medium energy training - only WIT with enhanced score requirements based on corrected stages
-  """
+  """Medium energy training - only WIT with configurable score requirements"""
   wit_data = results.get("wit")
   if not wit_data:
     print(f"[DEBUG] Medium energy - No WIT training available")
@@ -271,7 +330,7 @@ def medium_energy_wit_training(results, current_date):
 
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
-  required_score = 2.0 if stage_info['is_pre_debut'] else 3.0
+  required_score = get_wit_score_requirement("medium_energy", stage_info['is_pre_debut'])
 
   if total_score >= required_score:
     support_breakdown = wit_data["support"]
@@ -295,10 +354,7 @@ def medium_energy_wit_training(results, current_date):
   return None
 
 def most_support_card(results, current_date=None):
-  """
-  Fallback logic for Pre-Debut period and when no training meets strategy requirements
-  Fixed to properly prioritize highest score first, then WIT priority in Pre-Debut
-  """
+  """Fallback logic for Pre-Debut period and when no training meets strategy requirements"""
   stage_info = get_career_stage_info(current_date)
 
   # In pre-debut, prioritize by highest score first, then WIT priority
@@ -310,8 +366,8 @@ def most_support_card(results, current_date=None):
       best_training = max(
         valid_trainings.items(),
         key=lambda x: (
-          x[1].get("total_score", 0),  # Highest score first
-          -get_priority_by_stage(x[0], current_date)  # Then WIT priority (negative because lower index = higher priority)
+          x[1].get("total_score", 0),
+          -get_priority_by_stage(x[0], current_date)
         )
       )
 
@@ -336,8 +392,8 @@ def most_support_card(results, current_date=None):
   best_training = max(
     results.items(),
     key=lambda x: (
-      calculate_training_score(x[0], x[1], current_date)[0],  # Total score
-      -get_priority_by_stage(x[0], current_date)  # Priority (negative for max)
+      calculate_training_score(x[0], x[1], current_date)[0],
+      -get_priority_by_stage(x[0], current_date)
     )
   )
 
@@ -357,10 +413,7 @@ def most_support_card(results, current_date=None):
   return best_key
 
 def low_energy_training(results, current_date=None):
-  """
-  Enhanced low energy training logic with corrected stage definitions
-  When energy is low, only train WIT if it has sufficient score based on stage
-  """
+  """Enhanced low energy training logic with configurable score requirements"""
   wit_data = results.get("wit")
 
   if not wit_data:
@@ -369,7 +422,7 @@ def low_energy_training(results, current_date=None):
 
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
-  required_score = 2.0 if stage_info['is_pre_debut'] else 3.0
+  required_score = get_wit_score_requirement("low_energy", stage_info['is_pre_debut'])
 
   print(f"\n[INFO] {stage_info['stage'].title()} stage detected (Day {stage_info['absolute_day']}/72)")
 
@@ -395,10 +448,7 @@ def low_energy_training(results, current_date=None):
   return None
 
 def fallback_training(results, current_date):
-  """
-  Enhanced fallback training with proper stage-based hint and grouped NPC scoring
-  Used when primary strategy doesn't find suitable training
-  """
+  """Enhanced fallback training with configurable stage-based scoring"""
   if not results:
     return None
 
@@ -408,8 +458,8 @@ def fallback_training(results, current_date):
   best_training = max(
     results.items(),
     key=lambda x: (
-      calculate_training_score(x[0], x[1], current_date)[0],  # Total score
-      -get_priority_by_stage(x[0], current_date)  # Priority
+      calculate_training_score(x[0], x[1], current_date)[0],
+      -get_priority_by_stage(x[0], current_date)
     )
   )
 
@@ -424,9 +474,7 @@ def fallback_training(results, current_date):
   return best_key, score_info
 
 def do_something(results, energy_percentage=100, strategy_settings=None):
-  """
-  Enhanced training decision with corrected stage definitions and strategy system
-  """
+  """Enhanced training decision with configurable scoring system"""
   year = check_current_year()
   current_stats = stat_state()
   print(f"Current stats: {current_stats}")
@@ -442,7 +490,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
   print(f"Priority Strategy: {priority_strategy}")
 
-  # Get current date info to check stage with corrected definitions
+  # Get current date info to check stage
   from core.state import get_current_date_info
   current_date = get_current_date_info()
 
@@ -470,7 +518,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     print(f"[INFO] Energy is medium ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using medium energy WIT logic.")
     return medium_energy_wit_training(filtered, current_date)
 
-  # Normal energy logic with corrected strategy system
+  # Normal energy logic with configurable strategy system
   print(f"[INFO] Using strategy: {priority_strategy}")
 
   # Check priority strategy type

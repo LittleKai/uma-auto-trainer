@@ -11,7 +11,7 @@
   },
   "grade": {
     "g1": true,
-    "g2": true,
+    "g2": false,
     "g3": false
   },
   "minimum_mood": "NORMAL",

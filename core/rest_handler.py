@@ -1,12 +1,22 @@
 import pyautogui
 import time
+import json
 from typing import Callable, Optional, List, Tuple
 
 from core.click_handler import enhanced_click, random_click_in_region
-from core.state import get_current_date_info
+from core.state import get_current_date_info, get_stage_thresholds
+
+def load_scoring_config():
+    """Load scoring configuration from config file"""
+    try:
+        with open("config.json", "r", encoding="utf-8") as file:
+            config = json.load(file)
+        return config.get("scoring_config", {})
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 class RestHandler:
-    """Handles rest and recreation operations"""
+    """Handles rest and recreation operations with configurable stage definitions"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -22,12 +32,7 @@ class RestHandler:
         self.log = log_func
 
     def execute_rest(self) -> bool:
-        """
-        Execute rest action with seasonal handling
-
-        Returns:
-            bool: True if rest was executed successfully
-        """
+        """Execute rest action with seasonal handling"""
         if self.check_stop():
             self.log("[STOP] Rest cancelled due to F3 press")
             return False
@@ -70,12 +75,7 @@ class RestHandler:
         return False
 
     def execute_recreation(self) -> bool:
-        """
-        Execute recreation action
-
-        Returns:
-            bool: True if recreation was executed successfully
-        """
+        """Execute recreation action"""
         if self.check_stop():
             self.log("[STOP] Recreation cancelled due to F3 press")
             return False
@@ -107,12 +107,7 @@ class RestHandler:
         return False
 
     def handle_critical_energy_rest(self) -> bool:
-        """
-        Handle resting when critical energy after failed race attempt
-
-        Returns:
-            bool: True if critical energy rest was handled successfully
-        """
+        """Handle resting when critical energy after failed race attempt"""
         if self.check_stop():
             return False
 
@@ -191,12 +186,7 @@ class RestHandler:
         self.log("[ERROR] All rest attempts failed")
 
     def _ensure_main_menu(self) -> bool:
-        """
-        Ensure we're at the main career lobby menu
-
-        Returns:
-            bool: True if at main menu
-        """
+        """Ensure we're at the main career lobby menu"""
         if self.check_stop():
             return False
 
@@ -253,10 +243,15 @@ class RestHandler:
         return False
 
     def get_rest_recommendation(self, energy_percentage: float, mood: str, current_date: Optional[dict] = None) -> dict:
-        """
-        Get rest/recreation recommendation based on current state with corrected stage definitions
-        """
-        from utils.constants import CRITICAL_ENERGY_PERCENTAGE, MINIMUM_ENERGY_PERCENTAGE
+        """Get rest/recreation recommendation based on current state with configurable stage definitions"""
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            CRITICAL_ENERGY_PERCENTAGE = config.get('critical_energy_percentage', 20)
+            MINIMUM_ENERGY_PERCENTAGE = config.get('minimum_energy_percentage', 40)
+        except:
+            CRITICAL_ENERGY_PERCENTAGE = 20
+            MINIMUM_ENERGY_PERCENTAGE = 40
 
         # Energy-based recommendations
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
@@ -286,16 +281,17 @@ class RestHandler:
         mood_level = mood_priority.get(mood, 'low')
 
         if mood_level in ['critical', 'high']:
-            # Check if in periods where recreation should be skipped with corrected definitions
+            # Check if in periods where recreation should be skipped with configurable definitions
+            stage_thresholds = get_stage_thresholds()
             absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-            is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16 (corrected)
+            is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
             is_junior_year = current_date and current_date.get('year') == 'Junior'
 
             if is_pre_debut or is_junior_year:
                 return {
                     'action': 'skip',
                     'priority': 'low',
-                    'reason': f'Poor mood ({mood}) but in restricted period (Pre-Debut: Days 1-16)',
+                    'reason': f'Poor mood ({mood}) but in restricted period (Pre-Debut: Days 1-{stage_thresholds.get("pre_debut", 16)})',
                     'urgency': 'skip'
                 }
             else:

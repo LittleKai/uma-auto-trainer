@@ -1,13 +1,32 @@
 import pyautogui
 import time
+import json
 from typing import Dict, Optional, Callable, Any
 
-from core.state import check_support_card, get_current_date_info
+from core.state import check_support_card, get_current_date_info, get_stage_thresholds
 from core.click_handler import enhanced_click, random_click_in_region, triple_click_random
 from utils.constants import MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE
 
+def load_scoring_config():
+    """Load scoring configuration from config file"""
+    try:
+        with open("config.json", "r", encoding="utf-8") as file:
+            config = json.load(file)
+        return config.get("scoring_config", {})
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def get_wit_score_requirement(energy_type, is_pre_debut):
+    """Get WIT training score requirement from configuration"""
+    scoring_config = load_scoring_config()
+    wit_config = scoring_config.get("wit_training", {})
+    requirement_type = wit_config.get(f"{energy_type}_score_requirement", {})
+
+    stage = "pre_debut" if is_pre_debut else "post_debut"
+    return requirement_type.get(stage, 2.0)
+
 class TrainingHandler:
-    """Handles all training-related operations with corrected stage definitions"""
+    """Handles all training-related operations with configurable requirements"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -36,18 +55,17 @@ class TrainingHandler:
         )
 
     def check_training_support_stable(self, training_type: str, max_retries: int = 3) -> Optional[Dict]:
-        """
-        Check training support with stability verification and correct stage definitions
-        """
+        """Check training support with stability verification and configurable stage definitions"""
         if self.check_stop():
             return None
 
-        # Get current date info to check stage with corrected definitions
+        # Get current date info to check stage with configurable definitions
         current_date = get_current_date_info()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
 
-        # Updated stage logic: Pre-Debut is days 1-16
-        is_pre_debut = absolute_day <= 16
+        # Get stage thresholds from configuration
+        stage_thresholds = get_stage_thresholds()
+        is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
 
         # First check
         support_counts = check_support_card(
@@ -124,19 +142,18 @@ class TrainingHandler:
         return result
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
-        """
-        Check all available training options with corrected stage definitions
-        """
+        """Check all available training options with configurable stage definitions"""
         if self.check_stop():
             return {}
 
         if not self.check_window():
             return {}
 
-        # Check stage with corrected definitions
+        # Check stage with configurable definitions
         current_date = get_current_date_info()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-        is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16
+        stage_thresholds = get_stage_thresholds()
+        is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
 
         # Define which training types to check based on energy level
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
@@ -180,7 +197,7 @@ class TrainingHandler:
 
                 results[key] = training_result
 
-                # Enhanced logging with correct stage information
+                # Enhanced logging with configurable stage information
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
                 time.sleep(0.1)
 
@@ -203,7 +220,7 @@ class TrainingHandler:
         return results
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_pre_debut: bool) -> None:
-        """Log training result with detailed information and correct stage info"""
+        """Log training result with detailed information and configurable stage info"""
         hint_info = ""
         if training_result.get('hint_count', 0) > 0:
             hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
@@ -219,9 +236,7 @@ class TrainingHandler:
             self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info})")
 
     def execute_training(self, training_type: str) -> bool:
-        """
-        Execute the specified training with triple click logic
-        """
+        """Execute the specified training with triple click logic"""
         if self.check_stop():
             self.log(f"[STOP] Training {training_type} cancelled due to F3 press")
             return False
@@ -241,33 +256,29 @@ class TrainingHandler:
             return False
 
     def get_training_energy_requirements(self, training_type: str, current_date: Optional[Dict] = None) -> Dict[str, float]:
-        """
-        Get energy requirements for different training scenarios with corrected stage definitions
-        """
+        """Get energy requirements for different training scenarios with configurable definitions"""
+        stage_thresholds = get_stage_thresholds()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-        is_pre_debut = absolute_day <= 16  # Pre-Debut: Days 1-16
+        is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
 
         if training_type == "wit" and current_date:
-            # Medium energy WIT requirements
-            if is_pre_debut:
-                return {
-                    'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
-                    'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
-                    'medium_score_required': 2.0,
-                    'normal_score_required': 2.5
-                }
-            else:
-                return {
-                    'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
-                    'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
-                    'medium_score_required': 3.0,
-                    'normal_score_required': 2.5
-                }
+            # WIT requirements using configuration
+            medium_score_required = get_wit_score_requirement("medium_energy", is_pre_debut)
+            low_score_required = get_wit_score_requirement("low_energy", is_pre_debut)
+
+            return {
+                'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
+                'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
+                'medium_score_required': medium_score_required,
+                'low_score_required': low_score_required,
+                'normal_score_required': 2.5
+            }
 
         # Default requirements for other training types
         return {
             'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
             'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
             'medium_score_required': 0,  # Not available in medium energy
+            'low_score_required': 0,    # Not available in low energy
             'normal_score_required': 2.5
         }

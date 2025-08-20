@@ -1,4 +1,5 @@
 import re
+import json
 from PIL import Image
 import time
 from utils.screenshot import capture_region, enhanced_screenshot
@@ -14,6 +15,61 @@ from utils.constants import (
 
 # Global variable to store current date info
 current_date_info = None
+
+def load_scoring_config():
+  """Load scoring configuration from config file"""
+  try:
+    with open("config.json", "r", encoding="utf-8") as file:
+      config = json.load(file)
+    return config.get("scoring_config", {})
+  except (FileNotFoundError, json.JSONDecodeError):
+    return {}
+
+def get_hint_score_value(absolute_day):
+  """Get hint score value based on configuration"""
+  scoring_config = load_scoring_config()
+  hint_config = scoring_config.get("hint_score", {})
+
+  day_threshold = hint_config.get("day_threshold", 24)
+  early_score = hint_config.get("early_stage", 1.0)
+  late_score = hint_config.get("late_stage", 0.5)
+
+  return early_score if absolute_day < day_threshold else late_score
+
+def get_npc_score_value():
+  """Get NPC base score value from configuration"""
+  scoring_config = load_scoring_config()
+  npc_config = scoring_config.get("npc_score", {})
+  return npc_config.get("base_value", 0.5)
+
+def get_support_base_score():
+  """Get support card base score value from configuration"""
+  scoring_config = load_scoring_config()
+  support_config = scoring_config.get("support_score", {})
+  return support_config.get("base_value", 1.0)
+
+def get_friend_multiplier():
+  """Get friend card score multiplier from configuration"""
+  scoring_config = load_scoring_config()
+  support_config = scoring_config.get("support_score", {})
+  return support_config.get("friend_multiplier", 0.75)
+
+def get_rainbow_multiplier(stage):
+  """Get rainbow card multiplier based on stage from configuration"""
+  scoring_config = load_scoring_config()
+  support_config = scoring_config.get("support_score", {})
+  rainbow_config = support_config.get("rainbow_multiplier", {})
+
+  return rainbow_config.get(stage, 1.0)
+
+def get_stage_thresholds():
+  """Get stage thresholds from configuration"""
+  scoring_config = load_scoring_config()
+  return scoring_config.get("stage_thresholds", {
+    "pre_debut": 16,
+    "early_stage": 24,
+    "mid_stage": 48
+  })
 
 def stat_state():
   """Get current character stats using configurable regions"""
@@ -157,7 +213,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
-  """Check support card in each training with correct Pre-Debut score calculation"""
+  """Check support card in each training with configurable score calculation"""
   # Get current region settings in case they were updated
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
@@ -200,31 +256,26 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
   hint_count = len(hint_matches)
 
-  # Calculate hint score based on day - maximum 1 hint counts for score
+  # Calculate hint score based on configuration - maximum 1 hint counts for score
   hint_score = 0
   if hint_count > 0 and current_date:
     absolute_day = current_date.get('absolute_day', 0)
+    hint_score = get_hint_score_value(absolute_day)
 
-    if absolute_day < 24:
-      hint_score = 1.0
-    else:
-      hint_score = 0.5
+  # Calculate NPC score using configuration
+  npc_score_per_unit = get_npc_score_value()
+  npc_score = total_npc_count * npc_score_per_unit
 
-  # Calculate NPC score - each NPC adds 0.5 score
-  npc_score = total_npc_count * 0.5
+  # Get stage thresholds from configuration
+  stage_thresholds = get_stage_thresholds()
 
-  # Determine career stage based on absolute day with corrected definitions
+  # Determine career stage based on absolute day with configurable definitions
   absolute_day = current_date.get('absolute_day', 0) if current_date else 0
 
-  # Updated stage determination:
-  # Pre-Debut: Days 1-16
-  # Early: Days 1-24 (includes Pre-Debut)
-  # Mid: Days 25-48
-  # Late: Days 49-72
-  is_pre_debut = absolute_day <= 16
-  is_early_stage = absolute_day <= 24
-  is_mid_stage = 25 <= absolute_day <= 48
-  is_late_stage = absolute_day > 48
+  is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
+  is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
+  is_mid_stage = stage_thresholds.get("early_stage", 24) < absolute_day <= stage_thresholds.get("mid_stage", 48)
+  is_late_stage = absolute_day > stage_thresholds.get("mid_stage", 48)
 
   # Handle friend cards in Pre-Debut period - convert to current training type
   if is_pre_debut and count_result["friend"] > 0 and training_type:
@@ -238,61 +289,68 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   total_support = sum(count for key, count in count_result.items()
                       if key not in ["hint", "npc"])
 
-  # Calculate total score based on career stage
+  # Get scoring configuration values
+  base_score = get_support_base_score()
+  friend_multiplier = get_friend_multiplier()
+
+  # Calculate total score based on career stage using configuration
   if is_pre_debut:
-    # Pre-debut (Days 1-16): all support = 1 point each, no rainbow bonus
-    # FIXED: Simple calculation for Pre-Debut
-    total_score = total_support + hint_score + npc_score
+    # Pre-debut: all support = base score each, no rainbow bonus
+    rainbow_multiplier = get_rainbow_multiplier('pre_debut')
+    total_score = total_support * base_score + hint_score + npc_score
 
   elif is_early_stage:
-    # Early stage (Days 17-24): all support = 1 point each, no rainbow bonus yet
-    total_score = total_support + hint_score + npc_score
+    # Early stage: all support = base score each, no rainbow bonus yet
+    rainbow_multiplier = get_rainbow_multiplier('early_stage')
+    total_score = total_support * base_score + hint_score + npc_score
 
   elif is_mid_stage:
-    # Mid stage (Days 25-48): rainbow cards = 2 points, friend cards = 0.75 points, others = 1 point
+    # Mid stage: rainbow cards get multiplier, friend cards get friend multiplier, others = base score
     if training_type:
       rainbow_count = count_result.get(training_type, 0)
       friend_count = count_result.get("friend", 0)
       other_support = total_support - rainbow_count - friend_count
 
-      rainbow_score = rainbow_count * 2.0
-      friend_score = friend_count * 0.75
-      other_score = other_support * 1.0
+      rainbow_multiplier = get_rainbow_multiplier('mid_stage')
+      rainbow_score = rainbow_count * rainbow_multiplier
+      friend_score = friend_count * friend_multiplier
+      other_score = other_support * base_score
 
       total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
     else:
-      # No training type specified, treat friend cards as 0.75 points
+      # No training type specified, treat friend cards with friend multiplier
       friend_count = count_result.get("friend", 0)
       other_support = total_support - friend_count
-      friend_score = friend_count * 0.75
-      other_score = other_support * 1.0
+      friend_score = friend_count * friend_multiplier
+      other_score = other_support * base_score
 
       total_score = friend_score + other_score + hint_score + npc_score
 
   elif is_late_stage:
-    # Late stage (Days 49-72): rainbow cards = 2.5 points, friend cards = 0.75 points, others = 1 point
+    # Late stage: higher rainbow multiplier, friend cards get friend multiplier, others = base score
     if training_type:
       rainbow_count = count_result.get(training_type, 0)
       friend_count = count_result.get("friend", 0)
       other_support = total_support - rainbow_count - friend_count
 
-      rainbow_score = rainbow_count * 2.5
-      friend_score = friend_count * 0.75
-      other_score = other_support * 1.0
+      rainbow_multiplier = get_rainbow_multiplier('late_stage')
+      rainbow_score = rainbow_count * rainbow_multiplier
+      friend_score = friend_count * friend_multiplier
+      other_score = other_support * base_score
 
       total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
     else:
-      # No training type specified, treat friend cards as 0.75 points
+      # No training type specified, treat friend cards with friend multiplier
       friend_count = count_result.get("friend", 0)
       other_support = total_support - friend_count
-      friend_score = friend_count * 0.75
-      other_score = other_support * 1.0
+      friend_score = friend_count * friend_multiplier
+      other_score = other_support * base_score
 
       total_score = friend_score + other_score + hint_score + npc_score
 
   else:
-    # Fallback: all = 1 point
-    total_score = total_support + hint_score + npc_score
+    # Fallback: all = base score
+    total_score = total_support * base_score + hint_score + npc_score
 
   # Add additional info to results
   count_result["hint"] = hint_count

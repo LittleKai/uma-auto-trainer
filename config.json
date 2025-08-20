@@ -4,11 +4,50 @@
   "minimum_energy_percentage": 40,
   "critical_energy_percentage": 20,
   "stat_caps": {
-    "spd": 1120,
-    "sta": 1120,
-    "pwr": 1120,
-    "guts": 500,
-    "wit": 500
+    "spd": 1130,
+    "sta": 1130,
+    "pwr": 1130,
+    "guts": 600,
+    "wit": 600
   },
-  "key": "jJ10uNHDwuPW9LGNWWZ2"
+  "key": "jJ10uNHDwuPW9LGNWWZ2",
+  "scoring_config": {
+    "hint_score": {
+      "early_stage": 1.0,
+      "late_stage": 0.5,
+      "day_threshold": 24
+    },
+    "npc_score": {
+      "base_value": 0.5
+    },
+    "support_score": {
+      "base_value": 1.0,
+      "friend_multiplier": 1.0,
+      "rainbow_multiplier": {
+        "pre_debut": 1.0,
+        "early_stage": 1.0,
+        "mid_stage": 2.0,
+        "late_stage": 2.25
+      }
+    },
+    "stage_thresholds": {
+      "pre_debut": 16,
+      "early_stage": 24,
+      "mid_stage": 48
+    },
+    "wit_training": {
+      "medium_energy_score_requirement": {
+        "pre_debut": 2.0,
+        "post_debut": 3.0
+      },
+      "low_energy_score_requirement": {
+        "pre_debut": 2.0,
+        "post_debut": 3.0
+      }
+    },
+    "energy_restrictions": {
+      "medium_energy_upper_limit": 50,
+      "medium_energy_max_score_threshold": 2.5
+    }
+  }
 }

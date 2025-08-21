@@ -335,7 +335,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
     print(f"[DEBUG] Energy restriction check: {energy_percentage}% in range [{MINIMUM_ENERGY_PERCENTAGE}%, {medium_upper_limit}%), best_score={best_score}, threshold={max_score_threshold}")
 
-    if best_score >= max_score_threshold:
+    if best_score <= max_score_threshold:
       print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= {max_score_threshold}, should rest instead of low-value training")
       # Return special marker to indicate "should rest" instead of "should race"
       return "SHOULD_REST"

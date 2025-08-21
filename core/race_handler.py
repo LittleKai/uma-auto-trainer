@@ -89,7 +89,7 @@ class RaceHandler:
         return True
 
     def _select_race_by_panels(self) -> bool:
-        """Select race using panel-based detection with grade priority"""
+        """Select race using panel-based detection with grade priority and fallback mechanism"""
 
         # Get enabled grades from filters
         enabled_grades = self._get_enabled_grades()
@@ -97,9 +97,9 @@ class RaceHandler:
         # Calculate panel dimensions (split race region into smaller panels)
         left, top, width, height = RACE_REGION
         panel_height = height // 2  # Split vertically into 2 panels
-        scroll_amount = panel_height //2  # Scroll by one panel height
+        scroll_amount = panel_height  # Scroll by panel height
 
-
+        # Primary search with grade filtering
         for scroll_attempt in range(8):
             if self.check_stop():
                 return False
@@ -113,7 +113,6 @@ class RaceHandler:
             for panel_index, panel_region in enumerate(panels):
                 if self.check_stop():
                     return False
-
 
                 # Find matching race in this panel
                 race_match = self._find_matching_race_in_panel(panel_region, enabled_grades)
@@ -133,45 +132,97 @@ class RaceHandler:
             center_y = top + height // 2
             pyautogui.moveTo(center_x, center_y, duration=0.2)
 
-            # Scroll in increments for better control
-            scroll_increments = scroll_amount // 50  # 50px per scroll
-            for i in range(scroll_increments):
+            # Scroll by panel height amount
+            pyautogui.scroll(-scroll_amount)
+            time.sleep(0.5)  # Wait after scrolling
+
+        self.log("[DEBUG] Primary search completed, no matching race found. Starting fallback search...")
+
+        # Fallback search: scroll up and look for any match_track
+        return self._fallback_race_search()
+
+    def _fallback_race_search(self) -> bool:
+        """Fallback race search that only looks for match_track indicator"""
+
+        left, top, width, height = RACE_REGION
+        panel_height = height // 2
+        scroll_amount = panel_height
+
+        # Move mouse to center of race region
+        center_x = left + width // 2
+        center_y = top + height // 2
+        pyautogui.moveTo(center_x, center_y, duration=0.2)
+
+        # Scroll up by panel_height * 5 to reset position
+        reset_scroll_amount = panel_height * 5
+
+        self.log("[DEBUG] Scrolling up to reset position for fallback search...")
+        pyautogui.scroll(reset_scroll_amount)  # Scroll up
+        time.sleep(0.5)  # Wait for scroll to complete
+
+        # Now scroll down and look for any match_track
+        self.log("[DEBUG] Searching for any available race with match_track indicator...")
+
+        for scroll_attempt in range(8):
+            if self.check_stop():
+                return False
+
+            # Check both upper and lower panels for match_track only
+            panels = [
+                (left, top, width, panel_height),  # Upper panel
+                (left, top + panel_height, width, panel_height)  # Lower panel
+            ]
+
+            for panel_index, panel_region in enumerate(panels):
                 if self.check_stop():
                     return False
-                pyautogui.scroll(-50)
-                time.sleep(0.05)  # Small delay between scroll increments
 
-            # Final delay after scrolling
-            time.sleep(0.5)
+                # Look for match_track in this panel
+                match_track_pos = self._find_match_track_in_panel(panel_region)
 
-        self.log("[DEBUG] No matching race found after all scroll attempts")
+                if match_track_pos:
+                    self.log("[DEBUG] Found race with match_track in fallback search")
+
+                    # Click on the match_track position
+                    pyautogui.moveTo(match_track_pos, duration=0.2)
+                    pyautogui.click()
+
+                    # Click race buttons
+                    return self._click_race_buttons_original()
+
+            # Move mouse to center before scrolling
+            pyautogui.moveTo(center_x, center_y, duration=0.2)
+
+            # Scroll down by panel height amount
+            pyautogui.scroll(-scroll_amount)
+            time.sleep(0.5)  # Wait after scrolling
+
+        self.log("[DEBUG] Fallback search completed, no race with match_track found")
         return False
 
-    def _find_matching_race_in_panel(self, panel_region: tuple, enabled_grades: list) -> Optional[Tuple[str, tuple]]:
-        """
-        Find a race with both grade indicator and match_track in the same panel
-        Returns: (grade, match_position) or None
-        Priority: G1 > G2 > G3
-        """
-        # Define grade priority order
-        grade_priority = ['g1', 'g2', 'g3']
+    def _find_match_track_in_panel(self, panel_region: tuple) -> Optional[tuple]:
+        """Find match_track indicator in the specified panel region"""
+        try:
+            # Convert panel_region from (x, y, width, height) to (left, top, right, bottom)
+            left, top, width, height = panel_region
+            region_ltrb = (left, top, left + width, top + height)
 
-        # Only check grades that are enabled in filters
-        enabled_priority_grades = [grade for grade in grade_priority if grade in enabled_grades]
+            match_track_location = pyautogui.locateCenterOnScreen(
+                "assets/ui/match_track.png",
+                confidence=0.8,
+                minSearchTime=0.3,
+                region=region_ltrb
+            )
 
-        if not enabled_priority_grades:
+            if match_track_location:
+                # Return tuple coordinates
+                return (match_track_location.x, match_track_location.y)
+            else:
+                return None
+
+        except Exception as e:
+            self.log(f"[DEBUG] Error finding match_track in panel: {e}")
             return None
-
-
-        # Check each grade in priority order
-        for grade in enabled_priority_grades:
-            grade_matches = self._find_grade_and_match_track_pair(panel_region, grade)
-
-            if grade_matches:
-                # Return the first (highest priority) match found
-                return (grade.upper(), grade_matches)
-
-        return None
 
     def _find_grade_and_match_track_pair(self, panel_region: tuple, grade: str) -> Optional[tuple]:
         """

@@ -67,6 +67,18 @@ def check_pyinstaller():
             print_error(f"Failed to install PyInstaller: {e}")
             return False
 
+def remove_old_spec_files():
+    """Remove old spec files that need to be cleaned up"""
+    old_spec_files = ["simple_uma.spec", "uma_auto.spec"]
+
+    for spec_file in old_spec_files:
+        if os.path.exists(spec_file):
+            try:
+                os.remove(spec_file)
+                print_success(f"Removed old spec file: {spec_file}")
+            except Exception as e:
+                print_warning(f"Could not remove {spec_file}: {e}")
+
 def create_spec_file():
     """Create PyInstaller spec file with improved window detection support"""
     print_header("Creating PyInstaller Spec File")
@@ -357,6 +369,9 @@ Configuration Files:
 - bot_settings.json: Strategy and filter settings
 - region_settings.json: OCR region coordinates (auto-generated)
 
+Important Settings:
+- Turn off all items in "Require Confirmation" settings to ensure smooth bot operation
+
 Troubleshooting:
 - If OCR detection fails, use "Region Settings" in the GUI to adjust coordinates
 - Make sure Tesseract is installed correctly
@@ -377,7 +392,7 @@ Troubleshooting:
         return False
 
 def cleanup_build_files():
-    """Clean up build artifacts"""
+    """Clean up build artifacts including spec files automatically"""
     print_header("Cleaning Up Build Files")
 
     cleanup_items = [
@@ -415,6 +430,9 @@ def main():
     if response not in ['y', 'yes']:
         print_info("Build cancelled by user")
         return
+
+    # Remove old spec files first
+    remove_old_spec_files()
 
     # Build steps
     build_steps = [
@@ -462,10 +480,8 @@ def main():
         print_info("3. Users extract and run Uma_Musume_Auto_Train.exe")
         print_info("4. Users need to install Tesseract OCR separately")
 
-    # Clean up build files
-    response = input(f"\n{Colors.OKCYAN}Clean up build files? (Y/n): {Colors.ENDC}").strip().lower()
-    if response not in ['n', 'no']:
-        cleanup_build_files()
+    # Automatically clean up build files after completion
+    cleanup_build_files()
 
     print_colored(f"\n{Colors.BOLD}Press Enter to exit...{Colors.ENDC}")
     input()

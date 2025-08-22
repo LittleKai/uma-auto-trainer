@@ -310,7 +310,7 @@ def create_distribution_package():
     """Create a distribution package with all necessary files"""
     print_header("Creating Distribution Package")
 
-    dist_dir = "Uma_Musume_Auto_Train_Distribution"
+    dist_dir = "Uma_Musume_Auto_Train"
 
     # Clean previous distribution
     if os.path.exists(dist_dir):

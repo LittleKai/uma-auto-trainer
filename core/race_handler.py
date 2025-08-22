@@ -100,7 +100,7 @@ class RaceHandler:
         scroll_amount = panel_height  # Scroll by panel height
 
         # Primary search with grade filtering
-        for scroll_attempt in range(8):
+        for scroll_attempt in range(4):
             if self.check_stop():
                 return False
 
@@ -134,7 +134,7 @@ class RaceHandler:
 
             # Scroll by panel height amount
             pyautogui.scroll(-scroll_amount)
-            time.sleep(0.5)  # Wait after scrolling
+            time.sleep(0.3)  # Wait after scrolling
 
         self.log("[DEBUG] Primary search completed, no matching race found. Starting fallback search...")
 
@@ -153,8 +153,8 @@ class RaceHandler:
         center_y = top + height // 2
         pyautogui.moveTo(center_x, center_y, duration=0.2)
 
-        # Scroll up by panel_height * 5 to reset position
-        reset_scroll_amount = panel_height * 5
+        # Scroll up by panel_height * 4 to reset position
+        reset_scroll_amount = panel_height * 4
 
         self.log("[DEBUG] Scrolling up to reset position for fallback search...")
         pyautogui.scroll(reset_scroll_amount)  # Scroll up
@@ -163,7 +163,7 @@ class RaceHandler:
         # Now scroll down and look for any match_track
         self.log("[DEBUG] Searching for any available race with match_track indicator...")
 
-        for scroll_attempt in range(8):
+        for scroll_attempt in range(4):
             if self.check_stop():
                 return False
 
@@ -200,44 +200,53 @@ class RaceHandler:
         self.log("[DEBUG] Fallback search completed, no race with match_track found")
         return False
 
-    def _find_match_track_in_panel(self, panel_region: tuple) -> Optional[tuple]:
-        """Find match_track indicator in the specified panel region"""
+    def _find_matching_race_in_panel(self, panel_region: tuple, enabled_grades: list) -> Optional[tuple]:
+        """Find matching race in the specified panel region based on enabled grades"""
         try:
-            # Convert panel_region from (x, y, width, height) to (left, top, right, bottom)
-            left, top, width, height = panel_region
-            region_ltrb = (left, top, left + width, top + height)
+            # Check grades in priority order: G1 > G2 > G3
+            grade_priority = ['g1', 'g2', 'g3']
 
-            match_track_location = pyautogui.locateCenterOnScreen(
-                "assets/ui/match_track.png",
-                confidence=0.8,
-                minSearchTime=0.3,
-                region=region_ltrb
-            )
+            for grade in grade_priority:
+                if grade not in enabled_grades:
+                    continue
 
-            if match_track_location:
-                # Return tuple coordinates
-                return (match_track_location.x, match_track_location.y)
-            else:
-                return None
+                if self.check_stop():
+                    return None
+
+                # Find grade + match_track pair in this panel
+                match_pos = self._find_grade_and_match_track_pair(panel_region, grade)
+
+                if match_pos:
+                    self.log(f"[DEBUG] Found {grade.upper()} race with match_track in panel")
+                    return (grade, match_pos)
+
+            return None
 
         except Exception as e:
-            self.log(f"[DEBUG] Error finding match_track in panel: {e}")
+            self.log(f"[DEBUG] Error finding matching race in panel: {e}")
             return None
 
     def _find_grade_and_match_track_pair(self, panel_region: tuple, grade: str) -> Optional[tuple]:
-        """
-        Find single grade indicator + match_track pair in the same panel
-        Returns: match_track position tuple (x, y) if both are found in the same race entry
-        """
+        """Find single grade indicator + match_track pair in the same panel"""
         try:
             # Find first grade indicator in this panel
-            template_path = f"assets/ui/{grade}_race2.png"
+            template_path = f"assets/ui/{grade}_race.png"
             grade_location = find_template_position(
                 template_path=template_path,
                 region=panel_region,
                 threshold=0.8,
                 region_format='xywh'
             )
+
+            if not grade_location:
+                # Try alternative naming convention
+                template_path = f"assets/ui/{grade}_race2.png"
+                grade_location = find_template_position(
+                    template_path=template_path,
+                    region=panel_region,
+                    threshold=0.8,
+                    region_format='xywh'
+                )
 
             if not grade_location:
                 return None
@@ -284,6 +293,31 @@ class RaceHandler:
         except Exception as e:
             self.log(f"[DEBUG] Could not get grade filters, defaulting to all: {e}")
             return ['g1', 'g2', 'g3']
+
+    def _find_match_track_in_panel(self, panel_region: tuple) -> Optional[tuple]:
+        """Find match_track indicator in the specified panel region"""
+        try:
+            # Convert panel_region from (x, y, width, height) to (left, top, right, bottom)
+            left, top, width, height = panel_region
+            region_ltrb = (left, top, left + width, top + height)
+
+            match_track_location = pyautogui.locateCenterOnScreen(
+                "assets/ui/match_track.png",
+                confidence=0.8,
+                minSearchTime=0.3,
+                region=region_ltrb
+            )
+
+            if match_track_location:
+                # Return tuple coordinates
+                return (match_track_location.x, match_track_location.y)
+            else:
+                return None
+
+        except Exception as e:
+            self.log(f"[DEBUG] Error finding match_track in panel: {e}")
+            return None
+
 
     def _click_race_buttons_original(self) -> bool:
         """Click race buttons to confirm selection"""

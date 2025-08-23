@@ -150,57 +150,24 @@ def filter_by_stat_caps(results, current_stats):
   }
 
 def calculate_training_score(training_key, training_data, current_date):
-  """Calculate training score with stage-based bonuses using configurable values"""
+  """Calculate training score using the same unified logic as state.py"""
+  # Use the total_score directly from training_data which was calculated by unified logic
+  total_score = training_data.get("total_score", 0)
+
   support_counts = training_data["support"]
+  rainbow_count = support_counts.get(training_key, 0)
   hint_score = training_data.get("hint_score", 0)
   npc_score = training_data.get("npc_score", 0)
   support_count = sum(count for key, count in support_counts.items() if key != "npc")
 
-  stage_info = get_career_stage_info(current_date)
-  base_score = get_support_base_score()
-  friend_multiplier = get_friend_multiplier()
+  print(f"[DEBUG] calculate_training_score for {training_key.upper()}:")
+  print(f"[DEBUG]   Using unified total_score: {total_score}")
+  print(f"[DEBUG]   Rainbow count: {rainbow_count}")
+  print(f"[DEBUG]   Support count: {support_count}")
+  print(f"[DEBUG]   Hint score: {hint_score}")
+  print(f"[DEBUG]   NPC score: {npc_score}")
 
-  if stage_info['is_pre_debut']:
-    # Pre-debut: No rainbow bonus, all support cards = base score
-    rainbow_multiplier = get_rainbow_multiplier('pre_debut')
-    total_score = support_count * base_score + hint_score + npc_score
-    rainbow_count = support_counts.get(training_key, 0)
-    return total_score, rainbow_count, hint_score, npc_score, support_count
-
-  elif stage_info['stage'] == 'early':
-    # Early stage: Still no rainbow bonus but strategy applies
-    rainbow_multiplier = get_rainbow_multiplier('early_stage')
-    total_score = support_count * base_score + hint_score + npc_score
-    rainbow_count = support_counts.get(training_key, 0)
-    return total_score, rainbow_count, hint_score, npc_score, support_count
-
-  elif stage_info['stage'] == 'mid':
-    # Mid stage: Rainbow cards get multiplier, friend cards get friend multiplier
-    rainbow_count = support_counts.get(training_key, 0)
-    friend_count = support_counts.get("friend", 0)
-    other_support = support_count - rainbow_count - friend_count
-
-    rainbow_multiplier = get_rainbow_multiplier('mid_stage')
-    rainbow_score = rainbow_count * rainbow_multiplier
-    friend_score = friend_count * friend_multiplier
-    other_score = other_support * base_score
-
-    total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
-    return total_score, rainbow_count, hint_score, npc_score, support_count
-
-  else:
-    # Late stage: Higher rainbow multiplier
-    rainbow_count = support_counts.get(training_key, 0)
-    friend_count = support_counts.get("friend", 0)
-    other_support = support_count - rainbow_count - friend_count
-
-    rainbow_multiplier = get_rainbow_multiplier('late_stage')
-    rainbow_score = rainbow_count * rainbow_multiplier
-    friend_score = friend_count * friend_multiplier
-    other_score = other_support * base_score
-
-    total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
-    return total_score, rainbow_count, hint_score, npc_score, support_count
+  return total_score, rainbow_count, hint_score, npc_score, support_count
 
 def format_score_info(training_key, training_data, current_date):
   """Format training score information for logging"""
@@ -240,7 +207,7 @@ def extract_score_threshold(priority_strategy):
     return 2.5  # Default threshold
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
-  """Find best training that meets minimum score threshold"""
+  """Find best training that meets minimum score threshold using unified scoring"""
   if not results:
     return None
 
@@ -255,15 +222,20 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
 
-  # After Pre-Debut, apply strategy scoring
+  # After Pre-Debut, apply strategy scoring using unified total_score
   valid_trainings = {}
   for key, data in results.items():
     total_score = data.get("total_score", 0)
+    print(f"[DEBUG] {key.upper()}: unified total_score={total_score}, threshold={min_score_threshold}")
 
     if total_score >= min_score_threshold:
       valid_trainings[key] = data
+      print(f"[DEBUG] {key.upper()}: VALID (score {total_score} >= {min_score_threshold})")
+    else:
+      print(f"[DEBUG] {key.upper()}: INVALID (score {total_score} < {min_score_threshold})")
 
   if not valid_trainings:
+    print(f"[DEBUG] No training meets threshold {min_score_threshold}")
     return None
 
   # Find best training among valid ones using score first, then priority
@@ -276,10 +248,13 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   )
 
   best_key, best_data = best_training
+  best_score = best_data.get("total_score", 0)
+  print(f"[DEBUG] Selected best training: {best_key.upper()} with score {best_score}")
+
   return best_key
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
-  """Enhanced training decision with configurable scoring parameters"""
+  """Enhanced training decision with unified scoring system"""
   if not results_training:
     return None
 
@@ -291,10 +266,10 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   print(f"[DEBUG]   Stage: {stage_info}")
   print(f"[DEBUG]   Available trainings: {list(results_training.keys())}")
 
-  # Debug: Print all training scores
+  # Debug: Print all training scores using unified total_score
   for key, data in results_training.items():
     score = data.get('total_score', 0)
-    print(f"[DEBUG]   {key.upper()}: total_score={score}")
+    print(f"[DEBUG]   {key.upper()}: unified_total_score={score}")
 
   # Get current stats for caps filtering
   current_stats = stat_state()
@@ -326,7 +301,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
           MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit and
           energy_percentage >= CRITICAL_ENERGY_PERCENTAGE):
 
-    # Check if best available training score is <= threshold
+    # Check if best available training score is <= threshold using unified scoring
     best_score = 0
     for key, data in filtered_results.items():
       total_score = data.get('total_score', 0)
@@ -359,8 +334,8 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
       print(f"[DEBUG] Pre-debut fallback result: {result}")
       return result
     else:
-      # Post Pre-Debut: Apply strategy scoring
-      print(f'[DEBUG] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy}')
+      # Post Pre-Debut: Apply strategy scoring using unified system
+      print(f'[DEBUG] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy} with unified scoring')
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
       print(f"[DEBUG] Strategy-based result: {result}")
 
@@ -450,24 +425,12 @@ def most_support_card(results, current_date=None):
       # Debug: Verify selection
       print(f"[DEBUG] Selected training: {best_key.upper()} with score={best_score}, priority_index={best_priority}")
 
-      # Double-check WIT priority
-      wit_data = results.get('wit')
-      if wit_data and wit_data.get('total_score', 0) > 0:
-        wit_score = wit_data.get('total_score', 0)
-        wit_priority = get_priority_by_stage('wit', current_date)
-        print(f"[DEBUG] WIT comparison: score={wit_score}, priority_index={wit_priority}")
-
-        if wit_score > best_score:
-          print(f"[DEBUG] WARNING: WIT has higher score ({wit_score} > {best_score}) but not selected!")
-        elif wit_score == best_score and wit_priority < best_priority:
-          print(f"[DEBUG] WARNING: WIT has same score but higher priority ({wit_priority} < {best_priority}) but not selected!")
-
       return best_key
 
     print(f"\n[INFO] Pre-debut: No training with score > 0 found")
     return None
 
-  # Post Pre-Debut fallback logic
+  # Post Pre-Debut fallback logic using unified scoring
   if not results:
     print("\n[INFO] No training found.")
     return None
@@ -475,7 +438,7 @@ def most_support_card(results, current_date=None):
   # Create list for stable sorting in post pre-debut
   training_list = []
   for key, data in results.items():
-    total_score = calculate_training_score(key, data, current_date)[0]
+    total_score = data.get("total_score", 0)
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, total_score, priority_index))
 
@@ -537,23 +500,23 @@ def low_energy_training(results, current_date=None):
   return None
 
 def fallback_training(results, current_date):
-  """Enhanced fallback training with configurable stage-based scoring"""
+  """Enhanced fallback training with unified scoring system"""
   if not results:
     return None
 
   stage_info = get_career_stage_info(current_date)
 
-  # Calculate best training using enhanced scoring
+  # Calculate best training using unified scoring
   best_training = max(
     results.items(),
     key=lambda x: (
-      calculate_training_score(x[0], x[1], current_date)[0],
+      x[1].get("total_score", 0),
       -get_priority_by_stage(x[0], current_date)
     )
   )
 
   best_key, best_data = best_training
-  total_score = calculate_training_score(best_key, best_data, current_date)[0]
+  total_score = best_data.get("total_score", 0)
 
   if total_score <= 0:
     return None
@@ -563,7 +526,7 @@ def fallback_training(results, current_date):
   return best_key, score_info
 
 def do_something(results, energy_percentage=100, strategy_settings=None):
-  """Enhanced training decision with configurable scoring system"""
+  """Enhanced training decision with unified scoring system"""
   year = check_current_year()
   current_stats = stat_state()
   print(f"Current stats: {current_stats}")
@@ -607,7 +570,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     print(f"[INFO] Energy is medium ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using medium energy WIT logic.")
     return medium_energy_wit_training(filtered, current_date)
 
-  # Normal energy logic with configurable strategy system
+  # Normal energy logic with unified strategy system
   print(f"[INFO] Using strategy: {priority_strategy}")
 
   # Check priority strategy type

@@ -26,7 +26,7 @@ def get_wit_score_requirement(energy_type, is_pre_debut):
     return requirement_type.get(stage, 2.0)
 
 class TrainingHandler:
-    """Handles all training-related operations with configurable requirements"""
+    """Handles all training-related operations with unified score calculation"""
 
     def __init__(self, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         """
@@ -55,11 +55,11 @@ class TrainingHandler:
         )
 
     def check_training_support_stable(self, training_type: str, max_retries: int = 3) -> Optional[Dict]:
-        """Check training support with stability verification and configurable stage definitions"""
+        """Check training support with stability verification and unified score calculation"""
         if self.check_stop():
             return None
 
-        # Get current date info to check stage with configurable definitions
+        # Get current date info to check stage
         current_date = get_current_date_info()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
 
@@ -74,7 +74,7 @@ class TrainingHandler:
             current_date=current_date
         )
 
-        # Get total_score from check_support_card (already calculated with grouped NPC support)
+        # Get total_score from unified calculation in check_support_card
         total_score = support_counts.get("total_score", 0)
         total_support = sum(count for key, count in support_counts.items()
                             if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"])
@@ -142,7 +142,7 @@ class TrainingHandler:
         return result
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
-        """Check all available training options with configurable stage definitions"""
+        """Check all available training options with unified score calculation"""
         if self.check_stop():
             return {}
 
@@ -188,7 +188,7 @@ class TrainingHandler:
                 pyautogui.moveTo(pos, duration=0.1)
                 pyautogui.mouseDown()
 
-                # Use improved support checking with stability verification and hint detection
+                # Use unified support checking with stability verification
                 training_result = self.check_training_support_stable(key)
 
                 if training_result is None:  # Could be due to stop flag
@@ -197,7 +197,7 @@ class TrainingHandler:
 
                 results[key] = training_result
 
-                # Enhanced logging with configurable stage information
+                # Enhanced logging with unified score information
                 self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
                 time.sleep(0.1)
 
@@ -220,7 +220,7 @@ class TrainingHandler:
         return results
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_pre_debut: bool) -> None:
-        """Log training result with detailed information and configurable stage info"""
+        """Log training result with unified score information"""
         hint_info = ""
         if training_result.get('hint_count', 0) > 0:
             hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
@@ -229,44 +229,23 @@ class TrainingHandler:
         if training_result.get('npc_count', 0) > 0:
             npc_info = f" + {training_result['npc_count']} NPCs ({training_result['npc_score']} score)"
 
-        # Debug: Print detailed score breakdown
+        # Get unified total score
         total_score = training_result.get('total_score', 0)
-
-        # Load scoring config locally to avoid import issues
-        try:
-            with open("config.json", "r", encoding="utf-8") as file:
-                config = json.load(file)
-            scoring_config = config.get("scoring_config", {})
-            support_config = scoring_config.get("support_score", {})
-            base_score = support_config.get("base_value", 1.0)
-        except:
-            base_score = 1.0
-
-        support_score = sum(count for k, count in training_result['support'].items() if k != 'npc') * base_score
-        hint_score = training_result.get('hint_score', 0)
-        npc_score = training_result.get('npc_score', 0)
-
-        print(f"[DEBUG] {key.upper()} Score Breakdown:")
-        print(f"[DEBUG]   Support cards: {training_result['support']}")
-        print(f"[DEBUG]   Support score: {support_score}")
-        print(f"[DEBUG]   Hint score: {hint_score}")
-        print(f"[DEBUG]   NPC score: {npc_score}")
-        print(f"[DEBUG]   Total calculated: {support_score + hint_score + npc_score}")
-        print(f"[DEBUG]   Total from data: {total_score}")
-
-        # Verify score consistency
-        calculated_total = support_score + hint_score + npc_score
-        if abs(calculated_total - total_score) > 0.01:
-            print(f"[DEBUG] WARNING: Score mismatch for {key.upper()}! Calculated={calculated_total}, Stored={total_score}")
 
         # Enhanced stage info
         if is_pre_debut:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info}) (Pre-Debut)")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}) (Pre-Debut)")
         else:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {training_result['total_score']}{hint_info}{npc_info})")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info})")
 
-        # Additional debug for decision making
-        print(f"[DEBUG] {key.upper()} final data for decision: total_score={total_score}")
+        # Debug: Print unified score calculation verification
+        print(f"[DEBUG] {key.upper()} unified score verification:")
+        print(f"[DEBUG]   Final total_score from unified calculation: {total_score}")
+
+        # Verify friend score calculation for WIT
+        if key == "wit" and training_result['support'].get('friend', 0) > 0:
+            friend_count = training_result['support']['friend']
+            print(f"[DEBUG]   WIT with {friend_count} friend cards - should use 0.5 score each")
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

@@ -1,11 +1,11 @@
 {
   "track": {
     "turf": true,
-    "dirt": true
+    "dirt": false
   },
   "distance": {
     "sprint": false,
-    "mile": true,
+    "mile": false,
     "medium": true,
     "long": true
   },
@@ -15,7 +15,7 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3+",
+  "priority_strategy": "Train Score 3.5+",
   "allow_continuous_racing": false,
   "manual_event_handling": true
 }

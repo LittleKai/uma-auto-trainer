@@ -268,7 +268,7 @@ class EventHandler:
 
         return False
 
-    def _wait_for_event_completion(self, gui=None, max_wait_time=300):
+    def _wait_for_event_completion(self, gui=None, max_wait_time=120):
         """Wait for manual event completion"""
         import time
 
@@ -753,7 +753,7 @@ class MainExecutor:
             if self.controller.check_should_stop():
                 return False
 
-            time.sleep(1)
+            time.sleep(2)
 
             # Handle debuff status (only if in lobby)
             if self.lobby_manager.handle_debuff_status():

@@ -217,7 +217,6 @@ class RaceHandler:
                 match_pos = self._find_grade_and_match_track_pair(panel_region, grade)
 
                 if match_pos:
-                    self.log(f"[DEBUG] Found {grade.upper()} race with match_track in panel")
                     return (grade, match_pos)
 
             return None

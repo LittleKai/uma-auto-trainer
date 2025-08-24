@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": false,
-    "mile": false,
-    "medium": true,
-    "long": true
+    "sprint": true,
+    "mile": true,
+    "medium": false,
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -17,5 +17,9 @@
   "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3.5+",
   "allow_continuous_racing": false,
-  "manual_event_handling": true
+  "manual_event_handling": false,
+  "stop_on_infirmary": false,
+  "stop_on_need_rest": false,
+  "stop_on_low_mood": false,
+  "stop_on_race_day": false
 }

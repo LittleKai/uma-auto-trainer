@@ -24,21 +24,20 @@ class UmaAutoGUI:
 
     # Adjusted window dimensions for better content fit
     window_width = 700
-    window_height = 900
+    window_height = 950
 
     # Position window on the right side with better spacing
     x = screen_width // 2 + 20
     y = max(50, (screen_height - window_height) // 2)
 
     self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
-    self.root.minsize(600, 700)  # Set minimum size to prevent content cutoff
+    self.root.minsize(600, 750)
 
     # Keep window always on top
     self.root.attributes('-topmost', True)
 
     # Variables
     self.is_running = False
-    self.is_paused = False
     self.bot_thread = None
     self.key_valid = False
     self.initial_key_validation_done = False
@@ -72,6 +71,12 @@ class UmaAutoGUI:
     # Option variables
     self.allow_continuous_racing = tk.BooleanVar(value=True)
     self.manual_event_handling = tk.BooleanVar(value=False)
+
+    # Stop condition variables
+    self.stop_on_infirmary = tk.BooleanVar(value=False)
+    self.stop_on_need_rest = tk.BooleanVar(value=False)
+    self.stop_on_low_mood = tk.BooleanVar(value=False)
+    self.stop_on_race_day = tk.BooleanVar(value=False)
 
     # Setup GUI
     self.setup_gui()
@@ -125,7 +130,7 @@ class UmaAutoGUI:
     self.setup_header_section(main_frame)
     self.setup_status_section(main_frame)
     self.setup_strategy_section(main_frame)
-    self.setup_race_filters_section(main_frame)
+    self.setup_race_filters_and_stop_conditions_section(main_frame)
     self.setup_control_buttons_section(main_frame)
     self.setup_activity_log_section(main_frame)
     self.setup_shortcuts_info_section(main_frame)
@@ -247,10 +252,17 @@ class UmaAutoGUI:
                                          command=self.save_settings)
     manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 5))
 
-  def setup_race_filters_section(self, parent):
-    """Setup the race filters section with improved layout"""
-    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
-    filter_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+  def setup_race_filters_and_stop_conditions_section(self, parent):
+    """Setup the race filters and stop conditions section with horizontal layout"""
+    # Main container for race filters and stop conditions
+    filters_container = ttk.Frame(parent)
+    filters_container.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+    filters_container.columnconfigure(0, weight=1)
+    filters_container.columnconfigure(1, weight=1)
+
+    # Race filters section
+    filter_frame = ttk.LabelFrame(filters_container, text="Race Filters", padding="10")
+    filter_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 10))
     filter_frame.columnconfigure(0, weight=1)
     filter_frame.columnconfigure(1, weight=1)
     filter_frame.columnconfigure(2, weight=1)
@@ -296,28 +308,35 @@ class UmaAutoGUI:
     ttk.Checkbutton(grade_inner, text="G3", variable=self.grade_filters['g3'],
                     command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
+    # Stop conditions section
+    stop_conditions_frame = ttk.LabelFrame(filters_container, text="Stop Conditions", padding="10")
+    stop_conditions_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
+
+    ttk.Checkbutton(stop_conditions_frame, text="Stop when infirmary needed (day >24)",
+                    variable=self.stop_on_infirmary, command=self.save_settings).pack(anchor=tk.W, pady=2)
+    ttk.Checkbutton(stop_conditions_frame, text="Stop when need rest (day >24)",
+                    variable=self.stop_on_need_rest, command=self.save_settings).pack(anchor=tk.W, pady=2)
+    ttk.Checkbutton(stop_conditions_frame, text="Stop when low mood (day >24)",
+                    variable=self.stop_on_low_mood, command=self.save_settings).pack(anchor=tk.W, pady=2)
+    ttk.Checkbutton(stop_conditions_frame, text="Stop when race day",
+                    variable=self.stop_on_race_day, command=self.save_settings).pack(anchor=tk.W, pady=2)
+
   def setup_control_buttons_section(self, parent):
-    """Setup the control buttons section with better sizing"""
+    """Setup the control buttons section without pause button"""
     button_frame = ttk.Frame(parent)
     button_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
-    button_frame.columnconfigure(2, weight=1)
 
     # Start button
     self.start_button = ttk.Button(button_frame, text="Start (F1)",
                                    command=self.start_bot)
     self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E), ipady=5)
 
-    # Pause button
-    self.pause_button = ttk.Button(button_frame, text="Pause (F2)",
-                                   command=self.pause_bot, state="disabled")
-    self.pause_button.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E), ipady=5)
-
     # Stop button
     self.stop_button = ttk.Button(button_frame, text="Stop (F3)",
                                   command=self.stop_bot, state="disabled")
-    self.stop_button.grid(row=0, column=2, padx=(5, 0), sticky=(tk.W, tk.E), ipady=5)
+    self.stop_button.grid(row=0, column=1, padx=(5, 0), sticky=(tk.W, tk.E), ipady=5)
 
   def setup_activity_log_section(self, parent):
     """Setup the activity log section with proper sizing"""
@@ -335,11 +354,11 @@ class UmaAutoGUI:
     clear_button.grid(row=1, column=0, sticky=tk.W, pady=(8, 0))
 
   def setup_shortcuts_info_section(self, parent):
-    """Setup the keyboard shortcuts info section"""
+    """Setup the keyboard shortcuts info section without F2"""
     shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="8")
     shortcuts_frame.grid(row=6, column=0, sticky=(tk.W, tk.E))
 
-    shortcuts_text = ("F1: Start Bot | F2: Pause/Resume | F3: Stop Bot | F5: Force Exit Program")
+    shortcuts_text = ("F1: Start Bot | F3: Stop Bot | F5: Force Exit Program")
     ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).pack()
 
   def start_game_window_monitoring(self):
@@ -348,9 +367,8 @@ class UmaAutoGUI:
       while True:
         try:
           self.check_game_window()
-          time.sleep(2)  # Check every 2 seconds
+          time.sleep(2)
         except Exception as e:
-          # Silent fail to prevent spam
           pass
 
     monitor_thread = threading.Thread(target=monitor_game_window, daemon=True)
@@ -359,13 +377,11 @@ class UmaAutoGUI:
   def check_game_window(self):
     """Enhanced game window detection with multiple search patterns"""
     try:
-      # List of possible window titles to search for
       window_titles = ["Umamusume", "ウマ娘", "Uma Musume", "DMM GAME PLAYER"]
 
       found_window = None
       window_title_found = ""
 
-      # Try to find window with any of the possible titles
       for title in window_titles:
         try:
           windows = gw.getWindowsWithTitle(title)
@@ -391,7 +407,6 @@ class UmaAutoGUI:
           self.root.after(0, self._update_game_status, f"{window_info} - Error", "red")
           return False
       else:
-        # No window found with any title
         all_windows = []
         try:
           all_windows = gw.getAllWindows()
@@ -429,7 +444,6 @@ class UmaAutoGUI:
           continue
 
       if not found_window:
-        # Try to find any game-related window
         all_windows = gw.getAllWindows()
         game_windows = [w for w in all_windows if any(keyword in w.title.lower()
                                                       for keyword in ['uma', 'ウマ', 'dmm']) and w.title.strip()]
@@ -439,16 +453,14 @@ class UmaAutoGUI:
       if not found_window:
         raise Exception("No game window found with any recognized title")
 
-      # Focus the window
       if found_window.isMinimized:
         found_window.restore()
       found_window.activate()
 
-      # Try to maximize if possible
       try:
         found_window.maximize()
       except:
-        pass  # Some windows can't be maximized
+        pass
 
       time.sleep(0.5)
       return True
@@ -466,14 +478,12 @@ class UmaAutoGUI:
         self.key_valid = is_valid
         self.initial_key_validation_done = True
 
-        # Update UI in main thread
         self.root.after(0, self.update_key_status, is_valid, message)
 
       except Exception as e:
         self.initial_key_validation_done = True
         self.root.after(0, self.update_key_status, False, f"Validation error: {e}")
 
-    # Run validation in background thread
     threading.Thread(target=check_in_background, daemon=True).start()
 
   def update_key_status(self, is_valid, message):
@@ -496,10 +506,9 @@ class UmaAutoGUI:
       messagebox.showerror("Error", f"Failed to open region settings: {e}")
 
   def setup_keyboard_shortcuts(self):
-    """Setup global keyboard shortcuts"""
+    """Setup global keyboard shortcuts without F2"""
     try:
       keyboard.add_hotkey('f1', self.start_bot)
-      keyboard.add_hotkey('f2', self.pause_bot)
       keyboard.add_hotkey('f3', self.enhanced_stop_bot)
       keyboard.add_hotkey('f5', self.force_exit_program)
     except Exception as e:
@@ -520,14 +529,17 @@ class UmaAutoGUI:
       'minimum_mood': self.minimum_mood.get(),
       'priority_strategy': self.priority_strategy.get(),
       'allow_continuous_racing': self.allow_continuous_racing.get(),
-      'manual_event_handling': self.manual_event_handling.get()
+      'manual_event_handling': self.manual_event_handling.get(),
+      'stop_on_infirmary': self.stop_on_infirmary.get(),
+      'stop_on_need_rest': self.stop_on_need_rest.get(),
+      'stop_on_low_mood': self.stop_on_low_mood.get(),
+      'stop_on_race_day': self.stop_on_race_day.get()
     }
 
     try:
       with open('bot_settings.json', 'w') as f:
         json.dump(settings, f, indent=2)
 
-      # Update race manager with new filters
       race_filters = {
         'track': settings['track'],
         'distance': settings['distance'],
@@ -563,7 +575,6 @@ class UmaAutoGUI:
           self.minimum_mood.set(settings['minimum_mood'])
 
         if 'priority_strategy' in settings:
-          # Handle old settings migration
           old_strategy = settings['priority_strategy']
           if old_strategy in ["Train 1+ Rainbow", "Train 2+ Rainbow", "Train 3+ Rainbow"]:
             self.priority_strategy.set("Train Score 2.5+")
@@ -592,6 +603,16 @@ class UmaAutoGUI:
         if 'manual_event_handling' in settings:
           self.manual_event_handling.set(settings['manual_event_handling'])
 
+        # Apply stop condition settings
+        if 'stop_on_infirmary' in settings:
+          self.stop_on_infirmary.set(settings['stop_on_infirmary'])
+        if 'stop_on_need_rest' in settings:
+          self.stop_on_need_rest.set(settings['stop_on_need_rest'])
+        if 'stop_on_low_mood' in settings:
+          self.stop_on_low_mood.set(settings['stop_on_low_mood'])
+        if 'stop_on_race_day' in settings:
+          self.stop_on_race_day.set(settings['stop_on_race_day'])
+
         # Update race manager
         race_filters = {
           'track': settings.get('track', {}),
@@ -609,7 +630,11 @@ class UmaAutoGUI:
       'minimum_mood': self.minimum_mood.get(),
       'priority_strategy': self.priority_strategy.get(),
       'allow_continuous_racing': self.allow_continuous_racing.get(),
-      'manual_event_handling': self.manual_event_handling.get()
+      'manual_event_handling': self.manual_event_handling.get(),
+      'stop_on_infirmary': self.stop_on_infirmary.get(),
+      'stop_on_need_rest': self.stop_on_need_rest.get(),
+      'stop_on_low_mood': self.stop_on_low_mood.get(),
+      'stop_on_race_day': self.stop_on_race_day.get()
     }
 
   def log_message(self, message):
@@ -617,7 +642,6 @@ class UmaAutoGUI:
     timestamp = datetime.now().strftime("%H:%M:%S")
     formatted_message = f"[{timestamp}] {message}\n"
 
-    # Update GUI in main thread
     self.root.after(0, self._update_log, formatted_message)
 
   def _update_log(self, message):
@@ -643,13 +667,11 @@ class UmaAutoGUI:
   def update_energy_display(self, energy_percentage):
     """Update energy display"""
     try:
-      # Load energy thresholds from config
       with open('config.json', 'r') as f:
         config = json.load(f)
       minimum_energy = config.get('minimum_energy_percentage', 40)
       critical_energy = config.get('critical_energy_percentage', 20)
 
-      # Determine color based on energy level
       if energy_percentage >= minimum_energy:
         color = "green"
       elif energy_percentage >= critical_energy:
@@ -671,12 +693,10 @@ class UmaAutoGUI:
     if self.is_running:
       return
 
-    # Wait for initial key validation to complete if still in progress
     if not self.initial_key_validation_done:
       self.log_message("Waiting for key validation to complete...")
       return
 
-    # Use cached validation result instead of re-validating
     if not self.key_valid:
       messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
       self.log_message("Bot start failed: Invalid key")
@@ -686,15 +706,12 @@ class UmaAutoGUI:
       self.log_message("Cannot start bot: Game window not found or cannot be focused")
       return
 
-    # Reset stop flag when starting
     set_stop_flag(False)
 
     self.is_running = True
-    self.is_paused = False
 
     # Update UI
     self.start_button.config(state="disabled")
-    self.pause_button.config(state="normal")
     self.stop_button.config(state="normal")
     self.status_label.config(text="Running", foreground="green")
 
@@ -704,36 +721,17 @@ class UmaAutoGUI:
 
     self.log_message("Bot started successfully!")
 
-  def pause_bot(self):
-    """Pause/Resume the bot"""
-    if not self.is_running:
-      return
-
-    self.is_paused = not self.is_paused
-
-    if self.is_paused:
-      self.pause_button.config(text="Resume (F2)")
-      self.status_label.config(text="Paused", foreground="orange")
-      self.log_message("Bot paused")
-    else:
-      self.pause_button.config(text="Pause (F2)")
-      self.status_label.config(text="Running", foreground="green")
-      self.log_message("Bot resumed")
-
   def stop_bot(self):
     """Stop the bot"""
     if not self.is_running:
       return
 
-    # Set stop flag to interrupt any ongoing operations
     set_stop_flag(True)
 
     self.is_running = False
-    self.is_paused = False
 
     # Update UI
     self.start_button.config(state="normal")
-    self.pause_button.config(state="disabled", text="Pause (F2)")
     self.stop_button.config(state="disabled")
     self.status_label.config(text="Stopped", foreground="red")
 
@@ -747,7 +745,6 @@ class UmaAutoGUI:
       keyboard.unhook_all()
     except:
       pass
-    # Force exit the entire program
     import os
     os._exit(0)
 
@@ -759,17 +756,14 @@ class UmaAutoGUI:
   def bot_loop(self):
     """Main bot loop running in separate thread"""
     try:
-      # Use the career_lobby function with pause/stop support
       self.modified_career_lobby()
     except Exception as e:
       self.log_message(f"Bot error: {e}")
     finally:
-      # Ensure UI is updated when bot stops
       self.root.after(0, self.stop_bot)
 
   def modified_career_lobby(self):
     """Modified career_lobby that respects GUI controls"""
-    # Call the career_lobby function with GUI instance
     career_lobby(self)
 
   def on_closing(self):
@@ -783,12 +777,11 @@ class UmaAutoGUI:
 
   def run(self):
     """Start the GUI"""
-    # Display startup messages
     self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Priority Strategies:")
     self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
     self.log_message("• Train Score 2+/2.5+/3+/3.5+: Train only if score meets threshold")
-    self.log_message("Use F1 to start, F2 to pause/resume, F3 to stop, F5 to force exit program.")
+    self.log_message("Use F1 to start, F3 to stop, F5 to force exit program.")
 
     self.root.mainloop()
 

@@ -124,14 +124,6 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
 
-  print(f"[DEBUG] Unified score calculation for {training_type.upper()}:")
-  print(f"[DEBUG]   Rainbow ({training_type}): {rainbow_count} * {rainbow_multiplier if not (is_pre_debut or is_early_stage) else base_score} = {rainbow_score}")
-  print(f"[DEBUG]   Friend: {friend_count} * {0.5 if training_type == 'wit' else friend_multiplier} = {friend_score}")
-  print(f"[DEBUG]   Other: {other_support} * {base_score} = {other_score}")
-  print(f"[DEBUG]   Hint: {hint_score}")
-  print(f"[DEBUG]   NPC: {npc_score}")
-  print(f"[DEBUG]   Total: {total_score}")
-
   return total_score
 
 def stat_state():
@@ -152,12 +144,6 @@ def stat_state():
     # Process the value
     digits = ''.join(filter(str.isdigit, raw_val))
     result[stat] = int(digits) if digits.isdigit() else 0
-
-  # Create single line log with both raw and processed values
-  raw_str = ", ".join([f"{stat}:'{raw_values[stat]}'" for stat in stat_regions.keys()])
-  processed_str = ", ".join([f"{stat}:{result[stat]}" for stat in stat_regions.keys()])
-
-  print(f"[STATS OCR] Raw: [{raw_str}] | Processed: [{processed_str}]")
 
   return result
 
@@ -224,29 +210,24 @@ def match_mood_with_patterns(ocr_text):
     for pattern in patterns:
       # Direct match
       if pattern == ocr_text:
-        print(f"[INFO] Mood pattern matched: '{ocr_text}' -> {mood}")
         return mood
 
       # Partial match for missing characters
       if len(ocr_text) >= 2:
         # Check if OCR text is contained in pattern (missing end characters)
         if pattern.startswith(ocr_text):
-          print(f"[INFO] Mood partial match (missing end): '{ocr_text}' -> {mood}")
           return mood
 
         # Check if pattern is contained in OCR text (missing start characters)
         if ocr_text.endswith(pattern):
-          print(f"[INFO] Mood partial match (missing start): '{ocr_text}' -> {mood}")
           return mood
 
         # Check for character substitution (allow 1-2 character differences)
         if len(pattern) == len(ocr_text):
           differences = sum(1 for a, b in zip(pattern, ocr_text) if a != b)
           if differences <= 2:
-            print(f"[INFO] Mood fuzzy match ({differences} differences): '{ocr_text}' -> {mood}")
             return mood
 
-  print(f"[WARNING] Mood not recognized with patterns: '{ocr_text}'")
   return "UNKNOWN"
 
 def validate_region_coordinates(region):
@@ -319,13 +300,6 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
   hint_count = len(hint_matches)
 
-  # Debug: Print raw detection results
-  print(f"[DEBUG] Raw detection for {training_type or 'unknown'} training:")
-  for key, count in count_result.items():
-    if count > 0:
-      print(f"[DEBUG]   {key}: {count}")
-  print(f"[DEBUG]   hints: {hint_count}")
-
   # Calculate hint score based on configuration - maximum 1 hint counts for score
   hint_score = 0
   if hint_count > 0 and current_date:
@@ -345,11 +319,6 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   # Calculate total score using unified logic
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
   count_result["total_score"] = total_score
-
-  # Debug: Print final result
-  print(f"[DEBUG] Final result for {training_type or 'unknown'}:")
-  print(f"[DEBUG]   Support breakdown: {count_result}")
-  print(f"[DEBUG]   Total score: {total_score}")
 
   return count_result
 
@@ -415,7 +384,6 @@ def check_turn():
 
   turn = enhanced_screenshot(turn_region)
   turn_text = extract_text(turn)
-  print(f"Turn detected: {turn_text}")
 
   if "Race" in turn_text:
     return "Race Day"

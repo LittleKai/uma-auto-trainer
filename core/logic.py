@@ -107,39 +107,26 @@ def get_priority_by_stage(stat_key, current_date):
   """Get stat priority based on career stage with WIT priority in pre-debut and early stage"""
   stage_info = get_career_stage_info(current_date)
 
-  # Debug: Print original config
-  print(f"[DEBUG] get_priority_by_stage({stat_key}) - Original PRIORITY_STAT: {PRIORITY_STAT}")
-  print(f"[DEBUG] Stage info: is_pre_debut={stage_info['is_pre_debut']}, stage={stage_info['stage']}, day={stage_info['absolute_day']}")
-
   if stage_info['absolute_day'] <= 24:
     # Pre-debut and early stage (first 24 days): prioritize WIT first, then follow config order
     config_priority = PRIORITY_STAT.copy()
 
-    # Debug: Print before modification
-    print(f"[DEBUG] Config priority before modification: {config_priority}")
-
     if 'wit' in config_priority:
       config_priority.remove('wit')
-      print(f"[DEBUG] After removing WIT: {config_priority}")
 
     config_priority.insert(0, 'wit')
-    print(f"[DEBUG] After inserting WIT at position 0: {config_priority}")
 
     if stat_key in config_priority:
       priority_index = config_priority.index(stat_key)
-      print(f"[DEBUG] {stat_key} priority index: {priority_index}")
       return priority_index
     else:
-      print(f"[DEBUG] {stat_key} not found in priority list, returning 999")
       return 999
   else:
     # Normal priority from config
     if stat_key in PRIORITY_STAT:
       priority_index = PRIORITY_STAT.index(stat_key)
-      print(f"[DEBUG] Normal stage - {stat_key} priority index: {priority_index}")
       return priority_index
     else:
-      print(f"[DEBUG] Normal stage - {stat_key} not found, returning 999")
       return 999
 
 def filter_by_stat_caps(results, current_stats):
@@ -159,13 +146,6 @@ def calculate_training_score(training_key, training_data, current_date):
   hint_score = training_data.get("hint_score", 0)
   npc_score = training_data.get("npc_score", 0)
   support_count = sum(count for key, count in support_counts.items() if key != "npc")
-
-  print(f"[DEBUG] calculate_training_score for {training_key.upper()}:")
-  print(f"[DEBUG]   Using unified total_score: {total_score}")
-  print(f"[DEBUG]   Rainbow count: {rainbow_count}")
-  print(f"[DEBUG]   Support count: {support_count}")
-  print(f"[DEBUG]   Hint score: {hint_score}")
-  print(f"[DEBUG]   NPC score: {npc_score}")
 
   return total_score, rainbow_count, hint_score, npc_score, support_count
 
@@ -213,29 +193,28 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   stage_info = get_career_stage_info(current_date)
 
-  print(f"[DEBUG] Stage: {stage_info['stage']}, Day: {stage_info['absolute_day']}, Pre-Debut: {stage_info['is_pre_debut']}, Apply Strategy: {stage_info['should_apply_strategy']}")
-
   # In Pre-Debut period, don't apply strategy scoring
   if stage_info['is_pre_debut']:
-    print(f"[INFO] Pre-Debut period (Day {stage_info['absolute_day']}/72) - Strategy scoring disabled, will use fallback logic")
     return None
 
-  print(f"[DEBUG] find_best_training_by_score: checking {len(results)} trainings with threshold {min_score_threshold}")
+  print(f"[DEBUG] find_best_training_by_score: threshold = {min_score_threshold}")
 
   # After Pre-Debut, apply strategy scoring using unified total_score
   valid_trainings = {}
   for key, data in results.items():
     total_score = data.get("total_score", 0)
-    print(f"[DEBUG] {key.upper()}: unified total_score={total_score}, threshold={min_score_threshold}")
+    print(f"[DEBUG] Checking {key.upper()}: score={total_score}, threshold={min_score_threshold}")
 
-    if total_score >= min_score_threshold:
+    # Use small epsilon for floating point comparison
+    if total_score >= min_score_threshold - 1e-10:
       valid_trainings[key] = data
       print(f"[DEBUG] {key.upper()}: VALID (score {total_score} >= {min_score_threshold})")
     else:
       print(f"[DEBUG] {key.upper()}: INVALID (score {total_score} < {min_score_threshold})")
 
+  print(f"[DEBUG] Valid trainings: {list(valid_trainings.keys())}")
+
   if not valid_trainings:
-    print(f"[DEBUG] No training meets threshold {min_score_threshold}")
     return None
 
   # Find best training among valid ones using score first, then priority
@@ -249,7 +228,8 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   best_key, best_data = best_training
   best_score = best_data.get("total_score", 0)
-  print(f"[DEBUG] Selected best training: {best_key.upper()} with score {best_score}")
+
+  print(f"[INFO] Selected best training: {best_key.upper()} with score {best_score} (threshold: {min_score_threshold})")
 
   return best_key
 
@@ -260,36 +240,20 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   stage_info = get_career_stage_info(current_date)
 
-  # Debug: Print input data
-  print(f"[DEBUG] training_decision called:")
-  print(f"[DEBUG]   Energy: {energy_percentage}%")
-  print(f"[DEBUG]   Stage: {stage_info}")
-  print(f"[DEBUG]   Available trainings: {list(results_training.keys())}")
-
-  # Debug: Print all training scores using unified total_score
-  for key, data in results_training.items():
-    score = data.get('total_score', 0)
-    print(f"[DEBUG]   {key.upper()}: unified_total_score={score}")
-
   # Get current stats for caps filtering
   current_stats = stat_state()
 
   # Filter by stat caps
   filtered_results = filter_by_stat_caps(results_training, current_stats)
   if not filtered_results:
-    print(f"[DEBUG] All stats capped or no valid training after filtering")
     return None
-
-  print(f"[DEBUG] After stat caps filtering: {list(filtered_results.keys())}")
 
   # Check energy level for critical energy (no training allowed)
   if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Critical energy ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training")
     return None
 
   # Check energy level for medium energy logic (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Medium energy ({energy_percentage}%), using WIT logic")
     return medium_energy_wit_training(filtered_results, current_date)
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
@@ -308,10 +272,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
       if total_score > best_score:
         best_score = total_score
 
-    print(f"[DEBUG] Energy restriction check: {energy_percentage}% in range [{MINIMUM_ENERGY_PERCENTAGE}%, {medium_upper_limit}%), best_score={best_score}, threshold={max_score_threshold}")
-
     if best_score <= max_score_threshold:
-      print(f"[INFO] {stage_info['stage'].title()} stage + medium energy: Best training score ({best_score}) <= {max_score_threshold}, should rest instead of low-value training")
       # Return special marker to indicate "should rest" instead of "should race"
       return "SHOULD_REST"
 
@@ -320,36 +281,34 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   score_threshold = extract_score_threshold(priority_strategy)
 
   print(f"[DEBUG] Priority strategy: {priority_strategy}, threshold: {score_threshold}")
+  print(f"[DEBUG] Available trainings with scores:")
+  for key, data in filtered_results.items():
+    score = data.get('total_score', 0)
+    print(f"[DEBUG]   {key.upper()}: {score}")
 
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
-    print(f"[DEBUG] Race priority strategy, no training")
     return None
   else:
     # Score-based training strategy
     if stage_info['is_pre_debut']:
       # Pre-Debut: Use fallback logic (most_support_card)
-      print(f'[DEBUG] Pre-debut period (Day {stage_info["absolute_day"]}/72): Using fallback logic instead of {priority_strategy}')
       result = most_support_card(filtered_results, current_date)
-      print(f"[DEBUG] Pre-debut fallback result: {result}")
       return result
     else:
       # Post Pre-Debut: Apply strategy scoring using unified system
-      print(f'[DEBUG] {stage_info["stage"].title()} stage (Day {stage_info["absolute_day"]}/72): Applying {priority_strategy} with unified scoring')
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
-      print(f"[DEBUG] Strategy-based result: {result}")
+      print(f"[DEBUG] find_best_training_by_score returned: {result}")
 
       if result:
         return result
       else:
-        print(f'[DEBUG] No training meets {priority_strategy} requirements - should try racing instead')
         return None
 
 def medium_energy_wit_training(results, current_date):
   """Medium energy training - only WIT with configurable score requirements"""
   wit_data = results.get("wit")
   if not wit_data:
-    print(f"[DEBUG] Medium energy - No WIT training available")
     return None
 
   stage_info = get_career_stage_info(current_date)
@@ -357,42 +316,17 @@ def medium_energy_wit_training(results, current_date):
   required_score = get_wit_score_requirement("medium_energy", stage_info['is_pre_debut'])
 
   if total_score >= required_score:
-    support_breakdown = wit_data["support"]
-    hint_info = ""
-    if wit_data.get('hint_count', 0) > 0:
-      hint_info = f" + {wit_data['hint_count']} hints ({wit_data['hint_score']} score)"
-
-    npc_info = ""
-    if wit_data.get('npc_count', 0) > 0:
-      npc_info = f" + {wit_data['npc_count']} NPCs ({wit_data['npc_score']} score)"
-
-    stage_name = f"{stage_info['stage'].title()} {'(Pre-Debut)' if stage_info['is_pre_debut'] else ''}"
-    print(f"[INFO] Medium energy - WIT training selected with total score {total_score} (required: {required_score}+)")
-    print(f"[INFO] Breakdown: {wit_data['total_support']} supports{hint_info}{npc_info} ({stage_name})")
-    print(f"[INFO] Support types: {support_breakdown}")
-
     return "wit"
 
-  stage_name = f"{stage_info['stage'].title()} {'(Pre-Debut)' if stage_info['is_pre_debut'] else ''}"
-  print(f"[INFO] Medium energy - WIT has insufficient score ({total_score}/{required_score}) for {stage_name} stage - should rest or race")
   return None
 
 def most_support_card(results, current_date=None):
   """Fallback logic for Pre-Debut period and when no training meets strategy requirements"""
   stage_info = get_career_stage_info(current_date)
 
-  # Debug: Print stage information
-  print(f"[DEBUG] most_support_card - Stage: {stage_info['stage']}, Day: {stage_info['absolute_day']}, Pre-Debut: {stage_info['is_pre_debut']}")
-
   # In pre-debut, prioritize by highest score first, then WIT priority
   if stage_info['is_pre_debut']:
     valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
-
-    # Debug: Print all valid trainings with scores
-    print(f"[DEBUG] Pre-debut valid trainings:")
-    for k, v in valid_trainings.items():
-      priority_index = get_priority_by_stage(k, current_date)
-      print(f"[DEBUG]   {k.upper()}: score={v.get('total_score', 0)}, priority_index={priority_index}")
 
     if valid_trainings:
       # Create list of tuples for stable sorting
@@ -402,37 +336,19 @@ def most_support_card(results, current_date=None):
         priority_index = get_priority_by_stage(key, current_date)
         training_list.append((key, data, score, priority_index))
 
-      # Debug: Print sorting data
-      print(f"[DEBUG] Training list before sorting:")
-      for key, data, score, priority_index in training_list:
-        print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}, sort_key=({score}, {-priority_index})")
-
       # Sort by score (descending), then by priority (WIT=0 should be highest priority)
       # Lower priority_index = higher priority, so we negate it
       training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
 
-      # Debug: Print sorting result
-      print(f"[DEBUG] Training list after sorting:")
-      for key, data, score, priority_index in training_list:
-        print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}")
-
       # Select the best training (first in sorted list)
       best_key, best_data, best_score, best_priority = training_list[0]
 
-      score_info = format_score_info(best_key, best_data, current_date)
-      print(f"\n[INFO] Pre-debut fallback training: {best_key.upper()} {score_info}")
-
-      # Debug: Verify selection
-      print(f"[DEBUG] Selected training: {best_key.upper()} with score={best_score}, priority_index={best_priority}")
-
       return best_key
 
-    print(f"\n[INFO] Pre-debut: No training with score > 0 found")
     return None
 
   # Post Pre-Debut fallback logic using unified scoring
   if not results:
-    print("\n[INFO] No training found.")
     return None
 
   # Create list for stable sorting in post pre-debut
@@ -442,11 +358,6 @@ def most_support_card(results, current_date=None):
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, total_score, priority_index))
 
-  # Debug: Print post pre-debut data
-  print(f"[DEBUG] Post pre-debut training list:")
-  for key, data, score, priority_index in training_list:
-    print(f"[DEBUG]   {key.upper()}: score={score}, priority_index={priority_index}")
-
   # Sort by score (descending), then by priority (lower index = higher priority)
   training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
 
@@ -455,13 +366,9 @@ def most_support_card(results, current_date=None):
   # Check minimum score requirements
   if total_score <= 1:
     if best_key == "wit":
-      print(f"\n[INFO] Only {total_score} score and it's WIT. Skipping.")
       return None
-    print(f"\n[INFO] Only {total_score} score. Prioritizing based on priority list: {best_key.upper()}")
     return best_key
 
-  score_info = format_score_info(best_key, best_data, current_date)
-  print(f"\nFallback training: {best_key.upper()} {score_info}")
   return best_key
 
 def low_energy_training(results, current_date=None):
@@ -469,34 +376,15 @@ def low_energy_training(results, current_date=None):
   wit_data = results.get("wit")
 
   if not wit_data:
-    print(f"\n[INFO] Low energy - No WIT training available")
     return None
 
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
   required_score = get_wit_score_requirement("low_energy", stage_info['is_pre_debut'])
 
-  print(f"\n[INFO] {stage_info['stage'].title()} stage detected (Day {stage_info['absolute_day']}/72)")
-
   if total_score >= required_score:
-    support_breakdown = wit_data["support"]
-    hint_info = ""
-    if wit_data.get('hint_count', 0) > 0:
-      hint_info = f" + {wit_data['hint_count']} hints ({wit_data['hint_score']} score)"
-
-    npc_info = ""
-    if wit_data.get('npc_count', 0) > 0:
-      npc_info = f" + {wit_data['npc_count']} NPCs ({wit_data['npc_score']} score)"
-
-    stage_name = f"{stage_info['stage'].title()} {'(Pre-Debut)' if stage_info['is_pre_debut'] else ''}"
-    print(f"\n[INFO] Low energy - WIT training selected with total score {total_score} (required: {required_score}+)")
-    print(f"[INFO] Breakdown: {wit_data['total_support']} supports{hint_info}{npc_info}")
-    print(f"[INFO] Support types: {support_breakdown}")
-    print(f"[INFO] Stage: {stage_name}")
     return "wit"
 
-  stage_name = f"{stage_info['stage'].title()} {'(Pre-Debut)' if stage_info['is_pre_debut'] else ''}"
-  print(f"\n[INFO] Low energy - WIT has insufficient score ({total_score}/{required_score}) for {stage_name}, should rest or race")
   return None
 
 def fallback_training(results, current_date):
@@ -522,15 +410,12 @@ def fallback_training(results, current_date):
     return None
 
   score_info = format_score_info(best_key, best_data, current_date)
-  print(f"\n[INFO] Fallback training for {stage_info['stage']} stage: {best_key.upper()} {score_info}")
   return best_key, score_info
 
 def do_something(results, energy_percentage=100, strategy_settings=None):
   """Enhanced training decision with unified scoring system"""
   year = check_current_year()
   current_stats = stat_state()
-  print(f"Current stats: {current_stats}")
-  print(f"Current energy: {energy_percentage}%")
 
   # Default strategy settings if not provided
   if strategy_settings is None:
@@ -540,56 +425,42 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     }
 
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
-  print(f"Priority Strategy: {priority_strategy}")
 
   # Get current date info to check stage
   from core.state import get_current_date_info
   current_date = get_current_date_info()
 
   stage_info = get_career_stage_info(current_date)
-  print(f"Career Stage: {stage_info['stage'].title()} (Day {stage_info['absolute_day']}/72)")
-  if stage_info['is_pre_debut']:
-    print(f"Pre-Debut Period: Strategy scoring disabled")
-  else:
-    print(f"Post Pre-Debut: Strategy scoring enabled")
 
   # Filter by stat caps
   filtered = filter_by_stat_caps(results, current_stats)
 
   if not filtered:
-    print("[INFO] All stats capped or no valid training.")
     return None
 
   # Check if energy is critical
   if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[INFO] Energy is critical ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training allowed.")
     return None
 
   # Check if energy is medium (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-    print(f"[INFO] Energy is medium ({energy_percentage}% < {MINIMUM_ENERGY_PERCENTAGE}%), using medium energy WIT logic.")
     return medium_energy_wit_training(filtered, current_date)
 
   # Normal energy logic with unified strategy system
-  print(f"[INFO] Using strategy: {priority_strategy}")
-
   # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
 
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
-    print(f"[INFO] {priority_strategy} priority strategy - prioritizing race over training")
     return None
   else:
     # Score-based training strategy
     if stage_info['is_pre_debut']:
-      print(f"[INFO] Pre-Debut period: Using fallback logic instead of score threshold {score_threshold}")
       return most_support_card(filtered, current_date)
     else:
-      print(f"[INFO] {stage_info['stage'].title()} stage: Using score-based training strategy with threshold {score_threshold}")
       result = find_best_training_by_score(filtered, current_date, score_threshold)
 
       if result is None:
-        print(f"[INFO] No training meets score threshold {score_threshold} - should try race or fallback")
+        pass
 
       return result

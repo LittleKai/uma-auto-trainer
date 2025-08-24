@@ -23,11 +23,11 @@ class UmaAutoGUI:
     screen_height = self.root.winfo_screenheight()
 
     # Adjusted window dimensions for better content fit
-    window_width = 750
+    window_width = 700
     window_height = 900
 
     # Position window on the right side with better spacing
-    x = x = screen_width // 2 + 20
+    x = screen_width // 2 + 20
     y = max(50, (screen_height - window_height) // 2)
 
     self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
@@ -224,11 +224,11 @@ class UmaAutoGUI:
                                      values=[
                                        "G1 (no training)",
                                        "G2 (no training)",
-                                       "Train Score 2+",
                                        "Train Score 2.5+",
                                        "Train Score 3+",
                                        "Train Score 3.5+",
-                                       "Train Score 4+"
+                                       "Train Score 4+",
+                                       "Train Score 4.5+"
                                      ],
                                      state="readonly", width=22)
     priority_dropdown.grid(row=0, column=3, sticky=tk.W, pady=5)

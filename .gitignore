@@ -8,6 +8,7 @@ uma_auto.spec
 pass_link.txt
 
 # Ignore specific folders
+logs/
 venv/
 __pycache__/
 **/__pycache__/

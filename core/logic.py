@@ -111,7 +111,7 @@ def get_priority_by_stage(stat_key, current_date):
   print(f"[DEBUG] get_priority_by_stage({stat_key}) - Original PRIORITY_STAT: {PRIORITY_STAT}")
   print(f"[DEBUG] Stage info: is_pre_debut={stage_info['is_pre_debut']}, stage={stage_info['stage']}, day={stage_info['absolute_day']}")
 
-  if stage_info['is_pre_debut'] or (stage_info['stage'] == 'early' and stage_info['absolute_day'] <= 24):
+  if stage_info['absolute_day'] <= 24:
     # Pre-debut and early stage (first 24 days): prioritize WIT first, then follow config order
     config_priority = PRIORITY_STAT.copy()
 
@@ -193,8 +193,6 @@ def extract_score_threshold(priority_strategy):
   """Extract score threshold from priority strategy string"""
   if "G1" in priority_strategy or "G2" in priority_strategy:
     return None  # Race priority - no training
-  elif "Score 2+" in priority_strategy:
-    return 2.0
   elif "Score 2.5+" in priority_strategy:
     return 2.5
   elif "Score 3+" in priority_strategy:
@@ -203,6 +201,8 @@ def extract_score_threshold(priority_strategy):
     return 3.5
   elif "Score 4+" in priority_strategy:
     return 4.0
+  elif "Score 4.5+" in priority_strategy:
+    return 4.5
   else:
     return 2.5  # Default threshold
 

@@ -67,8 +67,6 @@ class RestHandler:
                     self._handle_summer_vacation()
 
                 return True
-            else:
-                self.log(f"[DEBUG] {button_name} not found")
 
         # If all buttons failed, try diagnostic
         self._handle_rest_failure()
@@ -156,7 +154,7 @@ class RestHandler:
 
     def _handle_summer_vacation(self) -> None:
         """Handle summer vacation dialog if it appears"""
-        self.log("[INFO] Summer period - waiting for vacation dialog")
+
         time.sleep(0.8)  # Wait for dialog to appear
 
         # Try to click OK button for vacation confirmation
@@ -176,9 +174,6 @@ class RestHandler:
                 ok_found = True
                 break
             time.sleep(0.3)
-
-        if not ok_found:
-            self.log("[WARNING] Summer vacation dialog OK button not found")
 
     def _handle_rest_failure(self) -> None:
         """Handle case when all rest buttons fail"""

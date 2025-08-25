@@ -213,9 +213,7 @@ class EventHandler:
                 self.controller.log_message("🎭 EVENT DETECTED! Manual event handling enabled.")
                 self.controller.log_message("⏳ Waiting for you to select event choice manually...")
 
-                if gui:
-                    gui.root.after(0, gui.stop_bot)
-
+                # Wait for event completion without stopping the bot
                 event_handled = self._wait_for_event_completion(gui)
 
                 if not event_handled:
@@ -269,14 +267,13 @@ class EventHandler:
         start_time = time.time()
 
         while True:
-            if gui and not gui.is_running:
-                return False
-
+            # Check if bot was stopped manually
             if self.controller.check_should_stop():
                 return False
 
             time.sleep(0.5)
 
+            # Check if event choice is still visible
             event_still_present = pyautogui.locateCenterOnScreen(
                 "assets/icons/event_choice_1.png",
                 confidence=0.8,
@@ -284,6 +281,7 @@ class EventHandler:
             )
 
             if not event_still_present:
+                # Event is gone, check if we're back to normal game state
                 tazuna_hint = pyautogui.locateCenterOnScreen(
                     "assets/ui/tazuna_hint.png",
                     confidence=0.8,
@@ -291,23 +289,30 @@ class EventHandler:
                 )
 
                 if tazuna_hint:
+                    # Back to main menu - event completed
+                    self.controller.log_message("✅ Event completed - Resuming bot operations")
                     return True
                 else:
+                    # Check for other game states that indicate event is progressing
                     other_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
                                                                minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
                         "assets/buttons/inspiration_btn.png", confidence=0.8, minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
                         "assets/buttons/next_btn.png", confidence=0.8, minSearchTime=0.2)
                     if other_btn:
+                        self.controller.log_message("✅ Event progressing - Resuming bot operations")
                         return True
                     else:
+                        # Event is progressing, continue waiting
                         continue
 
+            # Timeout check (2 minutes max)
             if time.time() - start_time > max_wait_time:
-                self.controller.log_message("⚠️ Event waiting timeout - resuming bot")
+                self.controller.log_message("⚠️ Event waiting timeout - Resuming bot operations")
                 return True
 
+            # Show waiting message every 30 seconds
             elapsed = time.time() - start_time
-            if elapsed > 20 and int(elapsed) % 30 == 0:
+            if elapsed > 10 and int(elapsed) % 30 == 0:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
 

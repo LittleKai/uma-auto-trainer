@@ -16,14 +16,14 @@ from key_validator import validate_application_key, is_key_valid
 class UmaAutoGUI:
   def __init__(self):
     self.root = tk.Tk()
-    self.root.title("Uma Musume Auto Train")
+    self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
 
     # Calculate window dimensions based on content
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
 
     # Adjusted window dimensions for better content fit
-    window_width = 700
+    window_width = 800
     window_height = 950
 
     # Position window on the right side with better spacing
@@ -159,11 +159,6 @@ class UmaAutoGUI:
     title_label = ttk.Label(title_container, text="Uma Musume Auto Train",
                             font=("Arial", 16, "bold"))
     title_label.pack(anchor=tk.W)
-
-    # Subtitle
-    subtitle_label = ttk.Label(title_container, text="(Developed by LittleKai!)",
-                               font=("Arial", 10), foreground="gray")
-    subtitle_label.pack(anchor=tk.W)
 
     # Settings button
     settings_button = ttk.Button(title_frame, text="⚙ Region Settings",

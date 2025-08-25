@@ -46,7 +46,7 @@
       }
     },
     "energy_restrictions": {
-      "medium_energy_upper_limit": 52,
+      "medium_energy_upper_limit": 53,
       "medium_energy_max_score_threshold": 2.75
     }
   }

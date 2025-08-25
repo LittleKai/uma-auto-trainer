@@ -13,25 +13,181 @@ from core.execute import set_log_callback, career_lobby, set_stop_flag
 from core.race_manager import RaceManager, DateManager
 from key_validator import validate_application_key, is_key_valid
 
+
+class StopConditionsWindow:
+  """Window for configuring stop conditions"""
+
+  def __init__(self, parent):
+    self.parent = parent
+    self.window = tk.Toplevel(parent.root)
+    self.window.title("Stop Conditions Configuration")
+    self.window.resizable(False, False)
+
+    # Keep window on top and set as dialog
+    self.window.attributes('-topmost', True)
+    self.window.transient(parent.root)
+    self.window.grab_set()  # Make it modal
+
+    self.setup_ui()
+    self.load_current_values()
+
+    # Bind window close event
+    self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    # Center window on screen
+    self.center_window()
+
+  def center_window(self):
+    """Center the window on screen"""
+    # Update to get actual required size
+    self.window.update_idletasks()
+
+    # Let window auto-size to content first
+    req_width = self.window.winfo_reqwidth()
+    req_height = self.window.winfo_reqheight()
+
+    # Set minimum size
+    width = max(400, req_width + 40)  # Add padding
+    height = max(300, req_height + 40)
+
+    # Calculate center position relative to parent
+    parent_x = self.parent.root.winfo_x()
+    parent_y = self.parent.root.winfo_y()
+    parent_width = self.parent.root.winfo_width()
+    parent_height = self.parent.root.winfo_height()
+
+    x = parent_x + (parent_width // 2) - (width // 2)
+    y = parent_y + (parent_height // 2) - (height // 2)
+
+    self.window.geometry(f"{width}x{height}+{x}+{y}")
+
+  def setup_ui(self):
+    """Setup the user interface"""
+    main_frame = ttk.Frame(self.window, padding="15")
+    main_frame.pack(fill=tk.BOTH, expand=True)
+
+    # Title
+    title_label = ttk.Label(main_frame, text="Stop Conditions Configuration",
+                            font=("Arial", 12, "bold"))
+    title_label.pack(pady=(0, 15))
+
+    # Info text
+    info_label = ttk.Label(main_frame,
+                           text="Configure when the bot should automatically stop.\n" +
+                                "Conditions marked with (day >24) only apply after day 24.",
+                           font=("Arial", 9), justify=tk.CENTER, foreground="blue")
+    info_label.pack(pady=(0, 20))
+
+    # Stop conditions frame
+    conditions_frame = ttk.Frame(main_frame)
+    conditions_frame.pack(fill=tk.BOTH, expand=True)
+
+    # Stop when infirmary needed
+    self.infirmary_var = tk.BooleanVar()
+    infirmary_check = ttk.Checkbutton(conditions_frame,
+                                      text="Stop when infirmary needed (day >24)",
+                                      variable=self.infirmary_var)
+    infirmary_check.pack(anchor=tk.W, pady=5)
+
+    # Stop when need rest
+    self.need_rest_var = tk.BooleanVar()
+    need_rest_check = ttk.Checkbutton(conditions_frame,
+                                      text="Stop when need rest (day >24)",
+                                      variable=self.need_rest_var)
+    need_rest_check.pack(anchor=tk.W, pady=5)
+
+    # Stop when low mood (with dropdown)
+    mood_frame = ttk.Frame(conditions_frame)
+    mood_frame.pack(fill=tk.X, pady=5)
+
+    self.low_mood_var = tk.BooleanVar()
+    low_mood_check = ttk.Checkbutton(mood_frame,
+                                     text="Stop when mood below:",
+                                     variable=self.low_mood_var)
+    low_mood_check.pack(side=tk.LEFT)
+
+    self.mood_threshold_var = tk.StringVar()
+    mood_dropdown = ttk.Combobox(mood_frame, textvariable=self.mood_threshold_var,
+                                 values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
+                                 state="readonly", width=10)
+    mood_dropdown.pack(side=tk.LEFT, padx=(10, 0))
+
+    mood_info_label = ttk.Label(mood_frame, text="(day >24)",
+                                font=("Arial", 8), foreground="gray")
+    mood_info_label.pack(side=tk.LEFT, padx=(5, 0))
+
+    # Stop when race day
+    self.race_day_var = tk.BooleanVar()
+    race_day_check = ttk.Checkbutton(conditions_frame,
+                                     text="Stop when race day",
+                                     variable=self.race_day_var)
+    race_day_check.pack(anchor=tk.W, pady=5)
+
+    # Separator
+    separator = ttk.Separator(main_frame, orient='horizontal')
+    separator.pack(fill=tk.X, pady=20)
+
+    # Button frame
+    button_frame = ttk.Frame(main_frame)
+    button_frame.pack(fill=tk.X)
+
+    # Cancel and Save buttons
+    cancel_btn = ttk.Button(button_frame, text="Cancel", command=self.on_closing)
+    cancel_btn.pack(side=tk.RIGHT, padx=(5, 0))
+
+    save_btn = ttk.Button(button_frame, text="Save", command=self.save_settings)
+    save_btn.pack(side=tk.RIGHT)
+
+  def load_current_values(self):
+    """Load current values from parent"""
+    self.infirmary_var.set(self.parent.stop_on_infirmary.get())
+    self.need_rest_var.set(self.parent.stop_on_need_rest.get())
+    self.low_mood_var.set(self.parent.stop_on_low_mood.get())
+    self.race_day_var.set(self.parent.stop_on_race_day.get())
+    self.mood_threshold_var.set(self.parent.stop_mood_threshold.get())
+
+  def save_settings(self):
+    """Save settings and close window"""
+    # Update parent variables
+    self.parent.stop_on_infirmary.set(self.infirmary_var.get())
+    self.parent.stop_on_need_rest.set(self.need_rest_var.get())
+    self.parent.stop_on_low_mood.set(self.low_mood_var.get())
+    self.parent.stop_on_race_day.set(self.race_day_var.get())
+    self.parent.stop_mood_threshold.set(self.mood_threshold_var.get())
+
+    # Save to file
+    self.parent.save_settings()
+
+    # Close window
+    self.window.destroy()
+
+  def on_closing(self):
+    """Handle window closing"""
+    self.window.destroy()
+
 class UmaAutoGUI:
   def __init__(self):
     self.root = tk.Tk()
     self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
 
-    # Calculate window dimensions based on content
+    # Calculate window dimensions based on screen size and content
     screen_width = self.root.winfo_screenwidth()
     screen_height = self.root.winfo_screenheight()
 
-    # Adjusted window dimensions for better content fit
-    window_width = 800
-    window_height = 950
+    # Set minimum size but allow auto-sizing for content
+    min_width = 800
+    min_height = 850
+    self.root.minsize(min_width, min_height)
 
-    # Position window on the right side with better spacing
+    # Position window: right half + 20px from left, top position
     x = screen_width // 2 + 20
-    y = max(50, (screen_height - window_height) // 2)
+    y = 20
 
-    self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
-    self.root.minsize(600, 750)
+    # Set initial geometry (will auto-resize after content is added)
+    self.root.geometry(f"{min_width}x{min_height}+{x}+{y}")
+
+    # Allow window to resize based on content
+    self.root.resizable(True, True)
 
     # Keep window always on top
     self.root.attributes('-topmost', True)
@@ -73,10 +229,12 @@ class UmaAutoGUI:
     self.manual_event_handling = tk.BooleanVar(value=False)
 
     # Stop condition variables
+    self.enable_stop_conditions = tk.BooleanVar(value=False)
     self.stop_on_infirmary = tk.BooleanVar(value=False)
     self.stop_on_need_rest = tk.BooleanVar(value=False)
     self.stop_on_low_mood = tk.BooleanVar(value=False)
     self.stop_on_race_day = tk.BooleanVar(value=False)
+    self.stop_mood_threshold = tk.StringVar(value="BAD")  # Separate mood threshold for stop condition
 
     # Setup GUI
     self.setup_gui()
@@ -98,6 +256,9 @@ class UmaAutoGUI:
 
     # Start game window monitoring
     self.start_game_window_monitoring()
+
+    # Auto-resize window to fit content
+    self.auto_resize_window()
 
   def setup_gui(self):
     """Setup the main GUI interface with improved layout"""
@@ -133,7 +294,6 @@ class UmaAutoGUI:
     self.setup_race_filters_and_stop_conditions_section(main_frame)
     self.setup_control_buttons_section(main_frame)
     self.setup_activity_log_section(main_frame)
-    self.setup_shortcuts_info_section(main_frame)
 
     # Pack canvas and scrollbar with proper fill
     canvas.pack(side="left", fill="both", expand=True)
@@ -144,6 +304,9 @@ class UmaAutoGUI:
       canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     canvas.bind("<MouseWheel>", on_mousewheel)
+
+    # Configure canvas scrolling region after a short delay to ensure content is loaded
+    self.root.after(100, lambda: canvas.configure(scrollregion=canvas.bbox("all")))
 
   def setup_header_section(self, parent):
     """Setup the header section with title and settings button"""
@@ -303,18 +466,19 @@ class UmaAutoGUI:
     ttk.Checkbutton(grade_inner, text="G3", variable=self.grade_filters['g3'],
                     command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
-    # Stop conditions section
+    # Stop conditions section (simplified)
     stop_conditions_frame = ttk.LabelFrame(filters_container, text="Stop Conditions", padding="10")
     stop_conditions_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
 
-    ttk.Checkbutton(stop_conditions_frame, text="Stop when infirmary needed (day >24)",
-                    variable=self.stop_on_infirmary, command=self.save_settings).pack(anchor=tk.W, pady=2)
-    ttk.Checkbutton(stop_conditions_frame, text="Stop when need rest (day >24)",
-                    variable=self.stop_on_need_rest, command=self.save_settings).pack(anchor=tk.W, pady=2)
-    ttk.Checkbutton(stop_conditions_frame, text="Stop when low mood (day >24)",
-                    variable=self.stop_on_low_mood, command=self.save_settings).pack(anchor=tk.W, pady=2)
-    ttk.Checkbutton(stop_conditions_frame, text="Stop when race day",
-                    variable=self.stop_on_race_day, command=self.save_settings).pack(anchor=tk.W, pady=2)
+    # Enable stop conditions checkbox
+    enable_stop_check = ttk.Checkbutton(stop_conditions_frame, text="Enable stop conditions",
+                                        variable=self.enable_stop_conditions, command=self.save_settings)
+    enable_stop_check.pack(anchor=tk.W, pady=(0, 10))
+
+    # Configure stop conditions button
+    config_stop_button = ttk.Button(stop_conditions_frame, text="⚙ Configure Stop Conditions",
+                                    command=self.open_stop_conditions_window)
+    config_stop_button.pack(fill=tk.X)
 
   def setup_control_buttons_section(self, parent):
     """Setup the control buttons section without pause button"""
@@ -348,13 +512,28 @@ class UmaAutoGUI:
     clear_button = ttk.Button(log_frame, text="Clear Log", command=self.clear_log)
     clear_button.grid(row=1, column=0, sticky=tk.W, pady=(8, 0))
 
-  def setup_shortcuts_info_section(self, parent):
-    """Setup the keyboard shortcuts info section without F2"""
-    shortcuts_frame = ttk.LabelFrame(parent, text="Keyboard Shortcuts", padding="8")
-    shortcuts_frame.grid(row=6, column=0, sticky=(tk.W, tk.E))
+  def auto_resize_window(self):
+    """Auto-resize window to fit content with some padding"""
+    # Update all widgets to calculate their required sizes
+    self.root.update_idletasks()
 
-    shortcuts_text = ("F1: Start Bot | F3: Stop Bot | F5: Force Exit Program")
-    ttk.Label(shortcuts_frame, text=shortcuts_text, font=("Arial", 9)).pack()
+    # Get the required size for all content
+    req_width = self.root.winfo_reqwidth()
+    req_height = self.root.winfo_reqheight()
+
+    # Add some padding
+    padding_width = 40
+    padding_height = 60
+
+    final_width = max(700, req_width + padding_width)  # Min width 700
+    final_height = max(800, req_height + padding_height)  # Min height 800
+
+    # Get current position
+    current_x = self.root.winfo_x()
+    current_y = self.root.winfo_y()
+
+    # Update geometry with calculated size
+    self.root.geometry(f"{final_width}x{final_height}+{current_x}+{current_y}")
 
   def start_game_window_monitoring(self):
     """Start monitoring game window status in background"""
@@ -488,6 +667,14 @@ class UmaAutoGUI:
     else:
       self.key_status_label.config(text="Invalid ✗", foreground="red")
 
+  def open_stop_conditions_window(self):
+    """Open the stop conditions configuration window"""
+    try:
+      StopConditionsWindow(self)
+    except Exception as e:
+      self.log_message(f"Error opening stop conditions window: {e}")
+      messagebox.showerror("Error", f"Failed to open stop conditions window: {e}")
+
   def open_region_settings(self):
     """Open the region settings window"""
     try:
@@ -525,10 +712,12 @@ class UmaAutoGUI:
       'priority_strategy': self.priority_strategy.get(),
       'allow_continuous_racing': self.allow_continuous_racing.get(),
       'manual_event_handling': self.manual_event_handling.get(),
+      'enable_stop_conditions': self.enable_stop_conditions.get(),
       'stop_on_infirmary': self.stop_on_infirmary.get(),
       'stop_on_need_rest': self.stop_on_need_rest.get(),
       'stop_on_low_mood': self.stop_on_low_mood.get(),
-      'stop_on_race_day': self.stop_on_race_day.get()
+      'stop_on_race_day': self.stop_on_race_day.get(),
+      'stop_mood_threshold': self.stop_mood_threshold.get()
     }
 
     try:
@@ -599,6 +788,8 @@ class UmaAutoGUI:
           self.manual_event_handling.set(settings['manual_event_handling'])
 
         # Apply stop condition settings
+        if 'enable_stop_conditions' in settings:
+          self.enable_stop_conditions.set(settings['enable_stop_conditions'])
         if 'stop_on_infirmary' in settings:
           self.stop_on_infirmary.set(settings['stop_on_infirmary'])
         if 'stop_on_need_rest' in settings:
@@ -607,6 +798,8 @@ class UmaAutoGUI:
           self.stop_on_low_mood.set(settings['stop_on_low_mood'])
         if 'stop_on_race_day' in settings:
           self.stop_on_race_day.set(settings['stop_on_race_day'])
+        if 'stop_mood_threshold' in settings:
+          self.stop_mood_threshold.set(settings['stop_mood_threshold'])
 
         # Update race manager
         race_filters = {
@@ -626,10 +819,12 @@ class UmaAutoGUI:
       'priority_strategy': self.priority_strategy.get(),
       'allow_continuous_racing': self.allow_continuous_racing.get(),
       'manual_event_handling': self.manual_event_handling.get(),
+      'enable_stop_conditions': self.enable_stop_conditions.get(),
       'stop_on_infirmary': self.stop_on_infirmary.get(),
       'stop_on_need_rest': self.stop_on_need_rest.get(),
       'stop_on_low_mood': self.stop_on_low_mood.get(),
-      'stop_on_race_day': self.stop_on_race_day.get()
+      'stop_on_race_day': self.stop_on_race_day.get(),
+      'stop_mood_threshold': self.stop_mood_threshold.get()
     }
 
   def log_message(self, message):
@@ -775,7 +970,7 @@ class UmaAutoGUI:
     self.log_message("Configure strategy settings and race filters before starting.")
     self.log_message("Priority Strategies:")
     self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
-    self.log_message("• Train Score 2+/2.5+/3+/3.5+: Train only if score meets threshold")
+    self.log_message("• Train Score 2.5+/3+/3.5+/4+: Train only if score meets threshold")
     self.log_message("Use F1 to start, F3 to stop, F5 to force exit program.")
 
     self.root.mainloop()
@@ -783,7 +978,6 @@ class UmaAutoGUI:
 
 def main():
   """Main function - create and run GUI"""
-  print("Uma Auto - Developed by LittleKai!")
   app = UmaAutoGUI()
   app.run()
 

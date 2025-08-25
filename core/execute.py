@@ -307,7 +307,7 @@ class EventHandler:
 
             # Timeout check (2 minutes max)
             if time.time() - start_time > max_wait_time:
-                self.controller.log_message("⚠️ Event waiting timeout - Resuming bot operations")
+                self.controller.log_message("⚠️ Event waiting timeout - Stop bot")
                 return True
 
             # Show waiting message every 30 seconds
@@ -340,7 +340,8 @@ class DecisionEngine:
 
         # Handle Race Day
         if game_state['turn'] == "Race Day" and game_state['year'] != "Finale Season":
-            if strategy_settings.get('stop_on_race_day', False):
+            if (strategy_settings.get('enable_stop_conditions', False) and
+                    strategy_settings.get('stop_on_race_day', False)):
                 self.controller.log_message("Stop condition: Race Day detected - Stopping bot")
                 if gui:
                     gui.root.after(0, gui.stop_bot)
@@ -358,17 +359,24 @@ class DecisionEngine:
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
 
-        # Check mood requirements
+        # Check mood requirements (using minimum_mood for training strategy)
         mood_index = MOOD_LIST.index(mood) if mood in MOOD_LIST else 0
         minimum_mood_index = MOOD_LIST.index(strategy_settings.get('minimum_mood', 'NORMAL'))
 
         if mood_index < minimum_mood_index:
-            # Stop condition only applies after day 24
-            if strategy_settings.get('stop_on_low_mood', False) and current_date and current_date.get('absolute_day', 0) > 24:
-                self.controller.log_message(f"Stop condition: Low mood ({mood}) detected after day 24 - Stopping bot")
-                if gui:
-                    gui.root.after(0, gui.stop_bot)
-                return False
+            # Stop condition using separate stop_mood_threshold and only applies after day 24
+            if (strategy_settings.get('enable_stop_conditions', False) and
+                    strategy_settings.get('stop_on_low_mood', False) and
+                    current_date and current_date.get('absolute_day', 0) > 24):
+
+                stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
+                stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1
+
+                if mood_index < stop_mood_index:
+                    self.controller.log_message(f"Stop condition: Mood ({mood}) below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
+                    if gui:
+                        gui.root.after(0, gui.stop_bot)
+                    return False
 
             is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
@@ -518,7 +526,9 @@ class DecisionEngine:
         # Handle special case: SHOULD_REST
         if best_training == "SHOULD_REST":
             # Stop condition only applies after day 24
-            if strategy_settings.get('stop_on_need_rest', False) and current_date and current_date.get('absolute_day', 0) > 24:
+            if (strategy_settings.get('enable_stop_conditions', False) and
+                    strategy_settings.get('stop_on_need_rest', False) and
+                    current_date and current_date.get('absolute_day', 0) > 24):
                 self.controller.log_message("Stop condition: Need rest detected after day 24 - Stopping bot")
                 self._click_back_button("")
                 if gui:
@@ -683,6 +693,10 @@ class DecisionEngine:
 
     def _check_stop_conditions(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any], gui) -> bool:
         """Check if any stop conditions are met"""
+        # Only check if stop conditions are enabled
+        if not strategy_settings.get('enable_stop_conditions', False):
+            return False
+
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
@@ -745,7 +759,8 @@ class CareerLobbyManager:
         if debuffed:
             if is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
                 # Stop condition only applies after day 24
-                if gui and gui.get_current_settings().get('stop_on_infirmary', False):
+                if (gui and gui.get_current_settings().get('enable_stop_conditions', False) and
+                        gui.get_current_settings().get('stop_on_infirmary', False)):
                     # Get current date info
                     from core.state import get_current_date_info
                     current_date = get_current_date_info()
@@ -919,10 +934,12 @@ class MainExecutor:
             'priority_strategy': 'Train Score 2.5+',
             'allow_continuous_racing': True,
             'manual_event_handling': False,
+            'enable_stop_conditions': False,
             'stop_on_infirmary': False,
             'stop_on_need_rest': False,
             'stop_on_low_mood': False,
-            'stop_on_race_day': False
+            'stop_on_race_day': False,
+            'stop_mood_threshold': 'BAD'
         }
 
         if gui:

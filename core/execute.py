@@ -307,7 +307,7 @@ class EventHandler:
 
             # Timeout check (2 minutes max)
             if time.time() - start_time > max_wait_time:
-                self.controller.log_message("⚠️ Event waiting timeout - Stop bot")
+                self.controller.log_message("⚠️ Event waiting timeout - Bot Stop")
                 return True
 
             # Show waiting message every 30 seconds
@@ -438,8 +438,7 @@ class DecisionEngine:
                     return True
                 else:
                     if not self.controller.check_should_stop():
-                        self._click_back_button(
-                            "Matching race not found in game. Low energy - will check WIT training.")
+                        self._click_back_button("Matching race not found in game. Low energy - will check WIT training.")
                         time.sleep(0.5)
             else:
                 self.controller.log_message(
@@ -627,12 +626,63 @@ class DecisionEngine:
             else:
                 self.controller.log_message("No matching races available today.")
 
-            # No races available, rest if low energy
-            if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-                self.controller.rest_handler.execute_rest()
-                self.controller.log_message(f"{priority_strategy}: No races available, resting due to low energy ({energy_percentage}%)")
+            # No races available, proceed with normal training/rest logic instead of waiting
+            self.controller.log_message(f"{priority_strategy}: No races available, proceeding with normal training/rest logic")
+
+            # Check training options
+            if not self.controller.training_handler.go_to_training():
+                return True
+
+            if self.controller.check_should_stop():
+                return False
+
+            time.sleep(0.5)
+            results_training = self.controller.training_handler.check_all_training(energy_percentage)
+
+            if self.controller.check_should_stop():
+                return False
+
+            best_training = training_decision(
+                results_training,
+                energy_percentage,
+                strategy_settings,
+                current_date
+            )
+
+            if best_training and best_training != "SHOULD_REST":
+                if self.controller.check_should_stop():
+                    return False
+                self.controller.training_handler.go_to_training()
+                time.sleep(0.5)
+                if self.controller.check_should_stop():
+                    return False
+                self.controller.training_handler.execute_training(best_training)
+                self.controller.log_message(f"Training: {best_training.upper()}")
+                return True
             else:
-                self.controller.log_message(f"{priority_strategy}: No races available, waiting for next turn")
+                # No suitable training found or should rest
+                if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                    self.controller.rest_handler.execute_rest()
+                    self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
+                else:
+                    # Try fallback training
+                    if results_training:
+                        fallback_result = fallback_training(results_training, current_date)
+                        if fallback_result:
+                            best_key, score_info = fallback_result
+                            if self.controller.check_should_stop():
+                                return False
+                            self.controller.training_handler.go_to_training()
+                            time.sleep(0.5)
+                            if self.controller.check_should_stop():
+                                return False
+                            self.controller.training_handler.execute_training(best_key)
+                            self.controller.log_message(f"Fallback Training: {best_key.upper()} {score_info}")
+                            return True
+
+                    # Last resort: rest
+                    self.controller.rest_handler.execute_rest()
+                    self.controller.log_message("No training options available - Resting")
 
             return True
 
@@ -650,12 +700,60 @@ class DecisionEngine:
                 self.controller.log_message(f"G2 priority: Found {len(g2_races)} G2 races - Racing")
             else:
                 self.controller.log_message("G2 priority: No G1/G2 races found in available races")
-                # No G1/G2 races, rest if low energy
-                if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-                    self.controller.rest_handler.execute_rest()
-                    self.controller.log_message(f"G2 priority: No suitable races, resting due to low energy ({energy_percentage}%)")
+                # No G1/G2 races, proceed with normal training/rest logic
+                self.controller.log_message("G2 priority: No suitable races, proceeding with normal training/rest logic")
+
+                # Use the same training logic as above for consistency
+                if not self.controller.training_handler.go_to_training():
+                    return True
+
+                if self.controller.check_should_stop():
+                    return False
+
+                time.sleep(0.5)
+                results_training = self.controller.training_handler.check_all_training(energy_percentage)
+
+                if self.controller.check_should_stop():
+                    return False
+
+                best_training = training_decision(
+                    results_training,
+                    energy_percentage,
+                    strategy_settings,
+                    current_date
+                )
+
+                if best_training and best_training != "SHOULD_REST":
+                    if self.controller.check_should_stop():
+                        return False
+                    self.controller.training_handler.go_to_training()
+                    time.sleep(0.5)
+                    if self.controller.check_should_stop():
+                        return False
+                    self.controller.training_handler.execute_training(best_training)
+                    self.controller.log_message(f"Training: {best_training.upper()}")
                 else:
-                    self.controller.log_message("G2 priority: No suitable races, waiting for next turn")
+                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                        self.controller.rest_handler.execute_rest()
+                        self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
+                    else:
+                        if results_training:
+                            fallback_result = fallback_training(results_training, current_date)
+                            if fallback_result:
+                                best_key, score_info = fallback_result
+                                if self.controller.check_should_stop():
+                                    return False
+                                self.controller.training_handler.go_to_training()
+                                time.sleep(0.5)
+                                if self.controller.check_should_stop():
+                                    return False
+                                self.controller.training_handler.execute_training(best_key)
+                                self.controller.log_message(f"Fallback Training: {best_key.upper()} {score_info}")
+                                return True
+
+                        self.controller.rest_handler.execute_rest()
+                        self.controller.log_message("No training options available - Resting")
+
                 return True
 
         elif "G1 (no training)" in priority_strategy:
@@ -666,12 +764,60 @@ class DecisionEngine:
                 self.controller.log_message(f"G1 priority: Found {len(g1_races)} G1 races - Racing")
             else:
                 self.controller.log_message("G1 priority: No G1 races found in available races")
-                # No G1 races, rest if low energy
-                if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-                    self.controller.rest_handler.execute_rest()
-                    self.controller.log_message(f"G1 priority: No G1 races, resting due to low energy ({energy_percentage}%)")
+                # No G1 races, proceed with normal training/rest logic
+                self.controller.log_message("G1 priority: No G1 races, proceeding with normal training/rest logic")
+
+                # Use the same training logic as above for consistency
+                if not self.controller.training_handler.go_to_training():
+                    return True
+
+                if self.controller.check_should_stop():
+                    return False
+
+                time.sleep(0.5)
+                results_training = self.controller.training_handler.check_all_training(energy_percentage)
+
+                if self.controller.check_should_stop():
+                    return False
+
+                best_training = training_decision(
+                    results_training,
+                    energy_percentage,
+                    strategy_settings,
+                    current_date
+                )
+
+                if best_training and best_training != "SHOULD_REST":
+                    if self.controller.check_should_stop():
+                        return False
+                    self.controller.training_handler.go_to_training()
+                    time.sleep(0.5)
+                    if self.controller.check_should_stop():
+                        return False
+                    self.controller.training_handler.execute_training(best_training)
+                    self.controller.log_message(f"Training: {best_training.upper()}")
                 else:
-                    self.controller.log_message("G1 priority: No G1 races, waiting for next turn")
+                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                        self.controller.rest_handler.execute_rest()
+                        self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
+                    else:
+                        if results_training:
+                            fallback_result = fallback_training(results_training, current_date)
+                            if fallback_result:
+                                best_key, score_info = fallback_result
+                                if self.controller.check_should_stop():
+                                    return False
+                                self.controller.training_handler.go_to_training()
+                                time.sleep(0.5)
+                                if self.controller.check_should_stop():
+                                    return False
+                                self.controller.training_handler.execute_training(best_key)
+                                self.controller.log_message(f"Fallback Training: {best_key.upper()} {score_info}")
+                                return True
+
+                        self.controller.rest_handler.execute_rest()
+                        self.controller.log_message("No training options available - Resting")
+
                 return True
 
         # Attempt to race
@@ -684,11 +830,63 @@ class DecisionEngine:
         if race_found:
             return True
         else:
-            self.controller.log_message(f"{priority_strategy}: Race attempt failed")
-            # Race failed, rest if low energy
-            if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
-                self.controller.rest_handler.execute_rest()
-                self.controller.log_message(f"{priority_strategy}: Race failed, resting due to low energy ({energy_percentage}%)")
+            # Race failed, click back button first then proceed with normal training/rest logic
+            if self.controller.check_should_stop():
+                return False
+            self._click_back_button(f"{priority_strategy}: Race failed, going back to lobby")
+            time.sleep(0.5)
+
+            # Use the same training logic
+            if not self.controller.training_handler.go_to_training():
+                return True
+
+            if self.controller.check_should_stop():
+                return False
+
+            time.sleep(0.5)
+            results_training = self.controller.training_handler.check_all_training(energy_percentage)
+
+            if self.controller.check_should_stop():
+                return False
+
+            best_training = training_decision(
+                results_training,
+                energy_percentage,
+                strategy_settings,
+                current_date
+            )
+
+            if best_training and best_training != "SHOULD_REST":
+                if self.controller.check_should_stop():
+                    return False
+                self.controller.training_handler.go_to_training()
+                time.sleep(0.5)
+                if self.controller.check_should_stop():
+                    return False
+                self.controller.training_handler.execute_training(best_training)
+                self.controller.log_message(f"Training: {best_training.upper()}")
+            else:
+                if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                    self.controller.rest_handler.execute_rest()
+                    self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
+                else:
+                    if results_training:
+                        fallback_result = fallback_training(results_training, current_date)
+                        if fallback_result:
+                            best_key, score_info = fallback_result
+                            if self.controller.check_should_stop():
+                                return False
+                            self.controller.training_handler.go_to_training()
+                            time.sleep(0.5)
+                            if self.controller.check_should_stop():
+                                return False
+                            self.controller.training_handler.execute_training(best_key)
+                            self.controller.log_message(f"Fallback Training: {best_key.upper()} {score_info}")
+                            return True
+
+                    self.controller.rest_handler.execute_rest()
+                    self.controller.log_message("No training options available - Resting")
+
             return True
 
     def _check_stop_conditions(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any], gui) -> bool:

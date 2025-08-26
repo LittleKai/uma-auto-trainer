@@ -175,8 +175,8 @@ class UmaAutoGUI:
     screen_height = self.root.winfo_screenheight()
 
     # Set minimum size but allow auto-sizing for content
-    min_width = 800
-    min_height = 850
+    min_width = 650
+    min_height = 750
     self.root.minsize(min_width, min_height)
 
     # Position window: right half + 20px from left, top position
@@ -698,7 +698,6 @@ class UmaAutoGUI:
 
   def enhanced_stop_bot(self):
     """Enhanced F3 stop functionality that immediately stops all operations"""
-    self.log_message("[F3] Emergency stop triggered - Stopping all bot operations immediately")
     set_stop_flag(True)
     self.stop_bot()
 

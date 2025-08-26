@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": true,
-    "mile": true,
-    "medium": false,
-    "long": false
+    "sprint": false,
+    "mile": false,
+    "medium": true,
+    "long": true
   },
   "grade": {
     "g1": true,

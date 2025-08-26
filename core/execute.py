@@ -318,7 +318,6 @@ class EventHandler:
             if elapsed > 10 and int(elapsed) % 30 == 0:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
-
 class DecisionEngine:
     """Makes training and racing decisions based on game state"""
 
@@ -366,21 +365,22 @@ class DecisionEngine:
         mood_index = MOOD_LIST.index(mood) if mood in MOOD_LIST else 0
         minimum_mood_index = MOOD_LIST.index(strategy_settings.get('minimum_mood', 'NORMAL'))
 
+        # Check stop condition for low mood (independent of minimum_mood)
+        if (strategy_settings.get('enable_stop_conditions', False) and
+                strategy_settings.get('stop_on_low_mood', False) and
+                current_date and current_date.get('absolute_day', 0) > 24):
+
+            stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
+            stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1
+
+            if mood_index < stop_mood_index:  # Stop if mood is at or below threshold
+                self.controller.log_message(f"Stop condition: Mood ({mood}) at or below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
+                return False
+
+        # Check training mood requirements
         if mood_index < minimum_mood_index:
-            # Stop condition using separate stop_mood_threshold and only applies after day 24
-            if (strategy_settings.get('enable_stop_conditions', False) and
-                    strategy_settings.get('stop_on_low_mood', False) and
-                    current_date and current_date.get('absolute_day', 0) > 24):
-
-                stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
-                stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1
-
-                if mood_index < stop_mood_index:
-                    self.controller.log_message(f"Stop condition: Mood ({mood}) below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
-                    if gui:
-                        gui.root.after(0, gui.stop_bot)
-                    return False
-
             is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
             if not is_junior_year:

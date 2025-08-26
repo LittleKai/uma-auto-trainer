@@ -354,7 +354,7 @@ def check_failure():
   return -1
 
 def check_mood():
-  """Enhanced mood check with pattern matching"""
+  """Enhanced mood check with pattern matching and OCR debug output"""
   # Get current region settings in case they were updated
   current_regions = get_current_regions()
   mood_region = current_regions['MOOD_REGION']
@@ -362,18 +362,33 @@ def check_mood():
   mood = capture_region(mood_region)
   mood_text = extract_text(mood).upper()
 
+  # Debug: Log raw OCR text for troubleshooting
+  print(f"[DEBUG] Raw OCR mood text: '{mood_text}' (length: {len(mood_text)})")
+
+  # Clean the text and show cleaning process
+  cleaned_text = mood_text.strip()
+  if cleaned_text != mood_text:
+    print(f"[DEBUG] After strip: '{cleaned_text}'")
+
   # Use enhanced pattern matching for mood detection
-  detected_mood = match_mood_with_patterns(mood_text)
+  detected_mood = match_mood_with_patterns(cleaned_text)
+
+  print(f"[DEBUG] Pattern matching result: '{detected_mood}'")
 
   if detected_mood != "UNKNOWN":
+    print(f"[DEBUG] Successfully matched mood: {cleaned_text} -> {detected_mood}")
     return detected_mood
 
   # Fallback: try original method for exact matches
   for known_mood in MOOD_LIST:
-    if known_mood in mood_text:
+    if known_mood in cleaned_text:
+      print(f"[DEBUG] Fallback match found: {cleaned_text} contains {known_mood}")
       return known_mood
 
-  print(f"[WARNING] Mood not recognized: {mood_text}")
+  # Enhanced debug for unrecognized mood
+  print(f"[DEBUG] Mood recognition failed for: '{cleaned_text}'")
+
+  print(f"[WARNING] Mood not recognized: {cleaned_text}")
   return "UNKNOWN"
 
 def check_turn():

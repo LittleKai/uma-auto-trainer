@@ -58,9 +58,9 @@ class ResponsiveUIManager:
     """Calculate responsive window dimensions"""
     base_dimensions = {
       "small": {"min_width": 600, "min_height": 650, "preferred_width": 650, "preferred_height": 720},
-      "medium": {"min_width": 650, "min_height": 750, "preferred_width": 700, "preferred_height": 800},
-      "large": {"min_width": 700, "min_height": 800, "preferred_width": 800, "preferred_height": 900},
-      "xlarge": {"min_width": 800, "min_height": 900, "preferred_width": 900, "preferred_height": 1000}
+      "medium": {"min_width": 750, "min_height": 850, "preferred_width": 800, "preferred_height": 900},
+      "large": {"min_width": 800, "min_height": 900, "preferred_width": 900, "preferred_height": 1000},
+      "xlarge": {"min_width": 900, "min_height": 1000, "preferred_width": 1000, "preferred_height": 1100}
     }
 
     return base_dimensions.get(self.screen_category, base_dimensions["medium"])

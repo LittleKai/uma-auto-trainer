@@ -23,5 +23,8 @@
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
-  "stop_mood_threshold": "GREAT"
+  "stop_mood_threshold": "GREAT",
+  "stop_before_summer": false,
+  "stop_at_month": false,
+  "target_month": "December"
 }

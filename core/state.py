@@ -1,9 +1,10 @@
 import re
 import json
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 import time
+import numpy as np
 from utils.screenshot import capture_region, enhanced_screenshot
-from core.ocr import extract_text, extract_number
+from core.ocr import extract_text, extract_number, extract_text_advanced
 from core.recognizer import match_template
 from core.race_manager import DateManager
 
@@ -197,6 +198,248 @@ def check_energy_percentage():
     print(f"[WARNING] Energy detection failed: {e}")
     return 100  # Return 100% if detection fails (safe default)
 
+def enhance_mood_image(img):
+  """Enhanced image preprocessing specifically for mood text recognition"""
+  try:
+    # Convert to grayscale for better OCR
+    if img.mode != 'L':
+      img = img.convert('L')
+
+    # Resize image to improve OCR accuracy (3x scale)
+    width, height = img.size
+    img = img.resize((width * 3, height * 3), Image.LANCZOS)
+
+    # Apply contrast enhancement
+    img_array = np.array(img)
+
+    # Simple contrast enhancement
+    img_array = np.clip(img_array * 1.2 + 10, 0, 255).astype(np.uint8)
+    img = Image.fromarray(img_array)
+
+    # Apply sharpening filter
+    img = img.filter(ImageFilter.SHARPEN)
+
+    # Enhance contrast further
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(2.0)
+
+    # Apply threshold to create clean black and white image
+    threshold = 128
+    img = img.point(lambda x: 255 if x > threshold else 0, mode='1')
+
+    return img
+
+  except Exception as e:
+    print(f"[WARNING] Image enhancement failed: {e}")
+    return img
+
+def extract_mood_with_multiple_methods(img):
+  """Extract text using multiple OCR configurations"""
+  ocr_results = []
+
+  try:
+    # Method 1: Standard text extraction
+    text1 = extract_text(img).upper().strip()
+    if text1:
+      ocr_results.append(text1)
+      print(f"[DEBUG] OCR Method 1 (standard): '{text1}'")
+
+    # Method 2: Character whitelist for mood words
+    mood_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    text2 = extract_text_advanced(img, whitelist=mood_chars, psm=8).upper().strip()
+    if text2 and text2 != text1:
+      ocr_results.append(text2)
+      print(f"[DEBUG] OCR Method 2 (whitelist): '{text2}'")
+
+    # Method 4: No whitelist, different PSM
+    text4 = extract_text_advanced(img, psm=13).upper().strip()
+    if text4 and text4 not in ocr_results:
+      ocr_results.append(text4)
+      print(f"[DEBUG] OCR Method 4 (PSM 13): '{text4}'")
+
+  except Exception as e:
+    print(f"[WARNING] OCR extraction failed: {e}")
+
+  return ocr_results
+
+def match_mood_with_enhanced_patterns(ocr_text):
+  """Enhanced mood detection with better pattern matching for GOOD vs BAD confusion"""
+  if not ocr_text:
+    return "UNKNOWN"
+
+  ocr_text = ocr_text.upper().strip()
+  print(f"[DEBUG] Matching mood for: '{ocr_text}' (length: {len(ocr_text)})")
+
+  # Direct exact match first
+  if ocr_text in MOOD_LIST:
+    print(f"[DEBUG] Exact match found: {ocr_text}")
+    return ocr_text
+
+  # Special handling for GOOD vs BAD confusion (highest priority)
+  if len(ocr_text) >= 3:
+    # Handle cases where GOOD is partially read as GOD, OOD, GOO, etc.
+    good_partials = ["GOD", "OOD", "GOO", "GOOD", "GOOP", "COOO", "G00D"]
+    if ocr_text in good_partials:
+      print(f"[DEBUG] GOOD partial match: {ocr_text} -> GOOD")
+      return "GOOD"
+
+  # Handle BAD detection - be more strict with BAD to avoid confusion with GOOD partials
+  bad_exact = ["BAD", "BD", "B4D", "BAP", "BAO", "AD"]
+  if ocr_text in bad_exact:
+    print(f"[DEBUG] BAD exact match: {ocr_text} -> BAD")
+    return "BAD"
+
+  # Enhanced pattern matching with existing patterns
+  for mood, patterns in MOOD_PATTERNS.items():
+    for pattern in patterns:
+      # Exact pattern match
+      if pattern == ocr_text:
+        print(f"[DEBUG] Pattern exact match: {ocr_text} -> {mood}")
+        return mood
+
+  # Substring matching with better logic
+  for mood in MOOD_LIST:
+    # Check if OCR text contains the mood (for longer OCR results)
+    if len(ocr_text) >= len(mood) and mood in ocr_text:
+      # Special case: don't match "BAD" if OCR text could be part of "GOOD"
+      if mood == "BAD" and any(good_part in ocr_text for good_part in ["GOD", "OOD", "GOO"]):
+        continue
+      print(f"[DEBUG] Substring match: {ocr_text} contains {mood}")
+      return mood
+
+    # Check if mood contains OCR text (for shorter OCR results)
+    if len(ocr_text) >= 3 and ocr_text in mood:
+      # Special case: don't match "BAD" if OCR text could be part of "GOOD"
+      if ocr_text in ["GOD", "OOD", "GOO"] and mood != "GOOD":
+        continue
+      print(f"[DEBUG] Reverse substring match: {mood} contains {ocr_text}")
+      return mood
+
+  # Fuzzy matching for character substitution
+  for mood in MOOD_LIST:
+    if len(ocr_text) == len(mood):
+      differences = sum(1 for a, b in zip(mood, ocr_text) if a != b)
+      if differences <= 1:  # Allow 1 character difference
+        # Extra check for GOOD vs BAD confusion
+        if mood == "BAD" and ocr_text in ["GOD", "OOD", "GOO"]:
+          continue
+        print(f"[DEBUG] Fuzzy match (1 char diff): {ocr_text} -> {mood}")
+        return mood
+
+  # Last resort: check if it's a known problematic pattern
+  problematic_patterns = {
+    "": "UNKNOWN",  # Empty string
+    "GOD": "GOOD",  # Common GOOD misread
+    "OOD": "GOOD",  # Common GOOD misread
+    "GOO": "GOOD",  # Common GOOD misread
+    "GOOP": "GOOD", # Common GOOD misread
+    "COOO": "GOOD", # Common GOOD misread
+    "G00D": "GOOD", # Common GOOD misread with 0 instead of O
+    "AD": "BAD",    # Common BAD misread (missing B)
+    "BD": "BAD",    # Common BAD misread (missing A)
+  }
+
+  if ocr_text in problematic_patterns:
+    result = problematic_patterns[ocr_text]
+    print(f"[DEBUG] Problematic pattern match: {ocr_text} -> {result}")
+    return result
+
+  print(f"[DEBUG] No match found for: '{ocr_text}'")
+  return "UNKNOWN"
+
+def check_mood_enhanced():
+  """Enhanced mood check with multiple OCR attempts and image preprocessing"""
+  # Get current region settings
+  current_regions = get_current_regions()
+  mood_region = current_regions['MOOD_REGION']
+
+  print(f"[DEBUG] Starting enhanced mood check with region: {mood_region}")
+
+  try:
+    # Capture base image
+    base_img = capture_region(mood_region)
+    print(f"[DEBUG] Captured base image: {base_img.size} pixels")
+
+    # Try multiple image enhancement approaches
+    enhanced_imgs = []
+
+    # Original enhanced screenshot method
+    try:
+      enhanced_img1 = enhanced_screenshot(mood_region)
+      enhanced_imgs.append(("enhanced_screenshot", enhanced_img1))
+    except Exception as e:
+      print(f"[DEBUG] Enhanced screenshot failed: {e}")
+
+    # Custom enhancement method
+    try:
+      enhanced_img2 = enhance_mood_image(base_img.copy())
+      enhanced_imgs.append(("custom_enhance", enhanced_img2))
+    except Exception as e:
+      print(f"[DEBUG] Custom enhancement failed: {e}")
+
+    # Original image as fallback
+    enhanced_imgs.append(("original", base_img))
+
+    all_results = []
+
+    # Try OCR on each enhanced image
+    for method_name, img in enhanced_imgs:
+      print(f"[DEBUG] Trying OCR on {method_name} image")
+
+      try:
+        # Get multiple OCR results for this image
+        ocr_results = extract_mood_with_multiple_methods(img)
+
+        for i, ocr_text in enumerate(ocr_results):
+          if ocr_text:
+            mood = match_mood_with_enhanced_patterns(ocr_text)
+            if mood != "UNKNOWN":
+              all_results.append((mood, method_name, f"method_{i+1}", ocr_text))
+              print(f"[DEBUG] Found mood: {mood} from {method_name} method_{i+1}")
+            else:
+              print(f"[DEBUG] Unknown mood from {method_name} method_{i+1}: '{ocr_text}'")
+          else:
+            print(f"[DEBUG] Empty OCR result from {method_name} method_{i+1}")
+
+      except Exception as e:
+        print(f"[DEBUG] OCR failed for {method_name}: {e}")
+
+    # Analyze all results and pick the best one
+    if all_results:
+      # Count occurrences of each mood
+      mood_counts = {}
+      for mood, method, ocr_method, text in all_results:
+        if mood not in mood_counts:
+          mood_counts[mood] = []
+        mood_counts[mood].append((method, ocr_method, text))
+
+      print(f"[DEBUG] Mood detection results: {mood_counts}")
+
+      # Priority: most frequent mood, but prefer non-UNKNOWN
+      best_mood = None
+      max_count = 0
+
+      for mood, detections in mood_counts.items():
+        count = len(detections)
+        if mood != "UNKNOWN" and count > max_count:
+          max_count = count
+          best_mood = mood
+
+      # If no non-UNKNOWN mood found, use the most frequent one
+      if best_mood is None:
+        best_mood = max(mood_counts.keys(), key=lambda k: len(mood_counts[k]))
+
+      print(f"[DEBUG] Selected mood: {best_mood} (appeared {len(mood_counts[best_mood])} times)")
+      return best_mood
+
+    else:
+      print(f"[DEBUG] No valid mood detected from any method")
+      return "UNKNOWN"
+
+  except Exception as e:
+    print(f"[ERROR] Enhanced mood check failed: {e}")
+    return "UNKNOWN"
+
 def match_mood_with_patterns(ocr_text):
   """Enhanced mood detection with pattern matching for OCR errors"""
   ocr_text = ocr_text.upper().strip()
@@ -354,42 +597,8 @@ def check_failure():
   return -1
 
 def check_mood():
-  """Enhanced mood check with pattern matching and OCR debug output"""
-  # Get current region settings in case they were updated
-  current_regions = get_current_regions()
-  mood_region = current_regions['MOOD_REGION']
-
-  mood = capture_region(mood_region)
-  mood_text = extract_text(mood).upper()
-
-  # Debug: Log raw OCR text for troubleshooting
-  print(f"[DEBUG] Raw OCR mood text: '{mood_text}' (length: {len(mood_text)})")
-
-  # Clean the text and show cleaning process
-  cleaned_text = mood_text.strip()
-  if cleaned_text != mood_text:
-    print(f"[DEBUG] After strip: '{cleaned_text}'")
-
-  # Use enhanced pattern matching for mood detection
-  detected_mood = match_mood_with_patterns(cleaned_text)
-
-  print(f"[DEBUG] Pattern matching result: '{detected_mood}'")
-
-  if detected_mood != "UNKNOWN":
-    print(f"[DEBUG] Successfully matched mood: {cleaned_text} -> {detected_mood}")
-    return detected_mood
-
-  # Fallback: try original method for exact matches
-  for known_mood in MOOD_LIST:
-    if known_mood in cleaned_text:
-      print(f"[DEBUG] Fallback match found: {cleaned_text} contains {known_mood}")
-      return known_mood
-
-  # Enhanced debug for unrecognized mood
-  print(f"[DEBUG] Mood recognition failed for: '{cleaned_text}'")
-
-  print(f"[WARNING] Mood not recognized: {cleaned_text}")
-  return "UNKNOWN"
+  """Enhanced mood check with improved OCR and pattern matching"""
+  return check_mood_enhanced()
 
 def check_turn():
   """Check current turn number or race day"""

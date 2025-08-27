@@ -252,10 +252,10 @@ def extract_mood_with_multiple_methods(img):
       print(f"[DEBUG] OCR Method 2 (whitelist): '{text2}'")
 
     # Method 4: No whitelist, different PSM
-    text4 = extract_text_advanced(img, psm=13).upper().strip()
-    if text4 and text4 not in ocr_results:
-      ocr_results.append(text4)
-      print(f"[DEBUG] OCR Method 4 (PSM 13): '{text4}'")
+    text3 = extract_text_advanced(img, psm=13).upper().strip()
+    if text3 and text3 not in ocr_results:
+      ocr_results.append(text3)
+      print(f"[DEBUG] OCR Method 3 (PSM 13): '{text3}'")
 
   except Exception as e:
     print(f"[WARNING] OCR extraction failed: {e}")

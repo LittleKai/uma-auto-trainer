@@ -261,7 +261,7 @@ class EventHandler:
         return False
 
     def _wait_for_event_completion(self, gui=None, max_wait_time=120):
-        """Wait for manual event completion and stop bot on timeout"""
+        """Wait for manual event completion"""
         import time
 
         start_time = time.time()
@@ -271,7 +271,7 @@ class EventHandler:
             if self.controller.check_should_stop():
                 return False
 
-            time.sleep(0.5)
+            time.sleep(1)
 
             # Check if event choice is still visible
             event_still_present = pyautogui.locateCenterOnScreen(
@@ -290,6 +290,7 @@ class EventHandler:
 
                 if tazuna_hint:
                     # Back to main menu - event completed
+                    self.controller.log_message("✅ Event completed - Resuming bot operations")
                     return True
                 else:
                     # Check for other game states that indicate event is progressing
@@ -298,20 +299,16 @@ class EventHandler:
                         "assets/buttons/inspiration_btn.png", confidence=0.8, minSearchTime=0.2) or pyautogui.locateCenterOnScreen(
                         "assets/buttons/next_btn.png", confidence=0.8, minSearchTime=0.2)
                     if other_btn:
+                        self.controller.log_message("✅ Event progressing - Resuming bot operations")
                         return True
                     else:
                         # Event is progressing, continue waiting
                         continue
 
-            # Timeout check
+            # Timeout check (2 minutes max)
             if time.time() - start_time > max_wait_time:
-                self.controller.log_message("⚠️ Event waiting timeout - Stopping bot")
-                # Actually stop the bot when timeout occurs
-                if gui:
-                    gui.root.after(0, gui.stop_bot)
-                else:
-                    self.controller.set_stop_flag(True)
-                return False
+                self.controller.log_message("⚠️ Event waiting timeout - Bot Stop")
+                return True
 
             # Show waiting message every 30 seconds
             elapsed = time.time() - start_time
@@ -365,22 +362,21 @@ class DecisionEngine:
         mood_index = MOOD_LIST.index(mood) if mood in MOOD_LIST else 0
         minimum_mood_index = MOOD_LIST.index(strategy_settings.get('minimum_mood', 'NORMAL'))
 
-        # Check stop condition for low mood (independent of minimum_mood)
-        if (strategy_settings.get('enable_stop_conditions', False) and
-                strategy_settings.get('stop_on_low_mood', False) and
-                current_date and current_date.get('absolute_day', 0) > 24):
-
-            stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
-            stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1
-
-            if mood_index < stop_mood_index:  # Stop if mood is at or below threshold
-                self.controller.log_message(f"Stop condition: Mood ({mood}) at or below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
-                if gui:
-                    gui.root.after(0, gui.stop_bot)
-                return False
-
-        # Check training mood requirements
         if mood_index < minimum_mood_index:
+            # Stop condition using separate stop_mood_threshold and only applies after day 24
+            if (strategy_settings.get('enable_stop_conditions', False) and
+                    strategy_settings.get('stop_on_low_mood', False) and
+                    current_date and current_date.get('absolute_day', 0) > 24):
+
+                stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
+                stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1
+
+                if mood_index < stop_mood_index:
+                    self.controller.log_message(f"Stop condition: Mood ({mood}) below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
+                    if gui:
+                        gui.root.after(0, gui.stop_bot)
+                    return False
+
             is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
 
             if not is_junior_year:
@@ -611,37 +607,11 @@ class DecisionEngine:
 
     def _handle_race_priority_strategy(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any],
                                        race_manager, gui=None) -> bool:
-        """Handle G1/G2 priority strategies with fixed critical energy logic"""
+        """Handle G1/G2 priority strategies - race only, no training"""
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
-
-        # Handle critical energy for G1/G2 strategies - rest instead of training
-        if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-            should_race, available_races = race_manager.should_race_today(current_date)
-            if should_race:
-                self.controller.log_message(
-                    f"{priority_strategy}: Critical energy ({energy_percentage}%) - found {len(available_races)} matching races. Racing to avoid training.")
-                if self.controller.check_should_stop():
-                    return False
-                race_found = self.controller.race_handler.start_race_flow(
-                    allow_continuous_racing=allow_continuous_racing)
-                if race_found:
-                    return True
-                else:
-                    if not self.controller.check_should_stop():
-                        self._click_back_button(f"{priority_strategy}: Race not found. Critical energy - will rest.")
-                        time.sleep(0.5)
-                        self.controller.rest_handler.execute_rest()
-                    return True
-            else:
-                self.controller.log_message(
-                    f"{priority_strategy}: Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
-                if self.controller.check_should_stop():
-                    return False
-                self.controller.rest_handler.execute_rest()
-                return True
 
         # Check if racing is possible today
         should_race, available_races = race_manager.should_race_today(current_date)
@@ -927,43 +897,11 @@ class DecisionEngine:
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
-        # Only apply stop conditions after day 24
-        if absolute_day <= 24:
-            return False
-
-        # Check energy for need rest condition
+        # Check energy for need rest condition - only applies after day 24
         energy_percentage = game_state['energy_percentage']
-        if strategy_settings.get('stop_on_need_rest', False):
+        if strategy_settings.get('stop_on_need_rest', False) and absolute_day > 24:
             if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
                 self.controller.log_message(f"Stop condition: Need rest detected after day 24 (Energy: {energy_percentage}%) - Stopping bot")
-                gui.root.after(0, gui.stop_bot)
-                return True
-
-        # Check stop before summer (June)
-        if strategy_settings.get('stop_before_summer', False):
-            month_num = current_date.get('month_num', 0)
-            if month_num == 6:  # June
-                self.controller.log_message("Stop condition: Reached June (before summer) after day 24 - Stopping bot")
-                gui.root.after(0, gui.stop_bot)
-                return True
-
-        # Check stop at specific month
-        if strategy_settings.get('stop_at_month', False):
-            target_month = strategy_settings.get('target_month', '')
-            current_month = current_date.get('month', '')
-
-            # Convert month names to compare properly
-            month_mapping = {
-                'Jan': 'January', 'Feb': 'February', 'Mar': 'March', 'Apr': 'April',
-                'May': 'May', 'Jun': 'June', 'Jul': 'July', 'Aug': 'August',
-                'Sep': 'September', 'Oct': 'October', 'Nov': 'November', 'Dec': 'December'
-            }
-
-            # Convert abbreviated month to full name for comparison
-            full_current_month = month_mapping.get(current_month, current_month)
-
-            if full_current_month == target_month:
-                self.controller.log_message(f"Stop condition: Reached target month ({target_month}) after day 24 - Stopping bot")
                 gui.root.after(0, gui.stop_bot)
                 return True
 
@@ -1198,10 +1136,7 @@ class MainExecutor:
             'stop_on_need_rest': False,
             'stop_on_low_mood': False,
             'stop_on_race_day': False,
-            'stop_mood_threshold': 'BAD',
-            'stop_before_summer': False,
-            'stop_at_month': False,
-            'target_month': 'June'
+            'stop_mood_threshold': 'BAD'
         }
 
         if gui:

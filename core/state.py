@@ -73,7 +73,7 @@ def get_stage_thresholds():
   })
 
 def calculate_unified_training_score(training_type, support_counts, current_date):
-  """Calculate training score using unified logic"""
+  """Calculate training score using unified logic with early stage WIT bonus"""
   # Get configuration values
   base_score = get_support_base_score()
   friend_multiplier = get_friend_multiplier()
@@ -124,6 +124,12 @@ def calculate_unified_training_score(training_type, support_counts, current_date
     other_score = other_support * base_score
 
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
+
+  # Apply early stage WIT bonus
+  if training_type == "wit" and is_early_stage and not is_pre_debut:
+    from core.logic import get_wit_early_stage_bonus
+    wit_bonus = get_wit_early_stage_bonus()
+    total_score += wit_bonus
 
   return total_score
 
@@ -272,7 +278,6 @@ def match_mood_with_enhanced_patterns(ocr_text):
 
   # Direct exact match first
   if ocr_text in MOOD_LIST:
-    print(f"[DEBUG] Exact match found: {ocr_text}")
     return ocr_text
 
   # Special handling for GOOD vs BAD confusion (highest priority)
@@ -353,12 +358,9 @@ def check_mood_enhanced():
   current_regions = get_current_regions()
   mood_region = current_regions['MOOD_REGION']
 
-  print(f"[DEBUG] Starting enhanced mood check with region: {mood_region}")
-
   try:
     # Capture base image
     base_img = capture_region(mood_region)
-    print(f"[DEBUG] Captured base image: {base_img.size} pixels")
 
     # Try multiple image enhancement approaches
     enhanced_imgs = []

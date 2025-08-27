@@ -232,20 +232,30 @@ class TrainingHandler:
         # Get unified total score
         total_score = training_result.get('total_score', 0)
 
+        # Check if WIT early stage bonus was applied
+        from core.state import get_current_date_info, get_stage_thresholds
+        current_date = get_current_date_info()
+        wit_bonus_info = ""
+
+        if current_date and key == "wit":
+            stage_thresholds = get_stage_thresholds()
+            absolute_day = current_date.get('absolute_day', 0)
+            is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
+
+            if is_early_stage and not is_pre_debut:
+                from core.logic import get_wit_early_stage_bonus
+                bonus = get_wit_early_stage_bonus()
+                wit_bonus_info = f" + Early WIT bonus ({bonus})"
+
         # Enhanced stage info
         if is_pre_debut:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}) (Pre-Debut)")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}{wit_bonus_info}) (Pre-Debut)")
         else:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info})")
-
-        # Debug: Print unified score calculation verification
-        print(f"[DEBUG] {key.upper()} unified score verification:")
-        print(f"[DEBUG]   Final total_score from unified calculation: {total_score}")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}{wit_bonus_info})")
 
         # Verify friend score calculation for WIT
         if key == "wit" and training_result['support'].get('friend', 0) > 0:
             friend_count = training_result['support']['friend']
-            print(f"[DEBUG]   WIT with {friend_count} friend cards - should use 0.5 score each")
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

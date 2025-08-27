@@ -36,6 +36,7 @@
       "mid_stage": 48
     },
     "wit_training": {
+      "early_stage_bonus": 0.5,
       "medium_energy_score_requirement": {
         "pre_debut": 2.0,
         "post_debut": 3.0

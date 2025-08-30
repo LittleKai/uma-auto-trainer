@@ -36,18 +36,18 @@
       "mid_stage": 48
     },
     "wit_training": {
-      "early_stage_bonus": 0.5,
+      "early_stage_bonus": 0.25,
       "medium_energy_score_requirement": {
-        "pre_debut": 2.0,
+        "pre_debut": 2.5,
         "post_debut": 3.0
       },
       "low_energy_score_requirement": {
-        "pre_debut": 2.0,
+        "pre_debut": 2.5,
         "post_debut": 3.0
       }
     },
     "energy_restrictions": {
-      "medium_energy_upper_limit": 53,
+      "medium_energy_upper_limit": 55,
       "medium_energy_max_score_threshold": 2.75
     }
   }

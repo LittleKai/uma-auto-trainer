@@ -26,5 +26,5 @@
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "April"
+  "target_month": "July"
 }

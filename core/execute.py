@@ -897,13 +897,59 @@ class DecisionEngine:
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
+        # Check stop before summer (June) condition - only applies after day 24
+        if strategy_settings.get('stop_before_summer', False) and absolute_day > 24:
+            month_num = current_date.get('month_num', 0)
+            if month_num == 6:  # June
+                self.controller.log_message("Stop condition: June (Summer) detected after day 24 - Stopping bot")
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
+                return True
+
+        # Check stop at specific month condition - only applies after day 24
+        if strategy_settings.get('stop_at_month', False) and absolute_day > 24:
+            target_month = strategy_settings.get('target_month', 'June')
+            current_month = current_date.get('month', '')
+
+            # Convert month names to match
+            month_mapping = {
+                'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
+                'April': 'Apr', 'May': 'May', 'June': 'Jun',
+                'July': 'Jul', 'August': 'Aug', 'September': 'Sep',
+                'October': 'Oct', 'November': 'Nov', 'December': 'Dec'
+            }
+
+            target_month_short = month_mapping.get(target_month, target_month)
+
+            if current_month == target_month_short:
+                self.controller.log_message(f"Stop condition: Target month ({target_month}) reached after day 24 - Stopping bot")
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
+                return True
+
         # Check energy for need rest condition - only applies after day 24
         energy_percentage = game_state['energy_percentage']
         if strategy_settings.get('stop_on_need_rest', False) and absolute_day > 24:
             if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
                 self.controller.log_message(f"Stop condition: Need rest detected after day 24 (Energy: {energy_percentage}%) - Stopping bot")
-                gui.root.after(0, gui.stop_bot)
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
                 return True
+
+        # Check mood condition - only applies after day 24
+        if strategy_settings.get('stop_on_low_mood', False) and absolute_day > 24:
+            mood = game_state.get('mood', 'UNKNOWN')
+            stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
+
+            if mood in MOOD_LIST and stop_mood_threshold in MOOD_LIST:
+                mood_index = MOOD_LIST.index(mood)
+                threshold_index = MOOD_LIST.index(stop_mood_threshold)
+
+                if mood_index < threshold_index:
+                    self.controller.log_message(f"Stop condition: Mood ({mood}) below threshold ({stop_mood_threshold}) after day 24 - Stopping bot")
+                    if gui:
+                        gui.root.after(0, gui.stop_bot)
+                    return True
 
         return False
 

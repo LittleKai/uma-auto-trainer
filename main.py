@@ -15,106 +15,94 @@ from core.race_manager import RaceManager, DateManager
 from key_validator import validate_application_key, is_key_valid
 
 
-class ResponsiveUIManager:
-  """Manages responsive UI scaling and positioning based on screen properties"""
+class WindowSizeManager:
+  """Manages window sizing and positioning with persistent preferences"""
 
   def __init__(self, root):
     self.root = root
+    self.settings_file = "window_settings.json"
     self.screen_width = root.winfo_screenwidth()
     self.screen_height = root.winfo_screenheight()
-    self.dpi_scale = self._get_dpi_scale()
-    self.screen_category = self._categorize_screen_size()
 
-  def _get_dpi_scale(self):
-    """Detect DPI scaling factor"""
+    # Define minimum window dimensions
+    self.min_width = 650
+    self.min_height = 750
+
+    # Default dimensions
+    self.default_width = 650
+    self.default_height = 750
+
+  def load_window_settings(self):
+    """Load window settings from file"""
     try:
-      if platform.system() == "Windows":
-        import ctypes
-        user32 = ctypes.windll.user32
-        user32.SetProcessDPIAware()
-        dpi = user32.GetDpiForSystem()
-        return dpi / 96.0  # 96 DPI is standard
-      else:
-        # For macOS and Linux, use tkinter's pixel scaling
-        return self.root.tk.call('tk', 'scaling')
-    except:
-      return 1.0
+      if os.path.exists(self.settings_file):
+        with open(self.settings_file, 'r') as f:
+          return json.load(f)
+    except Exception as e:
+      print(f"Error loading window settings: {e}")
 
-  def _categorize_screen_size(self):
-    """Categorize screen size for responsive design"""
-    effective_width = self.screen_width / self.dpi_scale
-    effective_height = self.screen_height / self.dpi_scale
+    # Return default settings
+    return self.get_default_settings()
 
-    if effective_width <= 1366 and effective_height <= 768:
-      return "small"  # Small laptops, tablets
-    elif effective_width <= 1920 and effective_height <= 1080:
-      return "medium"  # Standard monitors
-    elif effective_width <= 2560 and effective_height <= 1440:
-      return "large"  # Large monitors
-    else:
-      return "xlarge"  # 4K and above
+  def save_window_settings(self, width, height, x, y):
+    """Save window settings to file"""
+    try:
+      settings = {
+        'width': width,
+        'height': height,
+        'x': x,
+        'y': y
+      }
+      with open(self.settings_file, 'w') as f:
+        json.dump(settings, f, indent=2)
+    except Exception as e:
+      print(f"Error saving window settings: {e}")
 
-  def get_responsive_dimensions(self):
-    """Calculate responsive window dimensions"""
-    base_dimensions = {
-      "small": {"min_width": 600, "min_height": 650, "preferred_width": 650, "preferred_height": 720},
-      "medium": {"min_width": 650, "min_height": 750, "preferred_width": 800, "preferred_height": 900},
-      "large": {"min_width": 800, "min_height": 900, "preferred_width": 900, "preferred_height": 1000},
-      "xlarge": {"min_width": 900, "min_height": 1000, "preferred_width": 1000, "preferred_height": 1100}
-    }
+  def get_default_settings(self):
+    """Get default window settings"""
+    # Calculate default position (right side of screen)
+    x = max(20, self.screen_width // 2) + 20
+    y = max(20, (self.screen_height - self.default_height) // 4 )
 
-    return base_dimensions.get(self.screen_category, base_dimensions["medium"])
-
-  def get_responsive_position(self, window_width, window_height):
-    """Calculate responsive window position"""
-    # Calculate position based on screen percentage
-    if self.screen_category == "small":
-      # Center on small screens
-      x = (self.screen_width - window_width) // 2
-      y = (self.screen_height - window_height) // 2
-    else:
-      # Right side positioning for larger screens
-      margin = int(20 * self.dpi_scale)
-      x = self.screen_width // 2 + margin
-      y = margin
-
-      # Ensure window doesn't go off screen
-      x = min(x, self.screen_width - window_width - margin)
-      y = min(y, self.screen_height - window_height - margin)
-
-    return max(0, x), max(0, y)
-
-  def get_responsive_padding(self):
-    """Get responsive padding values"""
-    padding_map = {
-      "small": {"main": 8, "section": 8, "element": 4},
-      "medium": {"main": 10, "section": 10, "element": 5},
-      "large": {"main": 12, "section": 12, "element": 6},
-      "xlarge": {"main": 15, "section": 15, "element": 8}
-    }
-
-    return padding_map.get(self.screen_category, padding_map["medium"])
-
-  def get_responsive_font_sizes(self):
-    """Get responsive font sizes"""
-    base_font = max(8, int(9 * self.dpi_scale))
     return {
-      "title": base_font + 6,
-      "section": base_font + 2,
-      "label": base_font,
-      "small": base_font - 1
+      'width': self.default_width,
+      'height': self.default_height,
+      'x': x,
+      'y': y
     }
 
-  def get_log_area_height(self):
-    """Get responsive log area height"""
-    height_map = {
-      "small": 8,
-      "medium": 10,
-      "large": 12,
-      "xlarge": 15
-    }
+  def setup_window(self):
+    """Setup window with saved or default settings"""
+    settings = self.load_window_settings()
 
-    return height_map.get(self.screen_category, 10)
+    width = max(self.min_width, settings.get('width', self.default_width))
+    height = max(self.min_height, settings.get('height', self.default_height))
+    x = settings.get('x', self.get_default_settings()['x'])
+    y = settings.get('y', self.get_default_settings()['y'])
+
+    # Ensure window fits on screen
+    if x + width > self.screen_width:
+      x = max(0, self.screen_width - width)
+    if y + height > self.screen_height:
+      y = max(0, self.screen_height - height)
+
+    # Set window properties
+    self.root.minsize(self.min_width, self.min_height)
+    self.root.geometry(f"{width}x{height}+{x}+{y}")
+    self.root.resizable(True, True)
+    self.root.attributes('-topmost', True)
+
+  def save_current_settings(self):
+    """Save current window settings"""
+    try:
+      self.root.update_idletasks()
+      width = self.root.winfo_width()
+      height = self.root.winfo_height()
+      x = self.root.winfo_x()
+      y = self.root.winfo_y()
+      self.save_window_settings(width, height, x, y)
+    except Exception as e:
+      print(f"Error saving current window settings: {e}")
 
 
 class StopConditionsWindow:
@@ -155,30 +143,27 @@ class StopConditionsWindow:
     parent_width = self.parent.root.winfo_width()
     parent_height = self.parent.root.winfo_height()
 
-    x = parent_x + (parent_width // 2) - (width // 2)
+    x = parent_x + (parent_width // 2) - (width // 2) + 20
     y = parent_y + (parent_height // 2) - (height // 2)
 
     self.window.geometry(f"{width}x{height}+{x}+{y}")
 
   def setup_ui(self):
     """Setup the user interface"""
-    padding = self.parent.ui_manager.get_responsive_padding()
-
-    main_frame = ttk.Frame(self.window, padding=str(padding["main"]))
+    main_frame = ttk.Frame(self.window, padding="10")
     main_frame.pack(fill=tk.BOTH, expand=True)
 
     # Title
-    fonts = self.parent.ui_manager.get_responsive_font_sizes()
     title_label = ttk.Label(main_frame, text="Stop Conditions Configuration",
-                            font=("Arial", fonts["section"], "bold"))
-    title_label.pack(pady=(0, padding["section"]))
+                            font=("Arial", 12, "bold"))
+    title_label.pack(pady=(0, 10))
 
     # Info text
     info_label = ttk.Label(main_frame,
                            text="Configure when the bot should automatically stop.\n" +
                                 "Conditions marked with (day >24) only apply after day 24.",
-                           font=("Arial", fonts["small"]), justify=tk.CENTER, foreground="blue")
-    info_label.pack(pady=(0, padding["section"]))
+                           font=("Arial", 9), justify=tk.CENTER, foreground="blue")
+    info_label.pack(pady=(0, 15))
 
     # Stop conditions frame
     conditions_frame = ttk.Frame(main_frame)
@@ -189,18 +174,18 @@ class StopConditionsWindow:
     infirmary_check = ttk.Checkbutton(conditions_frame,
                                       text="Stop when infirmary needed (day >24)",
                                       variable=self.infirmary_var)
-    infirmary_check.pack(anchor=tk.W, pady=padding["element"])
+    infirmary_check.pack(anchor=tk.W, pady=5)
 
     # Stop when need rest
     self.need_rest_var = tk.BooleanVar()
     need_rest_check = ttk.Checkbutton(conditions_frame,
                                       text="Stop when need rest (day >24)",
                                       variable=self.need_rest_var)
-    need_rest_check.pack(anchor=tk.W, pady=padding["element"])
+    need_rest_check.pack(anchor=tk.W, pady=5)
 
     # Stop when low mood (with dropdown)
     mood_frame = ttk.Frame(conditions_frame)
-    mood_frame.pack(fill=tk.X, pady=padding["element"])
+    mood_frame.pack(fill=tk.X, pady=5)
 
     self.low_mood_var = tk.BooleanVar()
     low_mood_check = ttk.Checkbutton(mood_frame,
@@ -215,7 +200,7 @@ class StopConditionsWindow:
     mood_dropdown.pack(side=tk.LEFT, padx=(10, 0))
 
     mood_info_label = ttk.Label(mood_frame, text="(day >24)",
-                                font=("Arial", fonts["small"]), foreground="gray")
+                                font=("Arial", 8), foreground="gray")
     mood_info_label.pack(side=tk.LEFT, padx=(5, 0))
 
     # Stop when race day
@@ -223,18 +208,18 @@ class StopConditionsWindow:
     race_day_check = ttk.Checkbutton(conditions_frame,
                                      text="Stop when race day",
                                      variable=self.race_day_var)
-    race_day_check.pack(anchor=tk.W, pady=padding["element"])
+    race_day_check.pack(anchor=tk.W, pady=5)
 
     # Stop before summer (June)
     self.stop_before_summer_var = tk.BooleanVar()
     stop_summer_check = ttk.Checkbutton(conditions_frame,
                                         text="Stop before summer (June) (day >24)",
                                         variable=self.stop_before_summer_var)
-    stop_summer_check.pack(anchor=tk.W, pady=padding["element"])
+    stop_summer_check.pack(anchor=tk.W, pady=5)
 
     # Stop at specific month (with dropdown)
     month_frame = ttk.Frame(conditions_frame)
-    month_frame.pack(fill=tk.X, pady=padding["element"])
+    month_frame.pack(fill=tk.X, pady=5)
 
     self.stop_at_month_var = tk.BooleanVar()
     stop_month_check = ttk.Checkbutton(month_frame,
@@ -251,12 +236,12 @@ class StopConditionsWindow:
     month_dropdown.pack(side=tk.LEFT, padx=(10, 0))
 
     month_info_label = ttk.Label(month_frame, text="(day >24)",
-                                 font=("Arial", fonts["small"]), foreground="gray")
+                                 font=("Arial", 8), foreground="gray")
     month_info_label.pack(side=tk.LEFT, padx=(5, 0))
 
     # Separator
     separator = ttk.Separator(main_frame, orient='horizontal')
-    separator.pack(fill=tk.X, pady=padding["section"])
+    separator.pack(fill=tk.X, pady=15)
 
     # Button frame
     button_frame = ttk.Frame(main_frame)
@@ -304,12 +289,9 @@ class UmaAutoGUI:
     self.root = tk.Tk()
     self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
 
-    # Initialize responsive UI manager
-    self.ui_manager = ResponsiveUIManager(self.root)
-
-    # Get responsive dimensions and positioning
-    dimensions = self.ui_manager.get_responsive_dimensions()
-    self.setup_window_properties(dimensions)
+    # Initialize window manager
+    self.window_manager = WindowSizeManager(self.root)
+    self.window_manager.setup_window()
 
     # Variables
     self.is_running = False
@@ -343,22 +325,6 @@ class UmaAutoGUI:
 
     # Start game window monitoring
     self.start_game_window_monitoring()
-
-    # Apply final responsive sizing
-    self.apply_responsive_sizing()
-
-  def setup_window_properties(self, dimensions):
-    """Setup window properties with responsive values"""
-    self.root.minsize(dimensions["min_width"], dimensions["min_height"])
-
-    # Calculate initial position
-    initial_width = dimensions["preferred_width"]
-    initial_height = dimensions["preferred_height"]
-    x, y = self.ui_manager.get_responsive_position(initial_width, initial_height)
-
-    self.root.geometry(f"{initial_width}x{initial_height}+{x}+{y}")
-    self.root.resizable(True, True)
-    self.root.attributes('-topmost', True)
 
   def init_variables(self):
     """Initialize all tkinter variables"""
@@ -401,18 +367,16 @@ class UmaAutoGUI:
     self.target_month = tk.StringVar(value="June")
 
   def setup_gui(self):
-    """Setup the main GUI interface with responsive design"""
-    padding = self.ui_manager.get_responsive_padding()
-
-    # Create main container with responsive padding
+    """Setup the main GUI interface"""
+    # Create main container
     main_container = ttk.Frame(self.root)
-    main_container.pack(fill=tk.BOTH, expand=True, padx=padding["main"], pady=padding["main"])
+    main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     # Create scrollable content area
-    self.create_scrollable_area(main_container, padding)
+    self.create_scrollable_area(main_container)
 
-  def create_scrollable_area(self, parent, padding):
-    """Create scrollable content area with responsive sizing"""
+  def create_scrollable_area(self, parent):
+    """Create scrollable content area"""
     # Create canvas and scrollbar for scrollable content
     canvas = tk.Canvas(parent)
     scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
@@ -429,11 +393,11 @@ class UmaAutoGUI:
 
     # Main content frame
     main_frame = ttk.Frame(scrollable_frame)
-    main_frame.pack(fill=tk.BOTH, expand=True, padx=padding["element"], pady=padding["element"])
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
     main_frame.columnconfigure(0, weight=1)
 
     # Setup all sections
-    self.setup_all_sections(main_frame, padding)
+    self.setup_all_sections(main_frame)
 
     # Pack canvas and scrollbar
     canvas.pack(side="left", fill="both", expand=True)
@@ -462,21 +426,17 @@ class UmaAutoGUI:
     canvas.bind("<Button-4>", on_mousewheel_linux)
     canvas.bind("<Button-5>", on_mousewheel_linux)
 
-  def setup_all_sections(self, parent, padding):
-    """Setup all GUI sections with responsive spacing"""
-    section_spacing = padding["section"]
+  def setup_all_sections(self, parent):
+    """Setup all GUI sections"""
+    self.setup_header_section(parent, row=0, pady=(0, 15))
+    self.setup_status_section(parent, row=1, pady=(0, 15))
+    self.setup_strategy_section(parent, row=2, pady=(0, 15))
+    self.setup_race_filters_and_stop_conditions_section(parent, row=3, pady=(0, 15))
+    self.setup_control_buttons_section(parent, row=4, pady=(0, 15))
+    self.setup_activity_log_section(parent, row=5, pady=(0, 15))
 
-    self.setup_header_section(parent, padding)
-    self.setup_status_section(parent, padding, row=1, pady=(0, section_spacing))
-    self.setup_strategy_section(parent, padding, row=2, pady=(0, section_spacing))
-    self.setup_race_filters_and_stop_conditions_section(parent, padding, row=3, pady=(0, section_spacing))
-    self.setup_control_buttons_section(parent, padding, row=4, pady=(0, section_spacing))
-    self.setup_activity_log_section(parent, padding, row=5, pady=(0, section_spacing))
-
-  def setup_header_section(self, parent, padding, row=0, pady=(0, 15)):
-    """Setup the header section with responsive fonts"""
-    fonts = self.ui_manager.get_responsive_font_sizes()
-
+  def setup_header_section(self, parent, row=0, pady=(0, 15)):
+    """Setup the header section"""
     title_frame = ttk.Frame(parent)
     title_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=pady)
     title_frame.columnconfigure(0, weight=1)
@@ -485,9 +445,9 @@ class UmaAutoGUI:
     title_container = ttk.Frame(title_frame)
     title_container.pack(side=tk.LEFT)
 
-    # Main title with responsive font
+    # Main title
     title_label = ttk.Label(title_container, text="Uma Musume Auto Train",
-                            font=("Arial", fonts["title"], "bold"))
+                            font=("Arial", 14, "bold"))
     title_label.pack(anchor=tk.W)
 
     # Settings button
@@ -495,18 +455,16 @@ class UmaAutoGUI:
                                  command=self.open_region_settings)
     settings_button.pack(side=tk.RIGHT)
 
-  def setup_status_section(self, parent, padding, row=1, pady=(0, 15)):
-    """Setup the status monitoring section with responsive layout"""
-    fonts = self.ui_manager.get_responsive_font_sizes()
-
-    status_frame = ttk.LabelFrame(parent, text="Status", padding=str(padding["section"]))
+  def setup_status_section(self, parent, row=1, pady=(0, 15)):
+    """Setup the status monitoring section"""
+    status_frame = ttk.LabelFrame(parent, text="Status", padding="10")
     status_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=pady)
     status_frame.columnconfigure(0, weight=1)
     status_frame.columnconfigure(1, weight=1)
 
     # Left column frame
     left_column = ttk.Frame(status_frame)
-    left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, padding["section"]))
+    left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 10))
     left_column.columnconfigure(1, weight=1)
 
     # Right column frame
@@ -514,54 +472,52 @@ class UmaAutoGUI:
     right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
     right_column.columnconfigure(1, weight=1)
 
-    # Left column content with responsive fonts
-    self.create_status_labels(left_column, fonts, padding)
+    # Left column content
+    self.create_status_labels(left_column)
 
-    # Right column content with responsive fonts
-    self.create_status_labels_right(right_column, fonts, padding)
+    # Right column content
+    self.create_status_labels_right(right_column)
 
-  def create_status_labels(self, parent, fonts, padding):
+  def create_status_labels(self, parent):
     """Create left column status labels"""
-    ttk.Label(parent, text="Bot Status:", font=("Arial", fonts["label"], "bold")).grid(row=0, column=0, sticky=tk.W, pady=padding["element"]//2)
+    ttk.Label(parent, text="Bot Status:", font=("Arial", 10, "bold")).grid(row=0, column=0, sticky=tk.W, pady=3)
     self.status_label = ttk.Label(parent, text="Stopped", foreground="red")
-    self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+    self.status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-    ttk.Label(parent, text="Current Date:", font=("Arial", fonts["label"], "bold")).grid(row=1, column=0, sticky=tk.W, pady=padding["element"]//2)
+    ttk.Label(parent, text="Current Date:", font=("Arial", 10, "bold")).grid(row=1, column=0, sticky=tk.W, pady=3)
     self.date_label = ttk.Label(parent, text="Unknown", foreground="blue")
-    self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+    self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-    ttk.Label(parent, text="Energy:", font=("Arial", fonts["label"], "bold")).grid(row=2, column=0, sticky=tk.W, pady=padding["element"]//2)
+    ttk.Label(parent, text="Energy:", font=("Arial", 10, "bold")).grid(row=2, column=0, sticky=tk.W, pady=3)
     self.energy_label = ttk.Label(parent, text="Unknown", foreground="blue")
-    self.energy_label.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+    self.energy_label.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-  def create_status_labels_right(self, parent, fonts, padding):
+  def create_status_labels_right(self, parent):
     """Create right column status labels"""
-    ttk.Label(parent, text="Game Window:", font=("Arial", fonts["label"], "bold")).grid(row=0, column=0, sticky=tk.W, pady=padding["element"]//2)
+    ttk.Label(parent, text="Game Window:", font=("Arial", 10, "bold")).grid(row=0, column=0, sticky=tk.W, pady=3)
     self.game_status_label = ttk.Label(parent, text="Checking...", foreground="orange")
-    self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+    self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-    ttk.Label(parent, text="Key Status:", font=("Arial", fonts["label"], "bold")).grid(row=1, column=0, sticky=tk.W, pady=padding["element"]//2)
+    ttk.Label(parent, text="Key Status:", font=("Arial", 10, "bold")).grid(row=1, column=0, sticky=tk.W, pady=3)
     self.key_status_label = ttk.Label(parent, text="Checking...", foreground="orange")
-    self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+    self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-  def setup_strategy_section(self, parent, padding, row=2, pady=(0, 15)):
-    """Setup the strategy settings section with responsive spacing"""
-    fonts = self.ui_manager.get_responsive_font_sizes()
-
-    strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding=str(padding["section"]))
+  def setup_strategy_section(self, parent, row=2, pady=(0, 15)):
+    """Setup the strategy settings section"""
+    strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="10")
     strategy_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=pady)
     strategy_frame.columnconfigure(1, weight=1)
     strategy_frame.columnconfigure(3, weight=1)
 
     # Row 0: Minimum Mood and Priority Strategy
-    ttk.Label(strategy_frame, text="Minimum Mood:", font=("Arial", fonts["label"])).grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=padding["element"])
+    ttk.Label(strategy_frame, text="Minimum Mood:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
     mood_dropdown = ttk.Combobox(strategy_frame, textvariable=self.minimum_mood,
                                  values=["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"],
                                  state="readonly", width=12)
-    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20), pady=padding["element"])
+    mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20), pady=5)
     mood_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    ttk.Label(strategy_frame, text="Priority Strategy:", font=("Arial", fonts["label"])).grid(row=0, column=2, sticky=tk.W, padx=(0, 5), pady=padding["element"])
+    ttk.Label(strategy_frame, text="Priority Strategy:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5), pady=5)
     priority_dropdown = ttk.Combobox(strategy_frame, textvariable=self.priority_strategy,
                                      values=[
                                        "G1 (no training)",
@@ -573,24 +529,24 @@ class UmaAutoGUI:
                                        "Train Score 4.5+"
                                      ],
                                      state="readonly", width=22)
-    priority_dropdown.grid(row=0, column=3, sticky=tk.W, pady=padding["element"])
+    priority_dropdown.grid(row=0, column=3, sticky=tk.W, pady=5)
     priority_dropdown.bind('<<ComboboxSelected>>', lambda e: self.save_settings())
 
-    # Row 1: Checkboxes with responsive spacing
+    # Row 1: Checkboxes
     continuous_racing_check = ttk.Checkbutton(strategy_frame,
                                               text="Allow Continuous Racing (>3 races)",
                                               variable=self.allow_continuous_racing,
                                               command=self.save_settings)
-    continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(padding["section"], padding["element"]))
+    continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 5))
 
     manual_event_check = ttk.Checkbutton(strategy_frame,
                                          text="Manual Event Handling (pause on events)",
                                          variable=self.manual_event_handling,
                                          command=self.save_settings)
-    manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(padding["section"], padding["element"]))
+    manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 5))
 
-  def setup_race_filters_and_stop_conditions_section(self, parent, padding, row=3, pady=(0, 15)):
-    """Setup the race filters and stop conditions section with responsive layout"""
+  def setup_race_filters_and_stop_conditions_section(self, parent, row=3, pady=(0, 15)):
+    """Setup the race filters and stop conditions section"""
     # Main container for race filters and stop conditions
     filters_container = ttk.Frame(parent)
     filters_container.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=pady)
@@ -598,142 +554,104 @@ class UmaAutoGUI:
     filters_container.columnconfigure(1, weight=1)
 
     # Race filters section
-    self.create_race_filters_section(filters_container, padding)
+    self.create_race_filters_section(filters_container)
 
     # Stop conditions section
-    self.create_stop_conditions_section(filters_container, padding)
+    self.create_stop_conditions_section(filters_container)
 
-  def create_race_filters_section(self, parent, padding):
-    """Create race filters section with responsive layout"""
-    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding=str(padding["section"]))
-    filter_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, padding["section"]))
+  def create_race_filters_section(self, parent):
+    """Create race filters section"""
+    filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
+    filter_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 10))
     filter_frame.columnconfigure(0, weight=1)
     filter_frame.columnconfigure(1, weight=1)
     filter_frame.columnconfigure(2, weight=1)
 
     # Track filters
-    track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding=str(padding["element"]))
-    track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, padding["element"]))
+    track_frame = ttk.LabelFrame(filter_frame, text="Track Type", padding="5")
+    track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 5))
 
     ttk.Checkbutton(track_frame, text="Turf", variable=self.track_filters['turf'],
-                    command=self.save_settings).pack(anchor=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).pack(anchor=tk.W, pady=2)
     ttk.Checkbutton(track_frame, text="Dirt", variable=self.track_filters['dirt'],
-                    command=self.save_settings).pack(anchor=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).pack(anchor=tk.W, pady=2)
 
     # Distance filters
-    distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding=str(padding["element"]))
-    distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N), padx=padding["element"])
+    distance_frame = ttk.LabelFrame(filter_frame, text="Distance", padding="5")
+    distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N), padx=5)
 
     distance_inner = ttk.Frame(distance_frame)
     distance_inner.pack(fill=tk.BOTH, expand=True)
 
     ttk.Checkbutton(distance_inner, text="Sprint", variable=self.distance_filters['sprint'],
-                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=2)
     ttk.Checkbutton(distance_inner, text="Mile", variable=self.distance_filters['mile'],
-                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=2)
     ttk.Checkbutton(distance_inner, text="Medium", variable=self.distance_filters['medium'],
-                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
     ttk.Checkbutton(distance_inner, text="Long", variable=self.distance_filters['long'],
-                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
     # Grade filters
-    grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding=str(padding["element"]))
-    grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N), padx=(padding["element"], 0))
+    grade_frame = ttk.LabelFrame(filter_frame, text="Grade", padding="5")
+    grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N), padx=(5, 0))
 
     grade_inner = ttk.Frame(grade_frame)
     grade_inner.pack(fill=tk.BOTH, expand=True)
 
     ttk.Checkbutton(grade_inner, text="G1", variable=self.grade_filters['g1'],
-                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=0, column=0, sticky=tk.W, pady=2)
     ttk.Checkbutton(grade_inner, text="G2", variable=self.grade_filters['g2'],
-                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=1, column=0, sticky=tk.W, pady=2)
     ttk.Checkbutton(grade_inner, text="G3", variable=self.grade_filters['g3'],
-                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=padding["element"]//2)
+                    command=self.save_settings).grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=2)
 
-  def create_stop_conditions_section(self, parent, padding):
-    """Create stop conditions section with responsive layout"""
-    stop_conditions_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding=str(padding["section"]))
+  def create_stop_conditions_section(self, parent):
+    """Create stop conditions section"""
+    stop_conditions_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding="10")
     stop_conditions_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
 
     # Enable stop conditions checkbox
     enable_stop_check = ttk.Checkbutton(stop_conditions_frame, text="Enable stop conditions",
                                         variable=self.enable_stop_conditions, command=self.save_settings)
-    enable_stop_check.pack(anchor=tk.W, pady=(0, padding["section"]))
+    enable_stop_check.pack(anchor=tk.W, pady=(0, 10))
 
     # Configure stop conditions button
     config_stop_button = ttk.Button(stop_conditions_frame, text="⚙ Configure Stop Conditions",
                                     command=self.open_stop_conditions_window)
     config_stop_button.pack(fill=tk.X)
 
-  def setup_control_buttons_section(self, parent, padding, row=4, pady=(0, 15)):
-    """Setup the control buttons section with responsive sizing"""
+  def setup_control_buttons_section(self, parent, row=4, pady=(0, 15)):
+    """Setup the control buttons section"""
     button_frame = ttk.Frame(parent)
     button_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=pady)
     button_frame.columnconfigure(0, weight=1)
     button_frame.columnconfigure(1, weight=1)
 
-    # Calculate button padding based on screen size
-    button_padding = max(3, int(5 * self.ui_manager.dpi_scale))
-
     # Start button
     self.start_button = ttk.Button(button_frame, text="Start (F1)",
                                    command=self.start_bot)
-    self.start_button.grid(row=0, column=0, padx=(0, padding["element"]), sticky=(tk.W, tk.E), ipady=button_padding)
+    self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E), ipady=5)
 
     # Stop button
     self.stop_button = ttk.Button(button_frame, text="Stop (F3)",
                                   command=self.stop_bot, state="disabled")
-    self.stop_button.grid(row=0, column=1, padx=(padding["element"], 0), sticky=(tk.W, tk.E), ipady=button_padding)
+    self.stop_button.grid(row=0, column=1, padx=(5, 0), sticky=(tk.W, tk.E), ipady=5)
 
-  def setup_activity_log_section(self, parent, padding, row=5, pady=(0, 15)):
-    """Setup the activity log section with responsive sizing"""
-    log_frame = ttk.LabelFrame(parent, text="Activity Log", padding=str(padding["section"]))
+  def setup_activity_log_section(self, parent, row=5, pady=(0, 15)):
+    """Setup the activity log section"""
+    log_frame = ttk.LabelFrame(parent, text="Activity Log", padding="10")
     log_frame.grid(row=row, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=pady)
     log_frame.columnconfigure(0, weight=1)
     log_frame.rowconfigure(0, weight=1)
 
-    # Log text area with responsive height
-    log_height = self.ui_manager.get_log_area_height()
-    self.log_text = scrolledtext.ScrolledText(log_frame, height=log_height, width=70, wrap=tk.WORD)
+    # Log text area
+    self.log_text = scrolledtext.ScrolledText(log_frame, height=10, width=70, wrap=tk.WORD)
     self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
     # Clear log button
     clear_button = ttk.Button(log_frame, text="Clear Log", command=self.clear_log)
-    clear_button.grid(row=1, column=0, sticky=tk.W, pady=(padding["element"], 0))
-
-  def apply_responsive_sizing(self):
-    """Apply final responsive sizing after all content is loaded"""
-    self.root.after(200, self._finalize_window_size)
-
-  def _finalize_window_size(self):
-    """Finalize window size based on content requirements"""
-    self.root.update_idletasks()
-
-    # Get required dimensions
-    req_width = self.root.winfo_reqwidth()
-    req_height = self.root.winfo_reqheight()
-
-    # Get responsive dimensions and padding
-    dimensions = self.ui_manager.get_responsive_dimensions()
-    padding = self.ui_manager.get_responsive_padding()
-
-    # Calculate final dimensions
-    content_padding = padding["main"] * 4
-    final_width = max(dimensions["min_width"], req_width + content_padding)
-    final_height = max(dimensions["min_height"], req_height + content_padding)
-
-    # Ensure window doesn't exceed screen bounds
-    max_width = int(self.ui_manager.screen_width * 0.9)
-    max_height = int(self.ui_manager.screen_height * 0.9)
-
-    final_width = min(final_width, max_width)
-    final_height = min(final_height, max_height)
-
-    # Get responsive position
-    x, y = self.ui_manager.get_responsive_position(final_width, final_height)
-
-    # Update geometry
-    self.root.geometry(f"{final_width}x{final_height}+{x}+{y}")
+    clear_button.grid(row=1, column=0, sticky=tk.W, pady=(5, 0))
 
   def start_game_window_monitoring(self):
     """Start monitoring game window status in background"""
@@ -1169,6 +1087,9 @@ class UmaAutoGUI:
 
   def on_closing(self):
     """Handle window close event"""
+    # Save window settings before closing
+    self.window_manager.save_current_settings()
+
     self.stop_bot()
     try:
       keyboard.unhook_all()

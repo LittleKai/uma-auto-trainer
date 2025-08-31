@@ -125,8 +125,8 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
 
-  # Apply early stage WIT bonus
-  if training_type == "wit" and is_early_stage and not is_pre_debut:
+  # Apply early stage WIT bonus (for days < 24, including Pre-Debut)
+  if training_type == "wit" and absolute_day < stage_thresholds.get("early_stage", 24):
     from core.logic import get_wit_early_stage_bonus
     wit_bonus = get_wit_early_stage_bonus()
     total_score += wit_bonus
@@ -561,7 +561,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["npc_count"] = total_npc_count
   count_result["npc_score"] = npc_score
 
-  # Calculate total score using unified logic
+  # Calculate total score using unified logic (this will include WIT bonus if applicable)
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
   count_result["total_score"] = total_score
 

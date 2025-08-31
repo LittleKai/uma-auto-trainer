@@ -18,8 +18,6 @@ PRE_DEBUT_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("pre_debut"
 EARLY_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("early_stage", 24)
 MID_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("mid_stage", 48)
 
-
-
 def get_scoring_config():
   """Get scoring configuration from config file"""
   return SCORING_CONFIG
@@ -130,9 +128,13 @@ def filter_by_stat_caps(results, current_stats):
 
 def apply_early_stage_wit_bonus(training_key, total_score, current_date):
   """Apply early stage bonus to WIT training score"""
-  stage_info = get_career_stage_info(current_date)
+  if not current_date or training_key != "wit":
+    return total_score
 
-  if training_key == "wit" and stage_info['stage'] == 'early':
+  absolute_day = current_date.get('absolute_day', 0)
+
+  # Apply WIT bonus for days < 24 (includes Pre-Debut period)
+  if absolute_day < EARLY_STAGE_THRESHOLD:
     bonus = get_wit_early_stage_bonus()
     return total_score + bonus
 
@@ -163,11 +165,13 @@ def format_score_info(training_key, training_data, current_date):
   hint_info = f" + {training_data.get('hint_count', 0)} hints ({hint_score})" if hint_score > 0 else ""
   npc_info = f" + {training_data.get('npc_count', 0)} NPCs ({npc_score})" if npc_score > 0 else ""
 
-  # Add WIT bonus info for early stage
+  # Add WIT bonus info for early stage (< day 24)
   wit_bonus_info = ""
-  if training_key == "wit" and stage_info['stage'] == 'early':
-    bonus = get_wit_early_stage_bonus()
-    wit_bonus_info = f" + Early WIT bonus ({bonus})"
+  if training_key == "wit" and current_date:
+    absolute_day = current_date.get('absolute_day', 0)
+    if absolute_day < EARLY_STAGE_THRESHOLD:
+      bonus = get_wit_early_stage_bonus()
+      wit_bonus_info = f" + Early WIT bonus ({bonus})"
 
   if stage_info['is_pre_debut']:
     return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info}{wit_bonus_info} - Pre-Debut: No strategy, no rainbow bonus)"
@@ -215,7 +219,6 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
     # Apply early stage WIT bonus if applicable
     total_score = apply_early_stage_wit_bonus(key, total_score, current_date)
-
 
     # Use small epsilon for floating point comparison
     if total_score >= min_score_threshold - 1e-10:
@@ -287,17 +290,13 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
   score_threshold = extract_score_threshold(priority_strategy)
 
-  for key, data in filtered_results.items():
-    score = data.get('total_score', 0)
-    adjusted_score = apply_early_stage_wit_bonus(key, score, current_date)
-
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
     return None
   else:
     # Score-based training strategy
     if stage_info['is_pre_debut']:
-      # Pre-Debut: Use fallback logic (most_support_card)
+      # Pre-Debut: Use fallback logic (most_support_card) - don't apply priority strategy
       result = most_support_card(filtered_results, current_date)
       return result
     else:

@@ -219,11 +219,11 @@ class TrainingHandler:
 
         return results
 
-    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_pre_debut: bool) -> None:
+    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
         """Log training result with unified score information"""
         hint_info = ""
         if training_result.get('hint_count', 0) > 0:
-            hint_info = f" + {training_result['hint_count']} hints ({training_result['hint_score']} score)"
+            hint_info = f"{training_result['hint_count']} hints ({training_result['hint_score']} score)"
 
         npc_info = ""
         if training_result.get('npc_count', 0) > 0:
@@ -242,16 +242,16 @@ class TrainingHandler:
             absolute_day = current_date.get('absolute_day', 0)
             is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
 
-            if is_early_stage and not is_pre_debut:
+            if is_early_stage:
                 from core.logic import get_wit_early_stage_bonus
                 bonus = get_wit_early_stage_bonus()
                 wit_bonus_info = f" + Early WIT bonus ({bonus})"
 
         # Enhanced stage info
-        if is_pre_debut:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}{wit_bonus_info}) (Pre-Debut)")
+        if is_early_stage:
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}({hint_info}{npc_info}{wit_bonus_info})) (Early-Stage)")
         else:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}{hint_info}{npc_info}{wit_bonus_info})")
+            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score} ({hint_info}{npc_info}{wit_bonus_info}))")
 
         # Verify friend score calculation for WIT
         if key == "wit" and training_result['support'].get('friend', 0) > 0:
@@ -281,12 +281,12 @@ class TrainingHandler:
         """Get energy requirements for different training scenarios with configurable definitions"""
         stage_thresholds = get_stage_thresholds()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-        is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
+        is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
 
         if training_type == "wit" and current_date:
             # WIT requirements using configuration
-            medium_score_required = get_wit_score_requirement("medium_energy", is_pre_debut)
-            low_score_required = get_wit_score_requirement("low_energy", is_pre_debut)
+            medium_score_required = get_wit_score_requirement("medium_energy", is_early_stage)
+            low_score_required = get_wit_score_requirement("low_energy", is_early_stage)
 
             return {
                 'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,

@@ -148,7 +148,6 @@ class GameStateManager:
             mood = check_mood()
             turn = check_turn()
             year = check_current_year()
-            criteria = check_criteria()
             energy_percentage = check_energy_percentage()
             current_date = get_current_date_info()
 
@@ -165,7 +164,6 @@ class GameStateManager:
                 'mood': mood,
                 'turn': turn,
                 'year': year,
-                'criteria': criteria,
                 'energy_percentage': energy_percentage,
                 'current_date': current_date
             }
@@ -178,7 +176,6 @@ class GameStateManager:
                 'mood': 'UNKNOWN',
                 'turn': -1,
                 'year': 'Unknown',
-                'criteria': 'Unknown',
                 'energy_percentage': 50,
                 'current_date': {
                     'year': 'Classic',

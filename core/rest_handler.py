@@ -196,7 +196,6 @@ class RestHandler:
 
     def _handle_summer_vacation_dialog(self) -> None:
         """Handle summer vacation dialog if it appears"""
-        self.log("[DEBUG] Checking for summer vacation dialog")
 
         # Wait for potential dialog to appear
         time.sleep(0.8)

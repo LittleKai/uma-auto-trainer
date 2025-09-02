@@ -1,23 +1,23 @@
 {
   "track": {
-    "turf": true,
-    "dirt": false
+    "turf": false,
+    "dirt": true
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
-    "medium": true,
-    "long": true
+    "medium": false,
+    "long": false
   },
   "grade": {
     "g1": true,
-    "g2": false,
+    "g2": true,
     "g3": false
   },
   "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3.5+",
   "allow_continuous_racing": false,
-  "manual_event_handling": false,
+  "manual_event_handling": true,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,

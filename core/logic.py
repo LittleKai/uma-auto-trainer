@@ -44,7 +44,7 @@ def get_support_base_score():
 def get_friend_multiplier():
   """Get friend card score multiplier"""
   support_config = SCORING_CONFIG.get("support_score", {})
-  return support_config.get("friend_multiplier", 0.75)
+  return support_config.get("friend_multiplier", 1.0)
 
 def get_rainbow_multiplier(stage):
   """Get rainbow card multiplier based on stage"""
@@ -64,7 +64,7 @@ def get_wit_score_requirement(energy_type, is_pre_debut):
 def get_wit_early_stage_bonus():
   """Get WIT early stage bonus value from configuration"""
   wit_config = SCORING_CONFIG.get("wit_training", {})
-  return wit_config.get("early_stage_bonus", 0.5)
+  return wit_config.get("early_stage_bonus", 0.25)
 
 def get_energy_restriction_config():
   """Get energy restriction configuration"""
@@ -344,8 +344,8 @@ def most_support_card(results, current_date=None):
         priority_index = get_priority_by_stage(key, current_date)
         training_list.append((key, data, adjusted_score, priority_index))
 
-      # Sort by score (descending), then by priority
-      training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
+      # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+      training_list.sort(key=lambda x: (-x[2], x[3]))
 
       # Select the best training (first in sorted list)
       best_key, best_data, best_score, best_priority = training_list[0]
@@ -366,8 +366,8 @@ def most_support_card(results, current_date=None):
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, adjusted_score, priority_index))
 
-  # Sort by score (descending), then by priority
-  training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
+  # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+  training_list.sort(key=lambda x: (-x[2], x[3]))
 
   best_key, best_data, adjusted_score, best_priority = training_list[0]
 
@@ -414,8 +414,8 @@ def fallback_training(results, current_date):
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, adjusted_score, priority_index))
 
-  # Sort by score (descending), then by priority
-  training_list.sort(key=lambda x: (x[2], -x[3]), reverse=True)
+  # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+  training_list.sort(key=lambda x: (-x[2], x[3]))
 
   best_key, best_data, adjusted_score, best_priority = training_list[0]
 

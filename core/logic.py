@@ -306,7 +306,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
       if result:
         return result
       else:
-        return None
+        return "STRATEGY_NOT_MET"
 
 def medium_energy_wit_training(results, current_date):
   """Medium energy training - only WIT with configurable score requirements and early stage bonus"""

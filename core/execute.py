@@ -555,6 +555,28 @@ class DecisionEngine:
             current_date
         )
 
+        # Handle special case: STRATEGY_NOT_MET
+        if best_training == "STRATEGY_NOT_MET":
+            self.controller.log_message(f"No training meets {priority_strategy} requirements - checking race options")
+
+            # Check if can race instead
+            should_race, available_races = race_manager.should_race_today(current_date)
+
+            if should_race:
+                self.controller.log_message(f"Found {len(available_races)} matching races - Racing instead of low-score training")
+                if self.controller.check_should_stop():
+                    return False
+                race_found = self.controller.race_handler.start_race_flow(
+                    allow_continuous_racing=allow_continuous_racing)
+                if race_found:
+                    return True
+                else:
+                    # Race failed, set best_training to None to trigger existing fallback logic
+                    best_training = None
+            else:
+                # No race available, set to None to trigger fallback training
+                best_training = None
+
         # Handle special case: SHOULD_REST
         if best_training == "SHOULD_REST":
             # Stop condition only applies after day 24

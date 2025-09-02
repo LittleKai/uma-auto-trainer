@@ -67,8 +67,6 @@ class RestHandler:
 
                 if success:
                     return True
-            else:
-                self.log(f"[DEBUG] {button_name} not found")
 
         # All rest attempts failed
         self.log("[ERROR] All rest attempts failed")
@@ -102,8 +100,6 @@ class RestHandler:
                                        btn_region.width, btn_region.height, duration=0.15)
 
                 return True
-            else:
-                self.log(f"[DEBUG] {button_name} not found")
 
         self.log("[ERROR] All recreation attempts failed")
         return False
@@ -186,8 +182,6 @@ class RestHandler:
             random_click_in_region(btn_region.left, btn_region.top,
                                    btn_region.width, btn_region.height, duration=0.15)
 
-            self.log(f"[SUCCESS] {button_name} clicked")
-
             # Handle summer vacation dialog if needed
             if button_type == "regular_rest" and is_summer:
                 self._handle_summer_vacation_dialog()
@@ -220,7 +214,6 @@ class RestHandler:
                     check_window_func=self.check_window,
                     log_func=self.log
             ):
-                self.log("[SUCCESS] Summer vacation dialog handled")
                 break
 
             time.sleep(0.3)

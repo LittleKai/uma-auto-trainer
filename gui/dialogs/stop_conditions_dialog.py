@@ -5,15 +5,16 @@ from tkinter import ttk
 class StopConditionsWindow:
     """Window for configuring stop conditions"""
 
-    def __init__(self, parent):
-        self.parent = parent
-        self.window = tk.Toplevel(parent.root)
+    def __init__(self, strategy_tab):
+        self.strategy_tab = strategy_tab
+        self.main_window = strategy_tab.main_window
+        self.window = tk.Toplevel(self.main_window.root)
         self.window.title("Stop Conditions Configuration")
         self.window.resizable(False, False)
 
         # Keep window on top and set as dialog
         self.window.attributes('-topmost', True)
-        self.window.transient(parent.root)
+        self.window.transient(self.main_window.root)
         self.window.grab_set()  # Make it modal
 
         # Initialize variables
@@ -194,28 +195,28 @@ class StopConditionsWindow:
         save_btn.pack(side=tk.RIGHT)
 
     def load_current_values(self):
-        """Load current values from parent"""
-        self.infirmary_var.set(self.parent.stop_on_infirmary.get())
-        self.need_rest_var.set(self.parent.stop_on_need_rest.get())
-        self.low_mood_var.set(self.parent.stop_on_low_mood.get())
-        self.race_day_var.set(self.parent.stop_on_race_day.get())
-        self.mood_threshold_var.set(self.parent.stop_mood_threshold.get())
-        self.stop_before_summer_var.set(self.parent.stop_before_summer.get())
-        self.stop_at_month_var.set(self.parent.stop_at_month.get())
-        self.target_month_var.set(self.parent.target_month.get())
+        """Load current values from strategy tab"""
+        self.infirmary_var.set(self.strategy_tab.stop_on_infirmary.get())
+        self.need_rest_var.set(self.strategy_tab.stop_on_need_rest.get())
+        self.low_mood_var.set(self.strategy_tab.stop_on_low_mood.get())
+        self.race_day_var.set(self.strategy_tab.stop_on_race_day.get())
+        self.mood_threshold_var.set(self.strategy_tab.stop_mood_threshold.get())
+        self.stop_before_summer_var.set(self.strategy_tab.stop_before_summer.get())
+        self.stop_at_month_var.set(self.strategy_tab.stop_at_month.get())
+        self.target_month_var.set(self.strategy_tab.target_month.get())
 
     def save_settings(self):
         """Save settings and close window"""
-        self.parent.stop_on_infirmary.set(self.infirmary_var.get())
-        self.parent.stop_on_need_rest.set(self.need_rest_var.get())
-        self.parent.stop_on_low_mood.set(self.low_mood_var.get())
-        self.parent.stop_on_race_day.set(self.race_day_var.get())
-        self.parent.stop_mood_threshold.set(self.mood_threshold_var.get())
-        self.parent.stop_before_summer.set(self.stop_before_summer_var.get())
-        self.parent.stop_at_month.set(self.stop_at_month_var.get())
-        self.parent.target_month.set(self.target_month_var.get())
+        self.strategy_tab.stop_on_infirmary.set(self.infirmary_var.get())
+        self.strategy_tab.stop_on_need_rest.set(self.need_rest_var.get())
+        self.strategy_tab.stop_on_low_mood.set(self.low_mood_var.get())
+        self.strategy_tab.stop_on_race_day.set(self.race_day_var.get())
+        self.strategy_tab.stop_mood_threshold.set(self.mood_threshold_var.get())
+        self.strategy_tab.stop_before_summer.set(self.stop_before_summer_var.get())
+        self.strategy_tab.stop_at_month.set(self.stop_at_month_var.get())
+        self.strategy_tab.target_month.set(self.target_month_var.get())
 
-        self.parent.save_settings()
+        self.main_window.save_settings()
         self.window.destroy()
 
     def center_window(self):
@@ -228,10 +229,10 @@ class StopConditionsWindow:
         width = max(400, req_width + 40)
         height = max(300, req_height + 40)
 
-        parent_x = self.parent.root.winfo_x()
-        parent_y = self.parent.root.winfo_y()
-        parent_width = self.parent.root.winfo_width()
-        parent_height = self.parent.root.winfo_height()
+        parent_x = self.main_window.root.winfo_x()
+        parent_y = self.main_window.root.winfo_y()
+        parent_width = self.main_window.root.winfo_width()
+        parent_height = self.main_window.root.winfo_height()
 
         x = parent_x + (parent_width // 2) - (width // 2) + 20
         y = parent_y + (parent_height // 2) - (height // 2)

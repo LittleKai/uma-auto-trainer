@@ -5,31 +5,27 @@ import time
 from datetime import datetime
 import keyboard
 import json
+import os
 
 from core.execute import set_log_callback, career_lobby, set_stop_flag
 from core.race_manager import RaceManager, DateManager
 from key_validator import validate_application_key, is_key_valid
 
-from gui.window_manager import WindowSizeManager
-from gui.dialogs.event_choice_dialog import EventChoiceWindow
-from gui.dialogs.stop_conditions_dialog import StopConditionsWindow
 from gui.components.status_section import StatusSection
-from gui.components.strategy_section import StrategySection
-from gui.components.filters_section import FiltersSection
-from gui.components.control_section import ControlSection
 from gui.components.log_section import LogSection
+from gui.tabs.strategy_tab import StrategyTab
+from gui.tabs.event_choice_tab import EventChoiceTab
 from gui.utils.game_window_monitor import GameWindowMonitor
 
 
 class UmaAutoGUI:
-    """Main GUI application class"""
+    """Main GUI application class with tabbed interface"""
 
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
 
         # Initialize managers
-        self.window_manager = WindowSizeManager(self.root)
         self.game_monitor = GameWindowMonitor(self)
 
         # Initialize variables
@@ -55,54 +51,21 @@ class UmaAutoGUI:
         self.key_valid = False
         self.initial_key_validation_done = False
 
-        # Race filter variables
-        self.track_filters = {
-            'turf': tk.BooleanVar(value=True),
-            'dirt': tk.BooleanVar(value=True)
+        # Window settings (moved from window_settings.json)
+        self.window_settings = {
+            'width': 700,
+            'height': 800,
+            'x': 100,
+            'y': 100
         }
 
-        self.distance_filters = {
-            'sprint': tk.BooleanVar(value=True),
-            'mile': tk.BooleanVar(value=True),
-            'medium': tk.BooleanVar(value=True),
-            'long': tk.BooleanVar(value=True)
-        }
-
-        self.grade_filters = {
-            'g1': tk.BooleanVar(value=True),
-            'g2': tk.BooleanVar(value=True),
-            'g3': tk.BooleanVar(value=True)
-        }
-
-        # Strategy variables
-        self.minimum_mood = tk.StringVar(value="NORMAL")
-        self.priority_strategy = tk.StringVar(value="Train Score 2.5+")
-        self.allow_continuous_racing = tk.BooleanVar(value=True)
-        self.manual_event_handling = tk.BooleanVar(value=False)
-
-        # Stop condition variables
-        self.enable_stop_conditions = tk.BooleanVar(value=False)
-        self.stop_on_infirmary = tk.BooleanVar(value=False)
-        self.stop_on_need_rest = tk.BooleanVar(value=False)
-        self.stop_on_low_mood = tk.BooleanVar(value=False)
-        self.stop_on_race_day = tk.BooleanVar(value=False)
-        self.stop_mood_threshold = tk.StringVar(value="BAD")
-        self.stop_before_summer = tk.BooleanVar(value=False)
-        self.stop_at_month = tk.BooleanVar(value=False)
-        self.target_month = tk.StringVar(value="June")
-
-        # Event choice settings
-        self.event_choice_settings = {
-            'auto_event_map': False,
-            'auto_first_choice': True,
-            'uma_musume': 'None',
-            'support_cards': ['None'] * 6
-        }
+        # All settings will be handled by tab modules
+        self.all_settings = {}
 
     def setup_gui(self):
         """Setup the main GUI interface"""
-        # Setup window
-        self.window_manager.setup_window()
+        # Setup window from settings
+        self.setup_window()
 
         # Create main container with scrollable area
         main_container = ttk.Frame(self.root)
@@ -110,6 +73,35 @@ class UmaAutoGUI:
 
         # Create scrollable content
         self.create_scrollable_content(main_container)
+
+    def setup_window(self):
+        """Setup window with saved settings"""
+        settings = self.window_settings
+
+        width = max(650, settings.get('width', 700))
+        height = max(750, settings.get('height', 800))
+
+        # Default position: right half of screen + 20px
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        default_x = max(20, screen_width // 2) + 20
+        default_y = max(20, (screen_height - height) // 4)
+
+        x = settings.get('x', default_x)
+        y = settings.get('y', default_y)
+
+        # Ensure window fits on screen
+        if x + width > screen_width:
+            x = max(0, screen_width - width)
+        if y + height > screen_height:
+            y = max(0, screen_height - height)
+
+        # Set window properties
+        self.root.minsize(650, 750)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        self.root.resizable(True, True)
+        self.root.attributes('-topmost', True)
 
     def create_scrollable_content(self, parent):
         """Create scrollable content area with all sections"""
@@ -134,10 +126,9 @@ class UmaAutoGUI:
         # Create all sections
         self.create_header_section(main_frame, row=0)
         self.status_section = StatusSection(main_frame, self, row=1)
-        self.strategy_section = StrategySection(main_frame, self, row=2)
-        self.filters_section = FiltersSection(main_frame, self, row=3)
-        self.control_section = ControlSection(main_frame, self, row=4)
-        self.log_section = LogSection(main_frame, self, row=5)
+        self.create_tabbed_section(main_frame, row=2)
+        self.create_control_section(main_frame, row=3)
+        self.log_section = LogSection(main_frame, self, row=4)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
@@ -150,7 +141,7 @@ class UmaAutoGUI:
         self.root.after(100, lambda: canvas.configure(scrollregion=canvas.bbox("all")))
 
     def create_header_section(self, parent, row):
-        """Create header section with title and settings buttons"""
+        """Create header section with title and region settings button"""
         header_frame = ttk.Frame(parent)
         header_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
         header_frame.columnconfigure(0, weight=1)
@@ -163,14 +154,51 @@ class UmaAutoGUI:
                                 font=("Arial", 14, "bold"))
         title_label.pack(anchor=tk.W)
 
-        # Settings buttons
+        # Settings button
         settings_container = ttk.Frame(header_frame)
         settings_container.pack(side=tk.RIGHT)
 
         ttk.Button(settings_container, text="⚙ Region Settings",
-                   command=self.open_region_settings).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(settings_container, text="🎭 Event Choice",
-                   command=self.open_event_choice_window).pack(side=tk.LEFT)
+                   command=self.open_region_settings).pack()
+
+    def create_tabbed_section(self, parent, row):
+        """Create tabbed section with Strategy and Event Choice tabs"""
+        notebook = ttk.Notebook(parent)
+        notebook.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+
+        # Strategy tab
+        strategy_frame = ttk.Frame(notebook)
+        notebook.add(strategy_frame, text="Strategy & Filters")
+        self.strategy_tab = StrategyTab(strategy_frame, self)
+
+        # Event Choice tab
+        event_choice_frame = ttk.Frame(notebook)
+        notebook.add(event_choice_frame, text="Event Choice")
+        self.event_choice_tab = EventChoiceTab(event_choice_frame, self)
+
+    def create_control_section(self, parent, row):
+        """Create bot control buttons section"""
+        control_frame = ttk.Frame(parent)
+        control_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        control_frame.columnconfigure(0, weight=1)
+        control_frame.columnconfigure(1, weight=1)
+
+        # Start button
+        self.start_button = ttk.Button(
+            control_frame,
+            text="Start (F1)",
+            command=self.start_bot
+        )
+        self.start_button.grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E), ipady=5)
+
+        # Stop button
+        self.stop_button = ttk.Button(
+            control_frame,
+            text="Stop (F3)",
+            command=self.stop_bot,
+            state="disabled"
+        )
+        self.stop_button.grid(row=0, column=1, padx=(5, 0), sticky=(tk.W, tk.E), ipady=5)
 
     def bind_mousewheel(self, canvas):
         """Bind mousewheel events for scrolling"""
@@ -195,9 +223,6 @@ class UmaAutoGUI:
         # Keyboard shortcuts
         self.setup_keyboard_shortcuts()
 
-        # Variable change events
-        self.bind_variable_changes()
-
     def setup_keyboard_shortcuts(self):
         """Setup global keyboard shortcuts"""
         try:
@@ -206,22 +231,6 @@ class UmaAutoGUI:
             keyboard.add_hotkey('f5', self.force_exit_program)
         except Exception as e:
             self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
-
-    def bind_variable_changes(self):
-        """Bind variable change events to auto-save"""
-        variables = [
-            *self.track_filters.values(),
-            *self.distance_filters.values(),
-            *self.grade_filters.values(),
-            self.minimum_mood,
-            self.priority_strategy,
-            self.allow_continuous_racing,
-            self.manual_event_handling,
-            self.enable_stop_conditions
-        ]
-
-        for var in variables:
-            var.trace('w', lambda *args: self.save_settings())
 
     def start_monitoring(self):
         """Start background monitoring"""
@@ -241,23 +250,6 @@ class UmaAutoGUI:
                 self.root.after(0, self.status_section.update_key_status, False, f"Validation error: {e}")
 
         threading.Thread(target=check_in_background, daemon=True).start()
-
-    # Dialog methods
-    def open_event_choice_window(self):
-        """Open event choice configuration window"""
-        try:
-            EventChoiceWindow(self)
-        except Exception as e:
-            self.log_message(f"Error opening event choice window: {e}")
-            messagebox.showerror("Error", f"Failed to open event choice window: {e}")
-
-    def open_stop_conditions_window(self):
-        """Open stop conditions configuration window"""
-        try:
-            StopConditionsWindow(self)
-        except Exception as e:
-            self.log_message(f"Error opening stop conditions window: {e}")
-            messagebox.showerror("Error", f"Failed to open stop conditions window: {e}")
 
     def open_region_settings(self):
         """Open region settings window"""
@@ -294,7 +286,7 @@ class UmaAutoGUI:
         self.is_running = True
 
         # Update UI
-        self.control_section.set_running_state(True)
+        self.set_running_state(True)
         self.status_section.set_bot_status("Running", "green")
 
         # Start bot thread
@@ -312,7 +304,7 @@ class UmaAutoGUI:
         self.is_running = False
 
         # Update UI
-        self.control_section.set_running_state(False)
+        self.set_running_state(False)
         self.status_section.set_bot_status("Stopped", "red")
 
         self.log_message("Bot stopped")
@@ -333,6 +325,15 @@ class UmaAutoGUI:
         import os
         os._exit(0)
 
+    def set_running_state(self, is_running):
+        """Update button states based on running status"""
+        if is_running:
+            self.start_button.config(state="disabled")
+            self.stop_button.config(state="normal")
+        else:
+            self.start_button.config(state="normal")
+            self.stop_button.config(state="disabled")
+
     def bot_loop(self):
         """Main bot loop running in separate thread"""
         try:
@@ -345,63 +346,54 @@ class UmaAutoGUI:
     # Settings methods
     def get_event_choice_settings(self):
         """Get current event choice settings"""
-        return self.event_choice_settings.copy()
-
-    def save_event_choice_settings(self, settings):
-        """Save event choice settings"""
-        self.event_choice_settings = settings.copy()
-        self.save_settings()
+        return self.event_choice_tab.get_settings()
 
     def get_current_settings(self):
         """Get current strategy settings for bot logic"""
+        strategy_settings = self.strategy_tab.get_settings()
+        event_choice_settings = self.event_choice_tab.get_settings()
+
+        # Combine settings for bot logic
         return {
-            'minimum_mood': self.minimum_mood.get(),
-            'priority_strategy': self.priority_strategy.get(),
-            'allow_continuous_racing': self.allow_continuous_racing.get(),
-            'manual_event_handling': self.manual_event_handling.get(),
-            'enable_stop_conditions': self.enable_stop_conditions.get(),
-            'stop_on_infirmary': self.stop_on_infirmary.get(),
-            'stop_on_need_rest': self.stop_on_need_rest.get(),
-            'stop_on_low_mood': self.stop_on_low_mood.get(),
-            'stop_on_race_day': self.stop_on_race_day.get(),
-            'stop_mood_threshold': self.stop_mood_threshold.get(),
-            'stop_before_summer': self.stop_before_summer.get(),
-            'stop_at_month': self.stop_at_month.get(),
-            'target_month': self.target_month.get(),
-            'event_choice': self.event_choice_settings
+            **strategy_settings,
+            'event_choice': event_choice_settings
         }
 
     def save_settings(self):
         """Save all settings to file"""
-        settings = {
-            'track': {k: v.get() for k, v in self.track_filters.items()},
-            'distance': {k: v.get() for k, v in self.distance_filters.items()},
-            'grade': {k: v.get() for k, v in self.grade_filters.items()},
-            'minimum_mood': self.minimum_mood.get(),
-            'priority_strategy': self.priority_strategy.get(),
-            'allow_continuous_racing': self.allow_continuous_racing.get(),
-            'manual_event_handling': self.manual_event_handling.get(),
-            'enable_stop_conditions': self.enable_stop_conditions.get(),
-            'stop_on_infirmary': self.stop_on_infirmary.get(),
-            'stop_on_need_rest': self.stop_on_need_rest.get(),
-            'stop_on_low_mood': self.stop_on_low_mood.get(),
-            'stop_on_race_day': self.stop_on_race_day.get(),
-            'stop_mood_threshold': self.stop_mood_threshold.get(),
-            'stop_before_summer': self.stop_before_summer.get(),
-            'stop_at_month': self.stop_at_month.get(),
-            'target_month': self.target_month.get(),
-            'event_choice': self.event_choice_settings
-        }
-
         try:
-            with open('bot_settings.json', 'w') as f:
-                json.dump(settings, f, indent=2)
+            # Collect settings from all tabs
+            strategy_settings = self.strategy_tab.get_settings()
+            event_choice_settings = self.event_choice_tab.get_settings()
 
-            # Update race manager
+            # Save current window settings
+            try:
+                self.root.update_idletasks()
+                self.window_settings = {
+                    'width': self.root.winfo_width(),
+                    'height': self.root.winfo_height(),
+                    'x': self.root.winfo_x(),
+                    'y': self.root.winfo_y()
+                }
+            except:
+                pass
+
+            # Combine all settings
+            all_settings = {
+                **strategy_settings,
+                'event_choice': event_choice_settings,
+                'window': self.window_settings
+            }
+
+            # Save to file
+            with open('bot_settings.json', 'w') as f:
+                json.dump(all_settings, f, indent=2)
+
+            # Update race manager filters
             race_filters = {
-                'track': settings['track'],
-                'distance': settings['distance'],
-                'grade': settings['grade']
+                'track': strategy_settings.get('track', {}),
+                'distance': strategy_settings.get('distance', {}),
+                'grade': strategy_settings.get('grade', {})
             }
             self.race_manager.update_filters(race_filters)
 
@@ -412,50 +404,28 @@ class UmaAutoGUI:
         """Load settings from file"""
         try:
             if not os.path.exists('bot_settings.json'):
+                # Check for old window_settings.json and remove it
+                if os.path.exists('window_settings.json'):
+                    try:
+                        with open('window_settings.json', 'r') as f:
+                            self.window_settings = json.load(f)
+                        os.remove('window_settings.json')
+                    except:
+                        pass
                 return
 
             with open('bot_settings.json', 'r') as f:
                 settings = json.load(f)
 
-            # Apply loaded filters
-            for k, v in settings.get('track', {}).items():
-                if k in self.track_filters:
-                    self.track_filters[k].set(v)
+            # Load window settings
+            if 'window' in settings:
+                self.window_settings = settings['window']
 
-            for k, v in settings.get('distance', {}).items():
-                if k in self.distance_filters:
-                    self.distance_filters[k].set(v)
+            # Load tab settings
+            self.strategy_tab.load_settings(settings)
+            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
 
-            for k, v in settings.get('grade', {}).items():
-                if k in self.grade_filters:
-                    self.grade_filters[k].set(v)
-
-            # Apply strategy settings
-            if 'minimum_mood' in settings:
-                self.minimum_mood.set(settings['minimum_mood'])
-            if 'priority_strategy' in settings:
-                self.priority_strategy.set(settings['priority_strategy'])
-            if 'allow_continuous_racing' in settings:
-                self.allow_continuous_racing.set(settings['allow_continuous_racing'])
-            if 'manual_event_handling' in settings:
-                self.manual_event_handling.set(settings['manual_event_handling'])
-
-            # Apply stop condition settings
-            stop_condition_keys = [
-                'enable_stop_conditions', 'stop_on_infirmary', 'stop_on_need_rest',
-                'stop_on_low_mood', 'stop_on_race_day', 'stop_mood_threshold',
-                'stop_before_summer', 'stop_at_month', 'target_month'
-            ]
-
-            for key in stop_condition_keys:
-                if key in settings:
-                    getattr(self, key).set(settings[key])
-
-            # Apply event choice settings
-            if 'event_choice' in settings:
-                self.event_choice_settings = settings['event_choice']
-
-            # Update race manager
+            # Update race manager filters
             race_filters = {
                 'track': settings.get('track', {}),
                 'distance': settings.get('distance', {}),
@@ -488,7 +458,7 @@ class UmaAutoGUI:
     # Cleanup methods
     def on_closing(self):
         """Handle window close event"""
-        self.window_manager.save_current_settings()
+        self.save_settings()
         self.stop_bot()
 
         try:

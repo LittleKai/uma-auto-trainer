@@ -5,6 +5,7 @@ import glob
 from difflib import SequenceMatcher
 from typing import Optional, Dict, List, Tuple, Any
 from core.ocr import extract_text
+from core.recognizer import find_template_position
 from utils.screenshot import enhanced_screenshot
 from utils.constants import get_current_regions
 
@@ -100,7 +101,7 @@ class EventChoiceHandler:
 
     def detect_event_type(self) -> Optional[str]:
         """
-        Detect event type from event region
+        Detect event type from event region using template matching
 
         Returns:
             Event type string or None if not detected
@@ -114,23 +115,24 @@ class EventChoiceHandler:
                 self.log("[WARNING] EVENT_REGION not configured")
                 return None
 
-            # Check for event type icons
+            # Check for event type icons using template matching with OpenCV
             event_types = [
                 ("assets/icons/train_event_scenario.png", "train_event_scenario"),
                 ("assets/icons/train_event_uma_musume.png", "train_event_uma_musume"),
                 ("assets/icons/train_event_support_card.png", "train_event_support_card")
             ]
 
-            # Convert region format for pyautogui
-            x, y, width, height = event_region
-            region_ltrb = (x, y, x + width, y + height)
-
             for icon_path, event_type in event_types:
                 if os.path.exists(icon_path):
                     try:
-                        location = pyautogui.locateOnScreen(icon_path, confidence=0.8,
-                                                            region=region_ltrb, minSearchTime=0.2)
-                        if location:
+                        position = find_template_position(
+                            template_path=icon_path,
+                            region=event_region,
+                            threshold=0.8,
+                            return_center=True,
+                            region_format='xywh'
+                        )
+                        if position:
                             self.log(f"[DEBUG] Detected event type: {event_type}")
                             return event_type
                     except Exception as e:
@@ -174,9 +176,115 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to extract event name: {e}")
             return None
 
+    def get_current_mood(self) -> str:
+        """
+        Get current character mood using OCR
+
+        Returns:
+            Current mood string or "UNKNOWN" if detection fails
+        """
+        try:
+            from core.state import check_mood
+            mood = check_mood()
+            self.log(f"[DEBUG] Current mood detected: {mood}")
+            return mood
+        except Exception as e:
+            self.log(f"[ERROR] Failed to get current mood: {e}")
+            return "UNKNOWN"
+
+    def get_current_energy(self) -> int:
+        """
+        Get current energy percentage using energy detection
+
+        Returns:
+            Current energy percentage or 100 if detection fails
+        """
+        try:
+            from core.state import check_energy_percentage
+            energy = check_energy_percentage()
+            self.log(f"[DEBUG] Current energy detected: {energy}%")
+            return energy
+        except Exception as e:
+            self.log(f"[ERROR] Failed to get current energy: {e}")
+            return 100
+
+    def build_event_database(self, event_type: str, uma_musume: str, support_cards: List[str]) -> List[Dict]:
+        """
+        Build event database based on event type and selected cards
+
+        Args:
+            event_type: Type of event (scenario/uma_musume/support_card)
+            uma_musume: Selected Uma Musume name
+            support_cards: List of selected support cards
+
+        Returns:
+            Combined event list from appropriate sources
+        """
+        event_list = []
+
+        if event_type == "train_event_scenario":
+            # Only from common.json train_event_scenario
+            event_list = self.common_events.get("train_event_scenario", [])
+            self.log(f"[DEBUG] Loaded {len(event_list)} scenario events from common.json")
+
+        elif event_type == "train_event_uma_musume":
+            # Uma Musume specific events + common uma musume events
+            if uma_musume != "None" and uma_musume in self.uma_musume_events:
+                uma_events = self.uma_musume_events[uma_musume].get("events", [])
+                event_list.extend(uma_events)
+                self.log(f"[DEBUG] Loaded {len(uma_events)} events for Uma Musume: {uma_musume}")
+
+            # Add common uma musume events
+            common_uma_events = self.common_events.get("train_event_uma_musume", [])
+            event_list.extend(common_uma_events)
+            self.log(f"[DEBUG] Added {len(common_uma_events)} common uma musume events")
+
+        elif event_type == "train_event_support_card":
+            # Events from all selected support cards
+            for support_card in support_cards:
+                if support_card != "None" and support_card in self.support_card_events:
+                    card_events = self.support_card_events[support_card].get("events", [])
+                    event_list.extend(card_events)
+                    self.log(f"[DEBUG] Loaded {len(card_events)} events for support card: {support_card}")
+
+        self.log(f"[DEBUG] Total events in database: {len(event_list)}")
+        return event_list
+
+    def requires_mood_check(self, event_config: Dict) -> bool:
+        """
+        Check if event conditions require mood information
+
+        Args:
+            event_config: Event configuration dictionary
+
+        Returns:
+            True if mood check is required
+        """
+        for i in range(1, 6):
+            mood_key = f"choice_{i}_if_mood_lt"
+            if mood_key in event_config:
+                return True
+        return False
+
+    def requires_energy_check(self, event_config: Dict) -> bool:
+        """
+        Check if event conditions require energy information
+
+        Args:
+            event_config: Event configuration dictionary
+
+        Returns:
+            True if energy check is required
+        """
+        for i in range(1, 6):
+            energy_lte_key = f"choice_{i}_if_energy_lte"
+            energy_gt_key = f"choice_{i}_if_energy_gt"
+            if energy_lte_key in event_config or energy_gt_key in event_config:
+                return True
+        return False
+
     def find_event_choice(self, event_type: str, event_name: str,
-                          uma_musume: str, support_cards: List[str],
-                          current_energy: int = 100, current_mood: str = "NORMAL") -> Optional[int]:
+                          uma_musume: str, support_cards: List[str]) -> Optional[int]:
         """
         Find appropriate event choice based on event type and configuration
 
@@ -185,32 +293,17 @@ class EventChoiceHandler:
             event_name: Name of the event
             uma_musume: Selected Uma Musume name
             support_cards: List of selected support cards
-            current_energy: Current energy percentage
-            current_mood: Current mood
 
         Returns:
             Choice number (1-5) or None if not found
         """
         try:
-            # Get event list based on type
-            event_list = []
+            # Build event database based on type and selections
+            event_list = self.build_event_database(event_type, uma_musume, support_cards)
 
-            if event_type == "train_event_scenario":
-                event_list = self.common_events.get("train_event_scenario", [])
-            elif event_type == "train_event_uma_musume":
-                # First check Uma Musume specific events
-                if uma_musume != "None" and uma_musume in self.uma_musume_events:
-                    event_list = self.uma_musume_events[uma_musume].get("events", [])
-
-                # If not found, check common events
-                if not event_list:
-                    event_list = self.common_events.get("train_event_uma_musume", [])
-
-            elif event_type == "train_event_support_card":
-                # Check all support card events
-                for support_card in support_cards:
-                    if support_card != "None" and support_card in self.support_card_events:
-                        event_list.extend(self.support_card_events[support_card].get("events", []))
+            if not event_list:
+                self.log(f"[DEBUG] No events in database for type: {event_type}")
+                return None
 
             # Find matching event
             event_names = [event.get("name", "") for event in event_list]
@@ -232,11 +325,26 @@ class EventChoiceHandler:
 
             self.log(f"[DEBUG] Found matching event: '{matched_name}' for '{event_name}'")
 
+            # Check if we need mood information
+            if self.requires_mood_check(matched_event):
+                current_mood = self.get_current_mood()
+                if current_mood == "UNKNOWN":
+                    self.log("[WARNING] Event requires mood check but mood is UNKNOWN - waiting for user")
+                    return None
+            else:
+                current_mood = "NORMAL"  # Default if not needed
+
+            # Check if we need energy information
+            if self.requires_energy_check(matched_event):
+                current_energy = self.get_current_energy()
+            else:
+                current_energy = 100  # Default if not needed
+
             # Determine choice based on conditions
             choice = self.evaluate_event_conditions(matched_event, current_energy, current_mood, uma_musume)
 
             if choice:
-                self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}'")
+                self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}' (Energy: {current_energy}%, Mood: {current_mood})")
                 return choice
             else:
                 self.log(f"[DEBUG] No valid choice determined for event '{matched_name}'")
@@ -246,78 +354,83 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to find event choice: {e}")
             return None
 
-    def evaluate_event_conditions(self, event_config: Dict, current_energy: int,
-                                  current_mood: str, uma_musume: str) -> Optional[int]:
+    def evaluate_event_conditions(self, event_config: Dict, current_energy: Optional[int],
+                                  current_mood: Optional[str], uma_musume: str) -> Optional[int]:
         """
         Evaluate event conditions and return appropriate choice
+        Only uses energy/mood values if they were actually checked
 
         Args:
             event_config: Event configuration dictionary
-            current_energy: Current energy percentage
-            current_mood: Current mood
+            current_energy: Current energy percentage (None if not checked)
+            current_mood: Current mood (None if not checked)
             uma_musume: Current Uma Musume name
 
         Returns:
             Choice number (1-5) or None
         """
         try:
-            # Handle simple choice
+            # Handle simple choice (should have been handled before this function)
             if "choice" in event_config:
                 choice = event_config["choice"]
                 if choice == "bottom":
-                    return 5  # Assume bottom choice is choice 5
+                    return 5
                 elif isinstance(choice, int):
                     return choice
 
             # Handle conditional choices
             mood_priority = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]
-            current_mood_index = mood_priority.index(current_mood) if current_mood in mood_priority else 2
+            current_mood_index = None
+            if current_mood and current_mood in mood_priority:
+                current_mood_index = mood_priority.index(current_mood)
 
-            # Check energy-based conditions
+            # Check conditions for each choice (priority order 1-5)
             for i in range(1, 6):
                 # Check energy less than or equal condition
-                energy_key = f"choice_{i}_if_energy_lte"
-                if energy_key in event_config:
-                    if current_energy <= event_config[energy_key]:
+                energy_lte_key = f"choice_{i}_if_energy_lte"
+                if energy_lte_key in event_config and current_energy is not None:
+                    if current_energy <= event_config[energy_lte_key]:
+                        self.log(f"[DEBUG] Choice {i} selected: energy {current_energy} <= {event_config[energy_lte_key]}")
                         return i
 
                 # Check energy greater than condition
-                energy_key = f"choice_{i}_if_energy_gt"
-                if energy_key in event_config:
-                    if current_energy > event_config[energy_key]:
+                energy_gt_key = f"choice_{i}_if_energy_gt"
+                if energy_gt_key in event_config and current_energy is not None:
+                    if current_energy > event_config[energy_gt_key]:
+                        self.log(f"[DEBUG] Choice {i} selected: energy {current_energy} > {event_config[energy_gt_key]}")
                         return i
 
                 # Check mood condition
                 mood_key = f"choice_{i}_if_mood_lt"
-                if mood_key in event_config:
+                if mood_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_key]
                     if threshold_mood in mood_priority:
                         threshold_index = mood_priority.index(threshold_mood)
                         if current_mood_index < threshold_index:
+                            self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} < {threshold_mood}")
                             return i
 
                 # Check Uma Musume specific condition
                 uma_key = f"choice_{i}_if_uma"
                 if uma_key in event_config:
                     if uma_musume == event_config[uma_key]:
+                        self.log(f"[DEBUG] Choice {i} selected: uma musume matches {uma_musume}")
                         return i
 
             # Default fallback - return choice 1
+            self.log("[DEBUG] No conditions met, using default choice 1")
             return 1
 
         except Exception as e:
             self.log(f"[ERROR] Failed to evaluate event conditions: {e}")
             return 1
 
-    def handle_event_choice(self, event_settings: Dict, current_energy: int = 100,
-                            current_mood: str = "NORMAL") -> bool:
+    def handle_event_choice(self, event_settings: Dict) -> bool:
         """
         Handle automatic event choice selection
 
         Args:
             event_settings: Event choice settings from GUI
-            current_energy: Current energy percentage
-            current_mood: Current mood
 
         Returns:
             True if event was handled, False otherwise
@@ -356,14 +469,19 @@ class EventChoiceHandler:
             support_cards = event_settings.get('support_cards', ['None'] * 6)
 
             # Find appropriate choice
-            choice = self.find_event_choice(event_type, event_name, uma_musume,
-                                            support_cards, current_energy, current_mood)
+            choice = self.find_event_choice(event_type, event_name, uma_musume, support_cards)
 
             if choice:
                 return self.click_choice(choice)
             else:
-                self.log(f"[WARNING] No choice found for event '{event_name}' - using choice 1 as fallback")
-                return self.click_choice(1)
+                # Check unknown event action setting
+                unknown_action = event_settings.get('unknown_event_action', 'Auto select first choice')
+                if unknown_action == "Wait for user selection":
+                    self.log(f"[INFO] Unknown event '{event_name}' - waiting for user selection as configured")
+                    return False  # This will trigger manual handling
+                else:
+                    self.log(f"[WARNING] No choice found for event '{event_name}' - using choice 1 as fallback")
+                    return self.click_choice(1)
 
         except Exception as e:
             self.log(f"[ERROR] Failed to handle event choice: {e}")

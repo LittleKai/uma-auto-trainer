@@ -234,7 +234,7 @@ class EventHandler:
         return False
 
     def _handle_event_choices(self, gui=None) -> bool:
-        """Handle event choices using the new event choice system"""
+        """Handle event choices using the improved event choice system"""
         # Check if event choice is visible
         if not self.controller.event_choice_handler.is_event_choice_visible():
             return False
@@ -249,7 +249,8 @@ class EventHandler:
                 'auto_event_map': False,
                 'auto_first_choice': True,
                 'uma_musume': 'None',
-                'support_cards': ['None'] * 6
+                'support_cards': ['None'] * 6,
+                'unknown_event_action': 'Auto select first choice'
             }
             manual_event_handling = False
 
@@ -272,37 +273,39 @@ class EventHandler:
 
         # Try automatic event handling
         try:
-            # Get current game state for energy and mood
-            current_energy = 100
-            current_mood = "NORMAL"
-
-            if gui:
-                try:
-                    current_settings = gui.get_current_settings()
-                    # Try to get current energy and mood from game state
-                    game_state_manager = GameStateManager(self.controller)
-                    game_state = game_state_manager.update_game_state()
-                    current_energy = game_state.get('energy_percentage', 100)
-                    current_mood = game_state.get('mood', 'NORMAL')
-                except:
-                    pass
-
-            # Handle event using event choice handler
-            handled = self.controller.event_choice_handler.handle_event_choice(
-                event_settings, current_energy, current_mood
-            )
+            # Handle event using improved event choice handler
+            handled = self.controller.event_choice_handler.handle_event_choice(event_settings)
 
             if handled:
                 self.controller.log_message("🎭 Event choice handled automatically")
                 return True
             else:
-                self.controller.log_message("🎭 Could not handle event automatically - using fallback choice 1")
-                return self.controller.event_choice_handler.click_choice(1)
+                # Check if this is because of UNKNOWN mood or unknown event requiring user input
+                unknown_action = event_settings.get('unknown_event_action', 'Auto select first choice')
+
+                if unknown_action == "Wait for user selection":
+                    self.controller.log_message("🎭 EVENT REQUIRES USER INPUT!")
+                    self.controller.log_message("⏳ Either mood is UNKNOWN or event not in database - waiting for manual selection...")
+
+                    # Wait for event completion like manual mode
+                    event_handled = self._wait_for_event_completion(gui)
+
+                    if not event_handled:
+                        self.controller.log_message("⚠️ Event timeout - Stopping bot")
+                        if gui:
+                            gui.root.after(0, gui.stop_bot)
+                        return False
+
+                    return True
+                else:
+                    self.controller.log_message("🎭 Could not handle event automatically - using fallback choice 1")
+                    return self.controller.event_choice_handler.click_choice(1)
 
         except Exception as e:
             self.controller.log_message(f"[ERROR] Event choice handling failed: {e}")
             # Fallback to choice 1
             return self.controller.event_choice_handler.click_choice(1)
+
 
     def _click(self, img, confidence=0.8, minSearch=2, click_count=1, text=""):
         """Click UI element with stop and window checks"""

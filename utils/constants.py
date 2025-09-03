@@ -12,8 +12,8 @@ CRITERIA_REGION = (455, 85, 170, 26)
 
 # Event Choice Regions
 EVENT_REGIONS = {
-    "EVENT_REGION": (400, 300, 200, 100),
-    "EVENT_NAME_REGION": (400, 200, 400, 50)
+    "EVENT_REGION": (240, 173, 240, 25),
+    "EVENT_NAME_REGION": (240, 200, 400, 40)
 }
 
 # Stat regions for OCR recognition
@@ -43,8 +43,8 @@ DEFAULT_REGIONS = {
         "wit": (690, 723, 55, 20)
     },
     'EVENT_REGIONS': {
-        "EVENT_REGION": (400, 300, 200, 100),
-        "EVENT_NAME_REGION": (400, 200, 400, 50)
+        "EVENT_REGION": (240, 173, 240, 25),
+        "EVENT_NAME_REGION": (240, 200, 400, 40)
     }
 }
 

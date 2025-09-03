@@ -119,8 +119,8 @@ class EventChoiceTab:
         action_container.pack(fill=tk.X)
         action_container.columnconfigure(1)
 
-        ttk.Label(action_container, text="When event not in map:", font=("Arial", 9, "bold")).grid(
-            row=0, column=0, sticky=tk.W, padx=(0, 15))
+        ttk.Label(action_container, text="When event not in map:",
+                  font=("Arial", 9, "bold")).grid(row=0, column=0, sticky=tk.W, padx=(0, 15))
 
         action_dropdown = ttk.Combobox(
             action_container,
@@ -149,7 +149,7 @@ class EventChoiceTab:
             values=self.get_uma_musume_list(),
             state="readonly",
             font=("Arial", 9),
-            width=30
+            width=20
         )
         self.uma_dropdown.pack(side=tk.LEFT)
 

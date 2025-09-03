@@ -78,5 +78,19 @@
       55,
       20
     ]
+  },
+  "EVENT_REGIONS": {
+    "EVENT_REGION": [
+      240,
+      173,
+      240,
+      25
+    ],
+    "EVENT_NAME_REGION": [
+      240,
+      200,
+      400,
+      40
+    ]
   }
 }

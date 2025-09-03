@@ -15,8 +15,8 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3.5+",
-  "allow_continuous_racing": false,
+  "priority_strategy": "Train Score 4+",
+  "allow_continuous_racing": true,
   "manual_event_handling": false,
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
@@ -30,10 +30,10 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Vodka",
+    "uma_musume": "Gold Ship",
     "support_cards": [
       "Kitasan Black (SSR)",
-      "Sweep_Tosho(SR)",
+      "Sweep Tosho (SR)",
       "Tazuna Hayakawa (SSR)",
       "Narita Taishin (SR)",
       "Mejiro McQueen (SSR)",
@@ -44,7 +44,7 @@
   "window": {
     "width": 660,
     "height": 850,
-    "x": 1188,
-    "y": 2
+    "x": 1144,
+    "y": 41
   }
 }

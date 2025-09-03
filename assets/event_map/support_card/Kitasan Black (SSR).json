@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "name": "Ah, Friendship",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Paying It Forward",
+      "choice": 2
+    },
+    {
+      "name": "Ah, Home Sweet Home",
+      "choice": 2
+    }
+  ]
+}

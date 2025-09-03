@@ -38,7 +38,7 @@ class StrategyTab:
 
         # Strategy variables
         self.minimum_mood = tk.StringVar(value="NORMAL")
-        self.priority_strategy = tk.StringVar(value="Train Score 2.5+")
+        self.priority_strategy = tk.StringVar(value="Train Score 3.5+")
         self.allow_continuous_racing = tk.BooleanVar(value=True)
         self.manual_event_handling = tk.BooleanVar(value=False)
 
@@ -96,14 +96,14 @@ class StrategyTab:
         canvas.configure(yscrollcommand=scrollbar.set)
 
         # Main content frame
-        content_frame = ttk.Frame(scrollable_frame, padding="10")
+        content_frame = ttk.Frame(scrollable_frame, padding="4")
         content_frame.pack(fill=tk.BOTH, expand=True)
         content_frame.columnconfigure(0, weight=1)
 
         # Create sections
         self.create_strategy_settings(content_frame, row=0)
         self.create_race_filters_section(content_frame, row=1)
-        self.create_stop_conditions_section(content_frame, row=2)
+        self.create_stop_conditions_section(content_frame, row=1)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
@@ -112,7 +112,7 @@ class StrategyTab:
     def create_strategy_settings(self, parent, row):
         """Create strategy settings section"""
         strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="10")
-        strategy_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        strategy_frame.grid(row=row, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
         strategy_frame.columnconfigure(1, weight=1)
         strategy_frame.columnconfigure(3, weight=1)
 
@@ -168,7 +168,7 @@ class StrategyTab:
     def create_race_filters_section(self, parent, row):
         """Create race filters section"""
         filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
-        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         filter_frame.columnconfigure(0, weight=1)
         filter_frame.columnconfigure(1, weight=1)
         filter_frame.columnconfigure(2, weight=1)
@@ -260,27 +260,30 @@ class StrategyTab:
     def create_stop_conditions_section(self, parent, row):
         """Create stop conditions section"""
         stop_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding="10")
-        stop_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E), pady=(0, 15))
 
         # Container for checkbox and button in same row
-        controls_frame = ttk.Frame(stop_frame)
-        controls_frame.pack(fill=tk.X)
+        # controls_frame = ttk.Frame(stop_frame)
+        # controls_frame.pack(fill=tk.X)
 
         # Enable stop conditions checkbox
         enable_check = ttk.Checkbutton(
-            controls_frame,
+            stop_frame,
             text="Enable stop conditions",
             variable=self.enable_stop_conditions
         )
-        enable_check.pack(side=tk.LEFT)
+        # enable_check.pack(side=tk.LEFT)
+        enable_check.pack(anchor=tk.W, pady=(0,10))
 
         # Configure stop conditions button
         config_button = ttk.Button(
-            controls_frame,
+            stop_frame,
             text="⚙ Configure Stop Conditions",
             command=self.open_stop_conditions_dialog
         )
-        config_button.pack(side=tk.LEFT, padx=(20, 0))
+        # config_button.pack(side=tk.LEFT, padx=(20, 0))
+        config_button.pack(fill=tk.X)
+
 
     def open_stop_conditions_dialog(self):
         """Open stop conditions configuration dialog"""

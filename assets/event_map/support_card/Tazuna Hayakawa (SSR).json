@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "name": "My Chosen Way of Life",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Enthusiastic Pair",
+      "choice": 1
+    }
+  ]
+}

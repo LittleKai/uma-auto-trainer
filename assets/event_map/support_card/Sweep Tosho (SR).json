@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "name": "Some Very Green Friends",
+      "choice": 1
+    },
+    {
+      "name": "Premeditated Mischief",
+      "choice": 1
+    },
+    {
+      "name": "Premeditated Mischief",
+      "choice": 1
+    },
+    {
+      "name": "Miracle ☆ Escape!",
+      "choice_2_if_energy_gt": 92
+    }
+  ]
+}

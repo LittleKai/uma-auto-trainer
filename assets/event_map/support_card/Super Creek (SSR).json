@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Leave it to Me to Be Considerate! ♪",
+      "choice": 2
+    },
+    {
+      "name": "Leave it to Me to Help Out! ♪",
+      "choice_2_if_energy_gt": 95
+    }
+  ]
+}

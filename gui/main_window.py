@@ -51,12 +51,12 @@ class UmaAutoGUI:
         self.key_valid = False
         self.initial_key_validation_done = False
 
-        # Window settings (moved from window_settings.json)
+        # Default window settings
         self.window_settings = {
             'width': 700,
-            'height': 800,
+            'height': 900,
             'x': 100,
-            'y': 100
+            'y': 20
         }
 
         # All settings will be handled by tab modules
@@ -74,19 +74,45 @@ class UmaAutoGUI:
         # Create scrollable content
         self.create_scrollable_content(main_container)
 
+        # Load tab settings after GUI is created
+        self.load_tab_settings()
+
+    def load_tab_settings(self):
+        """Load tab settings after tabs are created"""
+        try:
+            if not os.path.exists('bot_settings.json'):
+                return
+
+            with open('bot_settings.json', 'r') as f:
+                settings = json.load(f)
+
+            # Load tab settings
+            self.strategy_tab.load_settings(settings)
+            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
+
+            # Update race manager filters
+            race_filters = {
+                'track': settings.get('track', {}),
+                'distance': settings.get('distance', {}),
+                'grade': settings.get('grade', {})
+            }
+            self.race_manager.update_filters(race_filters)
+
+        except Exception as e:
+            self.log_message(f"Warning: Could not load tab settings: {e}")
     def setup_window(self):
         """Setup window with saved settings"""
         settings = self.window_settings
 
         width = max(650, settings.get('width', 700))
-        height = max(750, settings.get('height', 800))
+        height = max(850, settings.get('height', 900))
 
-        # Default position: right half of screen + 20px
+        # Default position: right half of screen + 20px, y = 20
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
         default_x = max(20, screen_width // 2) + 20
-        default_y = max(20, (screen_height - height) // 4)
+        default_y = 20
 
         x = settings.get('x', default_x)
         y = settings.get('y', default_y)
@@ -98,7 +124,7 @@ class UmaAutoGUI:
             y = max(0, screen_height - height)
 
         # Set window properties
-        self.root.minsize(650, 750)
+        self.root.minsize(650, 850)
         self.root.geometry(f"{width}x{height}+{x}+{y}")
         self.root.resizable(True, True)
         self.root.attributes('-topmost', True)
@@ -404,20 +430,12 @@ class UmaAutoGUI:
         """Load settings from file"""
         try:
             if not os.path.exists('bot_settings.json'):
-                # Check for old window_settings.json and remove it
-                if os.path.exists('window_settings.json'):
-                    try:
-                        with open('window_settings.json', 'r') as f:
-                            self.window_settings = json.load(f)
-                        os.remove('window_settings.json')
-                    except:
-                        pass
                 return
 
             with open('bot_settings.json', 'r') as f:
                 settings = json.load(f)
 
-            # Load window settings
+            # Load window settings if they exist
             if 'window' in settings:
                 self.window_settings = settings['window']
 

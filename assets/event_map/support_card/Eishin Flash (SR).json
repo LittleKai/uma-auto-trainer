@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Responding to the Unforeseen",
+      "choice": 1
+    },
+    {
+      "name": "Unforeseen Lunch",
+      "choice_2_if_energy_gt": 95
+    }
+  ]
+}

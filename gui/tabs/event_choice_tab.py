@@ -57,15 +57,14 @@ class EventChoiceTab:
         canvas.configure(yscrollcommand=scrollbar.set)
 
         # Main content frame with wider padding
-        content_frame = ttk.Frame(scrollable_frame, padding="15")
+        content_frame = ttk.Frame(scrollable_frame, padding="10")
         content_frame.pack(fill=tk.BOTH, expand=True)
         content_frame.columnconfigure(0, weight=1)
 
         # Create sections
         self.create_mode_selection(content_frame, row=0)
-        self.create_unknown_event_action(content_frame, row=1)
-        self.create_uma_selection(content_frame, row=2)
-        self.create_support_selection(content_frame, row=3)
+        self.create_uma_selection(content_frame, row=1)
+        self.create_support_selection(content_frame, row=2)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
@@ -90,49 +89,52 @@ class EventChoiceTab:
         canvas.bind("<Button-5>", on_mousewheel_linux)
 
     def create_mode_selection(self, parent, row):
-        """Create event handling mode selection"""
-        mode_frame = ttk.LabelFrame(parent, text="Event Handling Mode", padding="15")
+        """Create event handling mode selection with checkboxes on same line and unknown event action below"""
+        mode_frame = ttk.LabelFrame(parent, text="Event Handling Mode", padding="10")
         mode_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
         mode_frame.columnconfigure(0, weight=1)
 
+        # Checkbox container - same line
+        checkbox_frame = ttk.Frame(mode_frame)
+        checkbox_frame.pack(fill=tk.X, pady=(0, 15))
+
         self.auto_event_check = ttk.Checkbutton(
-            mode_frame,
+            checkbox_frame,
             text="Auto select events using event map",
             variable=self.auto_event_map_var,
             command=self.on_mode_change
         )
-        self.auto_event_check.pack(anchor=tk.W, pady=5)
+        self.auto_event_check.pack(side=tk.LEFT)
 
         self.auto_first_check = ttk.Checkbutton(
-            mode_frame,
+            checkbox_frame,
             text="Always select first choice",
             variable=self.auto_first_choice_var,
             command=self.on_mode_change
         )
-        self.auto_first_check.pack(anchor=tk.W, pady=5)
+        self.auto_first_check.pack(side=tk.LEFT, padx=(30, 0))
 
-    def create_unknown_event_action(self, parent, row):
-        """Create unknown event action selection"""
-        action_frame = ttk.LabelFrame(parent, text="Unknown Event Action", padding="15")
-        action_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
-        action_frame.columnconfigure(1, weight=1)
+        # Unknown event action container
+        action_container = ttk.Frame(mode_frame)
+        action_container.pack(fill=tk.X)
+        action_container.columnconfigure(1)
 
-        ttk.Label(action_frame, text="When event not in map:", font=("Arial", 9, "bold")).grid(
-            row=0, column=0, sticky=tk.W, padx=(0, 15), pady=5)
+        ttk.Label(action_container, text="When event not in map:", font=("Arial", 9, "bold")).grid(
+            row=0, column=0, sticky=tk.W, padx=(0, 15))
 
         action_dropdown = ttk.Combobox(
-            action_frame,
+            action_container,
             textvariable=self.unknown_event_action,
             values=["Auto select first choice", "Wait for user selection"],
             state="readonly",
-            font=("Arial", 9)
+            font=("Arial", 9),
+            width=30
         )
-        action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=5)
-
+        action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
     def create_uma_selection(self, parent, row):
         """Create Uma Musume selection"""
-        uma_frame = ttk.LabelFrame(parent, text="Uma Musume Selection", padding="15")
+        uma_frame = ttk.LabelFrame(parent, text="Uma Musume Selection", padding="10")
         uma_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
 
         uma_container = ttk.Frame(uma_frame)
@@ -153,8 +155,8 @@ class EventChoiceTab:
 
     def create_support_selection(self, parent, row):
         """Create Support Card selection with 2x3 grid layout"""
-        support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="15")
-        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
+        support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="10")
+        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
 
         # Configure columns for equal distribution
         for i in range(2):
@@ -169,7 +171,7 @@ class EventChoiceTab:
 
             card_frame = ttk.Frame(support_frame)
             card_frame.grid(row=row_pos, column=col_pos, sticky=(tk.W, tk.E),
-                            padx=15, pady=10)
+                            padx=5, pady=10)
             card_frame.columnconfigure(1, weight=1)
 
             ttk.Label(

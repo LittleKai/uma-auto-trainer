@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "name": "So Many Options!",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Just a Little Closer",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going!",
+      "choice": 2
+    }
+  ]
+}

@@ -32,8 +32,8 @@
     "auto_first_choice": false,
     "uma_musume": "Vodka",
     "support_cards": [
-      "None",
-      "None",
+      "Kitasan Black (SSR)",
+      "Sweep_Tosho(SR)",
       "None",
       "None",
       "None",
@@ -43,8 +43,8 @@
   },
   "window": {
     "width": 700,
-    "height": 800,
-    "x": 100,
-    "y": 100
+    "height": 900,
+    "x": 1179,
+    "y": 55
   }
 }

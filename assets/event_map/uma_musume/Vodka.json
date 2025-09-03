@@ -2,8 +2,7 @@
   "events": [
     {
       "name": "Let's Take a Little Detour",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_mood_gte": "GREAT"
+      "choice_2_if_mood_lt": "GREAT"
     },
     {
       "name": "Awkward Honesty",
@@ -11,13 +10,49 @@
       "choice_2_if_energy_lte": 75
     },
     {
-      "name": "Special Week's Big Race",
+      "name": "Sugar and Spice",
+      "choice_2_if_energy_gt": 92,
+      "choice_1_if_energy_lte": 92
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Vintage Style",
+      "choice": 2
+    },
+    {
+      "name": "Makings of a Friend",
       "choice": 1
     },
     {
-      "name": "Special Week's Rest Day",
-      "choice_1_if_energy_lte": 60,
-      "choice_3_if_energy_gt": 60
+      "name": "Hot and Cool",
+      "choice": 2
+    },
+    {
+      "name": "Like a Kid",
+      "choice": 2
+    },
+    {
+      "name": "Challenging Fate",
+      "choice": 1
+    },
+    {
+      "name": "Showdown by the River!",
+      "choice": 1
+    },
+    {
+      "name": "The Standards of Coolness",
+      "choice": 1
+    },
+    {
+      "name": "Ring Out, Passionate Sound!",
+      "choice": 2
+    },
+    {
+      "name": "The Way of Cool",
+      "choice": 3
     }
   ]
 }

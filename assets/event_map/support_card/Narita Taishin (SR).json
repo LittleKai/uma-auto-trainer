@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Just Don't Bother Me",
+      "choice": 2
+    },
+    {
+      "name": "Just Leave Me Alone",
+      "choice": 2
+    }
+  ]
+}

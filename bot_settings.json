@@ -34,17 +34,17 @@
     "support_cards": [
       "Kitasan Black (SSR)",
       "Sweep_Tosho(SR)",
-      "None",
-      "None",
-      "None",
-      "None"
+      "Tazuna Hayakawa (SSR)",
+      "Narita Taishin (SR)",
+      "Mejiro McQueen (SSR)",
+      "Super Creek (SSR)"
     ],
     "unknown_event_action": "Wait for user selection"
   },
   "window": {
-    "width": 700,
-    "height": 900,
-    "x": 1179,
-    "y": 55
+    "width": 660,
+    "height": 850,
+    "x": 1188,
+    "y": 2
   }
 }

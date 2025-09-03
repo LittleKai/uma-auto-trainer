@@ -1,0 +1,69 @@
+{
+  "events": [
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "The Red of the Protagonist!",
+      "choice": 1
+    },
+    {
+      "name": "A Date, Golshi Style",
+      "choice": 2
+    },
+    {
+      "name": "A Sudden Episode from Golshi's Past!",
+      "choice": 2
+    },
+    {
+      "name": "Pair Discount Repeat Offender",
+      "choice": 2
+    },
+    {
+      "name": "Which Did You Lose?",
+      "choice": 2
+    },
+    {
+      "name": "My Part-Time Job Is... Crazy?",
+      "choice": 1
+    },
+    {
+      "name": "The Day After, Voices Hoarse",
+      "choice": 1
+    },
+    {
+      "name": "This One's For Keeps!",
+      "choice": 2
+    },
+    {
+      "name": "Summer Camp (Year 3) Ends",
+      "choice": 1
+    },
+    {
+      "name": "Killer Appetite!",
+      "choice": 1
+    },
+    {
+      "name": "Legend of the Left Pinky",
+      "choice": 1
+    },
+    {
+      "name": "Hello From About 1.5 Billion Years Ago",
+      "choice": 2
+    },
+    {
+      "name": "And Then She...",
+      "choice": 3
+    },
+    {
+      "name": "A Lovely Place",
+      "choice": 1
+    },
+    {
+      "name": "Nighttime Park Visit",
+      "choice": 2
+    }
+
+  ]
+}

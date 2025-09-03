@@ -31,6 +31,9 @@ class UmaAutoGUI:
         # Initialize variables
         self.init_variables()
 
+        # Load settings first to get window position
+        self.load_initial_settings()
+
         # Setup GUI components
         self.setup_gui()
 
@@ -40,7 +43,6 @@ class UmaAutoGUI:
 
         # Setup events and monitoring
         self.setup_events()
-        self.load_settings()
         self.start_monitoring()
 
     def init_variables(self):
@@ -62,9 +64,23 @@ class UmaAutoGUI:
         # All settings will be handled by tab modules
         self.all_settings = {}
 
+    def load_initial_settings(self):
+        """Load initial settings including window position before GUI setup"""
+        try:
+            if os.path.exists('bot_settings.json'):
+                with open('bot_settings.json', 'r') as f:
+                    settings = json.load(f)
+
+                # Load window settings if they exist
+                if 'window' in settings:
+                    self.window_settings.update(settings['window'])
+
+        except Exception as e:
+            print(f"Warning: Could not load initial settings: {e}")
+
     def setup_gui(self):
         """Setup the main GUI interface"""
-        # Setup window from settings
+        # Setup window from loaded settings
         self.setup_window()
 
         # Create main container with scrollable area
@@ -100,28 +116,38 @@ class UmaAutoGUI:
 
         except Exception as e:
             self.log_message(f"Warning: Could not load tab settings: {e}")
+
     def setup_window(self):
-        """Setup window with saved settings"""
+        """Setup window with loaded settings"""
         settings = self.window_settings
 
         width = max(650, settings.get('width', 700))
         height = max(850, settings.get('height', 900))
 
-        # Default position: right half of screen + 20px, y = 20
+        # Get saved position or use default
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
-        default_x = max(20, screen_width // 2) + 20
-        default_y = 20
-
-        x = settings.get('x', default_x)
-        y = settings.get('y', default_y)
+        # Use saved position if available, otherwise use default
+        if 'x' in settings and 'y' in settings:
+            x = settings['x']
+            y = settings['y']
+        else:
+            # Default position: right half of screen + 20px, y = 20
+            default_x = max(20, screen_width // 2) + 20
+            default_y = 20
+            x = default_x
+            y = default_y
 
         # Ensure window fits on screen
         if x + width > screen_width:
             x = max(0, screen_width - width)
         if y + height > screen_height:
             y = max(0, screen_height - height)
+
+        # Ensure minimum position values
+        x = max(0, x)
+        y = max(0, y)
 
         # Set window properties
         self.root.minsize(650, 850)

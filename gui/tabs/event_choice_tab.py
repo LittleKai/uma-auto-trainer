@@ -191,9 +191,14 @@ class EventChoiceTab:
             support_combo.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
     def on_mode_change(self):
-        """Handle mode change to ensure only one mode is selected"""
+        """Handle mode change to ensure exactly one mode is selected"""
+        # If both are unchecked, automatically check auto_first_choice
+        if not self.auto_event_map_var.get() and not self.auto_first_choice_var.get():
+            self.auto_first_choice_var.set(True)
+            return
+
+        # If both are checked, uncheck the other one based on which was clicked
         if self.auto_event_map_var.get() and self.auto_first_choice_var.get():
-            # If both are checked, uncheck the other one
             sender = self.parent.focus_get()
             if sender == self.auto_event_check:
                 self.auto_first_choice_var.set(False)
@@ -241,12 +246,27 @@ class EventChoiceTab:
         }
 
     def load_settings(self, settings):
-        """Load settings into tab"""
+        """Load settings into tab with validation for checkbox states"""
         try:
-            if 'auto_event_map' in settings:
-                self.auto_event_map_var.set(settings['auto_event_map'])
-            if 'auto_first_choice' in settings:
-                self.auto_first_choice_var.set(settings['auto_first_choice'])
+            auto_event_map = settings.get('auto_event_map', False)
+            auto_first_choice = settings.get('auto_first_choice', True)
+
+            # Ensure at least one checkbox is selected
+            if not auto_event_map and not auto_first_choice:
+                auto_first_choice = True
+
+            # Temporarily disable trace to prevent auto-save during loading
+            self.auto_event_map_var.trace_vdelete('w', self.auto_event_map_var.trace_vinfo()[0][1] if self.auto_event_map_var.trace_vinfo() else None)
+            self.auto_first_choice_var.trace_vdelete('w', self.auto_first_choice_var.trace_vinfo()[0][1] if self.auto_first_choice_var.trace_vinfo() else None)
+
+            # Set checkbox values
+            self.auto_event_map_var.set(auto_event_map)
+            self.auto_first_choice_var.set(auto_first_choice)
+
+            # Re-enable trace
+            self.auto_event_map_var.trace('w', lambda *args: self.main_window.save_settings())
+            self.auto_first_choice_var.trace('w', lambda *args: self.main_window.save_settings())
+
             if 'uma_musume' in settings:
                 self.selected_uma_musume.set(settings['uma_musume'])
             if 'unknown_event_action' in settings:

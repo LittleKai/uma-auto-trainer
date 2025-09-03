@@ -61,7 +61,12 @@ class RegionSettingsWindow:
         notebook.add(stat_tab, text="Stat Regions")
         self.setup_stat_regions_tab(stat_tab)
 
-        # Tab 3: Preview & Test
+        # Tab 3: Event Choice Regions
+        event_tab = ttk.Frame(notebook)
+        notebook.add(event_tab, text="Event Choice Regions")
+        self.setup_event_regions_tab(event_tab)
+
+        # Tab 4: Preview & Test
         preview_tab = ttk.Frame(notebook)
         notebook.add(preview_tab, text="Preview & Test")
         self.setup_preview_tab(preview_tab)
@@ -176,6 +181,33 @@ class RegionSettingsWindow:
         for i, (stat_key, stat_name, desc) in enumerate(stat_info):
             self.create_stat_region_entry(stat_frame, i, stat_name, stat_key, desc)
 
+    def setup_event_regions_tab(self, parent):
+        """Setup event choice regions configuration tab"""
+        main_frame = ttk.Frame(parent, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Instructions
+        instructions = ttk.Label(main_frame,
+                                 text="Configure event choice detection regions\n" +
+                                      "These regions are used for automatic event handling",
+                                 font=("Arial", 10), justify=tk.CENTER,
+                                 foreground="blue")
+        instructions.pack(pady=(0, 15))
+
+        # Event Choice Regions
+        event_frame = ttk.LabelFrame(main_frame, text="Event Choice Regions", padding="10")
+        event_frame.pack(fill=tk.X)
+
+        event_regions = [
+            ("Event Region", "EVENT_REGION",
+             "Area where event type icons appear (scenario/uma_musume/support_card)"),
+            ("Event Name Region", "EVENT_NAME_REGION",
+             "Area containing the event name text for OCR recognition"),
+        ]
+
+        for i, (label, key, desc) in enumerate(event_regions):
+            self.create_region_entry(event_frame, i, label, key, desc)
+
     def setup_preview_tab(self, parent):
         """Setup preview and testing tab"""
         main_frame = ttk.Frame(parent, padding="10")
@@ -221,6 +253,8 @@ class RegionSettingsWindow:
                    command=lambda: self.preview_specific_region("ENERGY_BAR")).pack(side=tk.LEFT, padx=5)
         ttk.Button(quick_preview_frame, text="SPD Stat", width=8,
                    command=lambda: self.preview_stat_region("spd")).pack(side=tk.LEFT, padx=5)
+        ttk.Button(quick_preview_frame, text="Event", width=8,
+                   command=lambda: self.preview_specific_region("EVENT_REGION")).pack(side=tk.LEFT, padx=5)
 
         # Test results area
         test_frame = ttk.LabelFrame(main_frame, text="Test Results", padding="10")
@@ -318,6 +352,8 @@ class RegionSettingsWindow:
             for key, coords in self.current_regions.items():
                 if key == 'STAT_REGIONS':
                     continue
+                if key == 'EVENT_REGIONS':
+                    continue
 
                 if key in self.region_vars:
                     for i, value in enumerate(coords):
@@ -331,6 +367,13 @@ class RegionSettingsWindow:
                     for i, value in enumerate(coords):
                         self.region_vars[key][i].set(str(value))
 
+            # Load event regions
+            event_regions = self.current_regions.get('EVENT_REGIONS', {})
+            for event_key, coords in event_regions.items():
+                if event_key in self.region_vars:
+                    for i, value in enumerate(coords):
+                        self.region_vars[event_key][i].set(str(value))
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load current values: {e}")
 
@@ -339,6 +382,7 @@ class RegionSettingsWindow:
         try:
             regions = {}
             stat_regions = {}
+            event_regions = {}
 
             for key, coord_vars in self.region_vars.items():
                 if key.startswith('STAT_'):
@@ -350,6 +394,14 @@ class RegionSettingsWindow:
                             raise ValueError(f"Empty value for {key} coordinate {i+1}")
                         coords.append(int(value))
                     stat_regions[stat_name] = tuple(coords)
+                elif key in ['EVENT_REGION', 'EVENT_NAME_REGION']:
+                    coords = []
+                    for i in range(4):
+                        value = coord_vars[i].get().strip()
+                        if not value:
+                            raise ValueError(f"Empty value for {key} coordinate {i+1}")
+                        coords.append(int(value))
+                    event_regions[key] = tuple(coords)
                 else:
                     coords = []
                     for i in range(4):
@@ -360,6 +412,7 @@ class RegionSettingsWindow:
                     regions[key] = tuple(coords)
 
             regions['STAT_REGIONS'] = stat_regions
+            regions['EVENT_REGIONS'] = event_regions
             return regions
 
         except ValueError as e:
@@ -547,10 +600,6 @@ class RegionSettingsWindow:
         py = (preview_window.winfo_screenheight() // 2) - (pw_height // 2)
         preview_window.geometry(f"{pw_width}x{pw_height}+{px}+{py}")
 
-    def save_preview_image(self, image, title):
-        """Save preview image to file - REMOVED"""
-        pass
-
     def test_regions(self):
         """Test all regions by attempting OCR"""
         regions = self.get_region_values()
@@ -610,6 +659,18 @@ class RegionSettingsWindow:
             except Exception as e:
                 results.append(f"❌ Year Detection: Error - {str(e)[:50]}...")
 
+            # Test event regions if they exist
+            event_regions = regions.get('EVENT_REGIONS', {})
+            if event_regions:
+                try:
+                    # Test event region detection
+                    if 'EVENT_REGION' in event_regions:
+                        results.append(f"✅ Event Region configured: {event_regions['EVENT_REGION']}")
+                    if 'EVENT_NAME_REGION' in event_regions:
+                        results.append(f"✅ Event Name Region configured: {event_regions['EVENT_NAME_REGION']}")
+                except Exception as e:
+                    results.append(f"❌ Event Region Test: Error - {str(e)[:50]}...")
+
             # Display results
             self.test_result_text.delete(1.0, tk.END)
             self.test_result_text.insert(tk.END, "Region Test Results:\n")
@@ -647,6 +708,8 @@ class RegionSettingsWindow:
                 for key, coords in DEFAULT_REGIONS.items():
                     if key == 'STAT_REGIONS':
                         continue
+                    if key == 'EVENT_REGIONS':
+                        continue
 
                     if key in self.region_vars:
                         for i, value in enumerate(coords):
@@ -659,6 +722,16 @@ class RegionSettingsWindow:
                     if key in self.region_vars:
                         for i, value in enumerate(coords):
                             self.region_vars[key][i].set(str(value))
+
+                # Load default event regions (if they exist in defaults)
+                default_event_regions = DEFAULT_REGIONS.get('EVENT_REGIONS', {
+                    'EVENT_REGION': (160, 170, 300, 80),
+                    'EVENT_NAME_REGION': (240, 200, 350, 45)
+                })
+                for event_key, coords in default_event_regions.items():
+                    if event_key in self.region_vars:
+                        for i, value in enumerate(coords):
+                            self.region_vars[event_key][i].set(str(value))
 
                 messagebox.showinfo("Success", "All regions have been reset to default values.")
 
@@ -681,6 +754,13 @@ class RegionSettingsWindow:
                             raise ValueError(f"Invalid size for {stat} stat region: width and height must be positive")
                         if x < 0 or y < 0:
                             raise ValueError(f"Invalid position for {stat} stat region: coordinates must be non-negative")
+                elif key == 'EVENT_REGIONS':
+                    for event_key, event_coords in coords.items():
+                        x, y, w, h = event_coords
+                        if w <= 0 or h <= 0:
+                            raise ValueError(f"Invalid size for {event_key}: width and height must be positive")
+                        if x < 0 or y < 0:
+                            raise ValueError(f"Invalid position for {event_key}: coordinates must be non-negative")
                 else:
                     x, y, w, h = coords
                     if w <= 0 or h <= 0:

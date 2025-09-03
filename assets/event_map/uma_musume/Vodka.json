@@ -1,0 +1,23 @@
+{
+  "events": [
+    {
+      "name": "Let's Take a Little Detour",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_mood_gte": "GREAT"
+    },
+    {
+      "name": "Awkward Honesty",
+      "choice_1_if_energy_gt": 75,
+      "choice_2_if_energy_lte": 75
+    },
+    {
+      "name": "Special Week's Big Race",
+      "choice": 1
+    },
+    {
+      "name": "Special Week's Rest Day",
+      "choice_1_if_energy_lte": 60,
+      "choice_3_if_energy_gt": 60
+    }
+  ]
+}

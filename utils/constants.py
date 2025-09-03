@@ -10,6 +10,12 @@ FAILURE_REGION = (275, 780, 551, 33)
 YEAR_REGION = (255, 35, 165, 22)
 CRITERIA_REGION = (455, 85, 170, 26)
 
+# Event Choice Regions
+EVENT_REGIONS = {
+    "EVENT_REGION": (400, 300, 200, 100),
+    "EVENT_NAME_REGION": (400, 200, 400, 50)
+}
+
 # Stat regions for OCR recognition
 STAT_REGIONS = {
     "spd": (310, 723, 55, 20),
@@ -35,6 +41,10 @@ DEFAULT_REGIONS = {
         "pwr": (500, 723, 55, 20),
         "guts": (595, 723, 55, 20),
         "wit": (690, 723, 55, 20)
+    },
+    'EVENT_REGIONS': {
+        "EVENT_REGION": (400, 300, 200, 100),
+        "EVENT_NAME_REGION": (400, 200, 400, 50)
     }
 }
 
@@ -195,6 +205,18 @@ SUPPORT_HINT_ICON = f"{ICONS_DIR}/support_card_hint.png"
 SUPPORT_NPC_AKIKAWA = f"{ICONS_DIR}/support_npc_akikawa.png"
 SUPPORT_NPC_ETSUKO = f"{ICONS_DIR}/support_npc_etsuko.png"
 
+# Event Choice Icons
+EVENT_CHOICE_1 = f"{ICONS_DIR}/event_choice_1.png"
+EVENT_CHOICE_2 = f"{ICONS_DIR}/event_choice_2.png"
+EVENT_CHOICE_3 = f"{ICONS_DIR}/event_choice_3.png"
+EVENT_CHOICE_4 = f"{ICONS_DIR}/event_choice_4.png"
+EVENT_CHOICE_5 = f"{ICONS_DIR}/event_choice_5.png"
+
+# Event Type Icons
+TRAIN_EVENT_SCENARIO = f"{ICONS_DIR}/train_event_scenario.png"
+TRAIN_EVENT_UMA_MUSUME = f"{ICONS_DIR}/train_event_uma_musume.png"
+TRAIN_EVENT_SUPPORT_CARD = f"{ICONS_DIR}/train_event_support_card.png"
+
 # UI Elements
 TAZUNA_HINT = f"{UI_DIR}/tazuna_hint.png"
 MATCH_TRACK = f"{UI_DIR}/match_track.png"
@@ -203,7 +225,7 @@ G2_RACE = f"{UI_DIR}/g2_race.png"
 G3_RACE = f"{UI_DIR}/g3_race.png"
 
 # Event Icons
-EVENT_CHOICE_1 = f"{ICONS_DIR}/event_choice_1.png"
+EVENT_CHOICE_1_OLD = f"{ICONS_DIR}/event_choice_1.png"
 
 # Training Icon Mapping
 TRAINING_ICONS = {
@@ -228,6 +250,22 @@ SUPPORT_ICONS = {
 NPC_ICONS = {
     "akikawa": SUPPORT_NPC_AKIKAWA,
     "etsuko": SUPPORT_NPC_ETSUKO
+}
+
+# Event Choice Icon Mapping
+EVENT_CHOICE_ICONS = {
+    1: EVENT_CHOICE_1,
+    2: EVENT_CHOICE_2,
+    3: EVENT_CHOICE_3,
+    4: EVENT_CHOICE_4,
+    5: EVENT_CHOICE_5
+}
+
+# Event Type Icon Mapping
+EVENT_TYPE_ICONS = {
+    "train_event_scenario": TRAIN_EVENT_SCENARIO,
+    "train_event_uma_musume": TRAIN_EVENT_UMA_MUSUME,
+    "train_event_support_card": TRAIN_EVENT_SUPPORT_CARD
 }
 
 # Race Grade Icon Mapping
@@ -344,7 +382,7 @@ def save_region_settings(regions):
 def get_current_regions():
     """Get current region values, loading from file if available"""
     global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
-    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS
+    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS, EVENT_REGIONS
 
     settings = load_region_settings()
 
@@ -358,6 +396,7 @@ def get_current_regions():
     YEAR_REGION = tuple(settings.get('YEAR_REGION', DEFAULT_REGIONS['YEAR_REGION']))
     CRITERIA_REGION = tuple(settings.get('CRITERIA_REGION', DEFAULT_REGIONS['CRITERIA_REGION']))
     STAT_REGIONS = settings.get('STAT_REGIONS', DEFAULT_REGIONS['STAT_REGIONS'])
+    EVENT_REGIONS = settings.get('EVENT_REGIONS', DEFAULT_REGIONS['EVENT_REGIONS'])
 
     return {
         'SUPPORT_CARD_ICON_REGION': SUPPORT_CARD_ICON_REGION,
@@ -368,13 +407,14 @@ def get_current_regions():
         'FAILURE_REGION': FAILURE_REGION,
         'YEAR_REGION': YEAR_REGION,
         'CRITERIA_REGION': CRITERIA_REGION,
-        'STAT_REGIONS': STAT_REGIONS
+        'STAT_REGIONS': STAT_REGIONS,
+        'EVENT_REGIONS': EVENT_REGIONS
     }
 
 def update_regions(new_regions):
     """Update region values and save to file"""
     global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
-    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS
+    global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS, EVENT_REGIONS
 
     # Update global variables
     SUPPORT_CARD_ICON_REGION = tuple(new_regions.get('SUPPORT_CARD_ICON_REGION', SUPPORT_CARD_ICON_REGION))
@@ -386,6 +426,7 @@ def update_regions(new_regions):
     YEAR_REGION = tuple(new_regions.get('YEAR_REGION', YEAR_REGION))
     CRITERIA_REGION = tuple(new_regions.get('CRITERIA_REGION', CRITERIA_REGION))
     STAT_REGIONS = new_regions.get('STAT_REGIONS', STAT_REGIONS)
+    EVENT_REGIONS = new_regions.get('EVENT_REGIONS', EVENT_REGIONS)
 
     # Save to file
     current_regions = {
@@ -397,7 +438,8 @@ def update_regions(new_regions):
         'FAILURE_REGION': FAILURE_REGION,
         'YEAR_REGION': YEAR_REGION,
         'CRITERIA_REGION': CRITERIA_REGION,
-        'STAT_REGIONS': STAT_REGIONS
+        'STAT_REGIONS': STAT_REGIONS,
+        'EVENT_REGIONS': EVENT_REGIONS
     }
 
     return save_region_settings(current_regions)

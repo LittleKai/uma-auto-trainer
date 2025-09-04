@@ -94,7 +94,6 @@ class StrategyTab:
                 # Update race manager with new filters
                 if hasattr(self.main_window, 'race_manager'):
                     self.main_window.race_manager.update_filters(race_filters)
-                    print(f"[DEBUG] Updated race manager filters: {race_filters}")
 
             except Exception as e:
                 print(f"[ERROR] Failed to update race manager filters: {e}")

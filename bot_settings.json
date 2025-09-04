@@ -5,9 +5,9 @@
   },
   "distance": {
     "sprint": false,
-    "mile": false,
+    "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -15,7 +15,7 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3.5+",
+  "priority_strategy": "G1 (no training)",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": true,
@@ -30,14 +30,14 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Rice Shower",
+    "uma_musume": "Vodka",
     "support_cards": [
       "Kitasan Black (SSR)",
       "Sweep Tosho (SR)",
       "Tazuna Hayakawa (SSR)",
-      "Special Week (SSR)",
-      "Mejiro McQueen (SSR)",
-      "Super Creek (SSR)"
+      "Eishin Flash (SR)",
+      "Winning Ticket (SSR)",
+      "Oguri Cap (SSR)"
     ],
     "unknown_event_action": "Wait for user selection"
   },

@@ -370,7 +370,7 @@ class EventChoiceHandler:
 
             # Step 2: Find matching event by name
             event_names = [event.get("name", "") for event in event_list]
-            matched_name = self.find_similar_text(event_name, event_names, threshold=0.6)
+            matched_name = self.find_similar_text(event_name, event_names, threshold=0.8)
 
             if not matched_name:
                 self.log(f"[DEBUG] No matching event found for: '{event_name}'")
@@ -651,11 +651,11 @@ class EventChoiceHandler:
         """
         try:
             # Check for first choice button using OpenCV in event choice region
-            choice_1_icon = "assets/icons/event_choice_1.png"
-            if os.path.exists(choice_1_icon):
+            choice_2_icon = "assets/icons/event_choice_2.png"
+            if os.path.exists(choice_2_icon):
                 try:
                     position = find_template_position(
-                        template_path=choice_1_icon,
+                        template_path=choice_2_icon,
                         region=EVENT_CHOICE_REGION,
                         threshold=0.8,
                         return_center=True,
@@ -666,7 +666,7 @@ class EventChoiceHandler:
                     # Fallback to pyautogui with region
                     left, top, width, height = EVENT_CHOICE_REGION
                     region_ltrb = (left, top, left + width, top + height)
-                    choice_btn = pyautogui.locateOnScreen(choice_1_icon, confidence=0.8,
+                    choice_btn = pyautogui.locateOnScreen(choice_2_icon, confidence=0.8,
                                                           minSearchTime=0.2, region=region_ltrb)
                     return choice_btn is not None
             return False

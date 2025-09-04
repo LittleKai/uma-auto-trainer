@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Full-Power Muscles!",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Full-Power Racing!",
+      "choice": 2
+    }
+  ]
+}

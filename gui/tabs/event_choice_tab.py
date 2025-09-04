@@ -63,8 +63,8 @@ class EventChoiceTab:
 
         # Create sections
         self.create_mode_selection(content_frame, row=0)
-        self.create_uma_selection(content_frame, row=1)
-        self.create_support_selection(content_frame, row=2)
+        # self.create_uma_selection(content_frame, row=1)
+        self.create_support_selection(content_frame, row=1)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
@@ -158,6 +158,23 @@ class EventChoiceTab:
         support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="10")
         support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
 
+        # Uma Musume selection section
+        uma_container = ttk.Frame(support_frame)
+        uma_container.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
+
+        ttk.Label(uma_container, text="Select Uma Musume:", font=("Arial", 9, "bold")).pack(
+            side=tk.LEFT, padx=(0, 15))
+
+        self.uma_dropdown = ttk.Combobox(
+            uma_container,
+            textvariable=self.selected_uma_musume,
+            values=self.get_uma_musume_list(),
+            state="readonly",
+            font=("Arial", 9),
+            width=20
+        )
+        self.uma_dropdown.pack(side=tk.LEFT)
+
         # Configure columns for equal distribution
         for i in range(2):
             support_frame.columnconfigure(i, weight=1)
@@ -166,12 +183,12 @@ class EventChoiceTab:
 
         # Create 3 rows of 2 support cards each
         for i in range(6):
-            row_pos = i // 2  # 0,1,2 for rows
-            col_pos = i % 2   # 0,1 for columns
+            row_pos = (i // 2) + 1  # Start from row 1 (after Uma selection)
+            col_pos = i % 2         # 0,1 for columns
 
             card_frame = ttk.Frame(support_frame)
             card_frame.grid(row=row_pos, column=col_pos, sticky=(tk.W, tk.E),
-                            padx=5, pady=10)
+                            padx=5, pady=5)
             card_frame.columnconfigure(1, weight=1)
 
             ttk.Label(

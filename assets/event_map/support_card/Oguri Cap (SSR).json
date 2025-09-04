@@ -1,0 +1,21 @@
+{
+  "events": [
+    {
+      "name": "How Should I Respond?",
+      "choice_2_if_uma": "Vodka",
+      "choice_1_if_uma": "El Pasa"
+    },
+    {
+      "name": "What I Want to Say",
+      "choice": 1
+    },
+    {
+      "name": "How Should I Respond?",
+      "choice": 1
+    },
+    {
+      "name": "Conquering the Crowds",
+      "choice": 1
+    }
+  ]
+}

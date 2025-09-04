@@ -392,13 +392,6 @@ class DecisionEngine:
                       race_manager, gui=None) -> bool:
         """Make training/racing decision based on current game state"""
 
-        # Check stop conditions first
-        if gui and hasattr(gui, 'should_stop_for_conditions'):
-            if gui.should_stop_for_conditions(game_state):
-                self.controller.log_message("Stop condition triggered - Stopping bot")
-                self.controller.set_stop_flag(True)
-                return False
-
         # Handle URA Finale
         if game_state['year'] == "Finale Season" and game_state['turn'] == "Race Day":
             self.controller.log_message("URA Finale")
@@ -1218,11 +1211,12 @@ class MainExecutor:
             # Update game state (only if in lobby)
             game_state = self.game_state_manager.update_game_state()
 
-            # Check stop conditions early in the loop
+            # **FIXED: Check stop conditions immediately after getting game state**
             if gui and hasattr(gui, 'should_stop_for_conditions'):
                 if gui.should_stop_for_conditions(game_state):
                     self.controller.log_message("Stop condition met - Stopping bot")
-                    self.controller.set_stop_flag(True)
+                    if gui:
+                        gui.root.after(0, gui.stop_bot)
                     return False
 
             # Check if career is completed (only if in lobby)
@@ -1248,7 +1242,6 @@ class MainExecutor:
             self.decision_engine.make_decision(game_state, strategy_settings, race_manager, gui)
 
             time.sleep(1)
-
             return True
 
         except Exception as e:
@@ -1278,6 +1271,9 @@ class MainExecutor:
             'stop_on_low_mood': False,
             'stop_on_race_day': False,
             'stop_mood_threshold': 'BAD',
+            'stop_before_summer': False,  # Added missing key
+            'stop_at_month': False,       # Added missing key
+            'target_month': 'June',       # Added missing key
             'event_choice': {
                 'auto_event_map': False,
                 'auto_first_choice': True,
@@ -1289,7 +1285,6 @@ class MainExecutor:
         if gui:
             return gui.get_current_settings()
         return default_settings
-
 
 # Global instances for backward compatibility
 _main_executor = None

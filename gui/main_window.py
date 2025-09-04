@@ -514,6 +514,103 @@ class UmaAutoGUI:
 
         self.root.destroy()
 
+    def should_stop_for_conditions(self, game_state):
+        """
+        Check all stop conditions and return True if any condition is met
+        This function should be added to the main GUI window class
+        """
+        try:
+            # Get current settings
+            settings = self.get_current_settings()
+
+            # Return False if stop conditions are disabled
+            if not settings.get('enable_stop_conditions', False):
+                return False
+
+            current_date = game_state.get('current_date', {})
+            absolute_day = current_date.get('absolute_day', 0)
+
+            # Most conditions only apply after day 24
+            day_24_passed = absolute_day > 24
+
+            # 1. Stop when race day (works immediately, no day restriction)
+            if (settings.get('stop_on_race_day', False) and
+                    game_state.get('turn') == "Race Day" and
+                    game_state.get('year') != "Finale Season"):
+                self.log_message("Stop condition triggered: Race Day detected")
+                return True
+
+            # Skip other conditions if before day 24
+            if not day_24_passed:
+                return False
+
+            # 2. Stop when infirmary needed (check debuff status)
+            if settings.get('stop_on_infirmary', False):
+                debuff_status = game_state.get('debuff_status', {})
+                has_serious_debuff = any([
+                    debuff_status.get('headache', False),
+                    debuff_status.get('stomach_ache', False),
+                    debuff_status.get('cold', False),
+                    debuff_status.get('overweight', False),
+                    debuff_status.get('injury', False)
+                ])
+                if has_serious_debuff:
+                    self.log_message("Stop condition triggered: Infirmary needed (serious debuff detected)")
+                    return True
+
+            # 3. Stop when need rest (check energy level)
+            if settings.get('stop_on_need_rest', False):
+                energy_percentage = game_state.get('energy_percentage', 100)
+                # Consider need rest when energy is very low (below 30%)
+                if energy_percentage < 30:
+                    self.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
+                    return True
+
+            # 4. Stop when mood below threshold
+            if settings.get('stop_on_low_mood', False):
+                current_mood = game_state.get('mood', 'NORMAL')
+                threshold_mood = settings.get('stop_mood_threshold', 'BAD')
+
+                mood_levels = ['AWFUL', 'BAD', 'NORMAL', 'GOOD', 'GREAT']
+                current_mood_index = mood_levels.index(current_mood) if current_mood in mood_levels else 2
+                threshold_mood_index = mood_levels.index(threshold_mood) if threshold_mood in mood_levels else 1
+
+                if current_mood_index < threshold_mood_index:
+                    self.log_message(f"Stop condition triggered: Mood ({current_mood}) below threshold ({threshold_mood})")
+                    return True
+
+            # 5. Stop before summer (June - month 6)
+            if settings.get('stop_before_summer', False):
+                month_num = current_date.get('month_num', 0)
+                if month_num == 6:  # June
+                    self.log_message("Stop condition triggered: Summer period reached (June)")
+                    return True
+
+            # 6. Stop at specific month
+            if settings.get('stop_at_month', False):
+                target_month = settings.get('target_month', 'June')
+                current_month = current_date.get('month', '')
+
+                # Convert month names to compare
+                month_mapping = {
+                    'January': 1, 'February': 2, 'March': 3, 'April': 4,
+                    'May': 5, 'June': 6, 'July': 7, 'August': 8,
+                    'September': 9, 'October': 10, 'November': 11, 'December': 12
+                }
+
+                target_month_num = month_mapping.get(target_month, 0)
+                current_month_num = current_date.get('month_num', 0)
+
+                if current_month_num == target_month_num:
+                    self.log_message(f"Stop condition triggered: Target month reached ({target_month})")
+                    return True
+
+            return False
+
+        except Exception as e:
+            self.log_message(f"Error checking stop conditions: {e}")
+            return False
+
     def run(self):
         """Start the GUI application"""
         self.log_message("Configure strategy settings and race filters before starting.")

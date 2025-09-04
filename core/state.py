@@ -372,15 +372,8 @@ def check_mood_enhanced():
     except Exception as e:
       print(f"[DEBUG] Enhanced screenshot failed: {e}")
 
-    # Custom enhancement method
-    try:
-      enhanced_img2 = enhance_mood_image(base_img.copy())
-      enhanced_imgs.append(("custom_enhance", enhanced_img2))
-    except Exception as e:
-      print(f"[DEBUG] Custom enhancement failed: {e}")
-
     # Original image as fallback
-    enhanced_imgs.append(("original", base_img))
+    # enhanced_imgs.append(("original", base_img))
 
     all_results = []
 

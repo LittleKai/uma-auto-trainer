@@ -15,7 +15,7 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "G1 (no training)",
+  "priority_strategy": "Train Score 3.5+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": true,
@@ -44,7 +44,7 @@
   "window": {
     "width": 807,
     "height": 950,
-    "x": 1045,
-    "y": 10
+    "x": 1029,
+    "y": 17
   }
 }

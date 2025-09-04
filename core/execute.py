@@ -596,8 +596,6 @@ class DecisionEngine:
 
         # Handle special case: STRATEGY_NOT_MET
         if best_training == "STRATEGY_NOT_MET":
-            self.controller.log_message(f"No training meets {priority_strategy} requirements - checking race options")
-
             # Check if can race instead
             should_race, available_races = race_manager.should_race_today(current_date)
 

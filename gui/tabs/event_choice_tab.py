@@ -62,9 +62,8 @@ class EventChoiceTab:
         content_frame.columnconfigure(0, weight=1)
 
         # Create sections
-        self.create_mode_selection(content_frame, row=0)
-        # self.create_uma_selection(content_frame, row=1)
-        self.create_support_selection(content_frame, row=1)
+        self.create_support_selection(content_frame, row=0)
+        self.create_mode_selection(content_frame, row=1)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
@@ -132,27 +131,6 @@ class EventChoiceTab:
         )
         action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
-    def create_uma_selection(self, parent, row):
-        """Create Uma Musume selection"""
-        uma_frame = ttk.LabelFrame(parent, text="Uma Musume Selection", padding="10")
-        uma_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
-
-        uma_container = ttk.Frame(uma_frame)
-        uma_container.pack(fill=tk.X)
-
-        ttk.Label(uma_container, text="Select Uma Musume:", font=("Arial", 9, "bold")).pack(
-            side=tk.LEFT, padx=(0, 15))
-
-        self.uma_dropdown = ttk.Combobox(
-            uma_container,
-            textvariable=self.selected_uma_musume,
-            values=self.get_uma_musume_list(),
-            state="readonly",
-            font=("Arial", 9),
-            width=20
-        )
-        self.uma_dropdown.pack(side=tk.LEFT)
-
     def create_support_selection(self, parent, row):
         """Create Support Card selection with 2x3 grid layout"""
         support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="10")
@@ -170,8 +148,8 @@ class EventChoiceTab:
             textvariable=self.selected_uma_musume,
             values=self.get_uma_musume_list(),
             state="readonly",
-            font=("Arial", 9),
-            width=20
+            font=("Arial", 10),
+            width=16
         )
         self.uma_dropdown.pack(side=tk.LEFT)
 
@@ -195,7 +173,7 @@ class EventChoiceTab:
                 card_frame,
                 text=f"Support {i+1}:",
                 width=12,
-                font=("Arial", 9, "bold")
+                font=("Arial", 10, "bold")
             ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
 
             support_combo = ttk.Combobox(
@@ -203,7 +181,7 @@ class EventChoiceTab:
                 textvariable=self.support_cards[i],
                 values=["None"] + support_cards_list,
                 state="readonly",
-                font=("Arial", 9)
+                font=("Arial", 10)
             )
             support_combo.grid(row=0, column=1, sticky=(tk.W, tk.E))
 

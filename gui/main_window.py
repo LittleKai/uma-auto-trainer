@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+from tkinter import ttk, messagebox
 import threading
 import time
 from datetime import datetime
@@ -8,8 +8,8 @@ import json
 import os
 
 from core.execute import set_log_callback, career_lobby, set_stop_flag
-from core.race_manager import RaceManager, DateManager
-from key_validator import validate_application_key, is_key_valid
+from core.race_manager import RaceManager
+from key_validator import validate_application_key
 
 from gui.components.status_section import StatusSection
 from gui.components.log_section import LogSection
@@ -61,9 +61,6 @@ class UmaAutoGUI:
             'y': 20
         }
 
-        # All settings will be handled by tab modules
-        self.all_settings = {}
-
     def load_initial_settings(self):
         """Load initial settings including window position before GUI setup"""
         try:
@@ -92,30 +89,6 @@ class UmaAutoGUI:
 
         # Load tab settings after GUI is created
         self.load_tab_settings()
-
-    def load_tab_settings(self):
-        """Load tab settings after tabs are created"""
-        try:
-            if not os.path.exists('bot_settings.json'):
-                return
-
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
-
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
-
-            # Update race manager filters
-            race_filters = {
-                'track': settings.get('track', {}),
-                'distance': settings.get('distance', {}),
-                'grade': settings.get('grade', {})
-            }
-            self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not load tab settings: {e}")
 
     def setup_window(self):
         """Setup window with loaded settings"""
@@ -315,7 +288,129 @@ class UmaAutoGUI:
             self.log_message(f"Error opening region settings: {e}")
             messagebox.showerror("Error", f"Failed to open region settings: {e}")
 
-    # Bot control methods
+    def should_stop_for_conditions(self, game_state=None):
+        """Check stop conditions - called by career_lobby"""
+        if not game_state:
+            # If no game state provided, get current state
+            try:
+                from core.state import get_current_date_info, check_mood, check_energy_percentage, check_turn
+                current_date = get_current_date_info()
+                mood = check_mood()
+                energy_percentage = check_energy_percentage()
+                turn = check_turn()
+
+                game_state = {
+                    'current_date': current_date,
+                    'mood': mood,
+                    'energy_percentage': energy_percentage,
+                    'turn': turn
+                }
+            except Exception as e:
+                self.log_message(f"[DEBUG] Error getting game state for stop check: {e}")
+                return False
+
+        strategy_settings = self.get_current_settings()
+        should_stop = self.check_stop_conditions(game_state, strategy_settings)
+
+        if should_stop:
+            self.log_message("Stop condition triggered - Bot will stop after current action")
+            # Stop the bot gracefully through GUI
+            self.root.after(0, self.stop_bot)
+
+        return should_stop
+
+    def check_stop_conditions(self, game_state, strategy_settings):
+        """Check if any stop conditions are met and should stop the bot"""
+        if not strategy_settings.get('enable_stop_conditions', False):
+            return False
+
+        current_date = game_state.get('current_date')
+        if not current_date:
+            return False
+
+        absolute_day = current_date.get('absolute_day', 0)
+
+        # Race day condition (applies regardless of day)
+        if strategy_settings.get('stop_on_race_day', False):
+            turn = game_state.get('turn')
+            if turn == "Race Day":
+                self.log_message("Stop condition: Race Day detected - Stopping bot")
+                return True
+
+        # Check conditions that only apply after day 24 (as indicated in dialog)
+        if absolute_day > 24:
+            # Check infirmary condition
+            if strategy_settings.get('stop_on_infirmary', False):
+                try:
+                    from core.recognizer import is_infirmary_active
+                    import pyautogui
+                    debuffed = pyautogui.locateOnScreen("assets/buttons/infirmary_btn2.png",
+                                                        confidence=0.9, minSearchTime=0.5)
+                    if debuffed and is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
+                        self.log_message("Stop condition: Infirmary needed - Stopping bot")
+                        return True
+                except Exception as e:
+                    self.log_message(f"[DEBUG] Infirmary check failed: {e}")
+
+            # Check need rest condition
+            if strategy_settings.get('stop_on_need_rest', False):
+                energy_percentage = game_state.get('energy_percentage', 100)
+                try:
+                    with open('config.json', 'r') as f:
+                        config = json.load(f)
+                    medium_energy_upper_limit = config.get('scoring_config', {}).get('energy_restrictions', {}).get('medium_energy_upper_limit', 50)
+                    minimum_energy = config.get('minimum_energy_percentage', 40)
+                except:
+                    medium_energy_upper_limit = 50
+                    minimum_energy = 40
+
+                # Check if energy is in range that would trigger rest
+                if minimum_energy <= energy_percentage < medium_energy_upper_limit:
+                    self.log_message(f"Stop condition: Need rest detected (Energy: {energy_percentage}%) - Stopping bot")
+                    return True
+
+            # Check low mood condition
+            if strategy_settings.get('stop_on_low_mood', False):
+                mood = game_state.get('mood', 'NORMAL')
+                stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
+
+                mood_priority = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]
+
+                if mood in mood_priority and stop_mood_threshold in mood_priority:
+                    mood_index = mood_priority.index(mood)
+                    threshold_index = mood_priority.index(stop_mood_threshold)
+
+                    if mood_index < threshold_index:
+                        self.log_message(f"Stop condition: Mood ({mood}) below threshold ({stop_mood_threshold}) - Stopping bot")
+                        return True
+
+            # Check before summer condition (June)
+            if strategy_settings.get('stop_before_summer', False):
+                month_num = current_date.get('month_num', 0)
+                if month_num == 6:  # June
+                    self.log_message("Stop condition: Before summer (June) - Stopping bot")
+                    return True
+
+            # Check specific month condition
+            if strategy_settings.get('stop_at_month', False):
+                target_month = strategy_settings.get('target_month', 'June')
+                current_month = current_date.get('month', '')
+
+                # Convert month names for comparison
+                month_mapping = {
+                    'January': 'Jan', 'February': 'Feb', 'March': 'Mar',
+                    'April': 'Apr', 'May': 'May', 'June': 'Jun',
+                    'July': 'Jul', 'August': 'Aug', 'September': 'Sep',
+                    'October': 'Oct', 'November': 'Nov', 'December': 'Dec'
+                }
+
+                target_month_short = month_mapping.get(target_month, target_month)
+                if current_month == target_month_short:
+                    self.log_message(f"Stop condition: Reached target month ({target_month}) - Stopping bot")
+                    return True
+
+        return False
+
     def start_bot(self):
         """Start the bot"""
         if self.is_running:
@@ -333,6 +428,15 @@ class UmaAutoGUI:
         if not self.game_monitor.focus_game_window():
             self.log_message("Cannot start bot: Game window not found or cannot be focused")
             return
+
+        # Force update race manager filters before starting
+        current_settings = self.get_current_settings()
+        race_filters = {
+            'track': current_settings.get('track', {}),
+            'distance': current_settings.get('distance', {}),
+            'grade': current_settings.get('grade', {})
+        }
+        self.race_manager.update_filters(race_filters)
 
         set_stop_flag(False)
         self.is_running = True
@@ -395,7 +499,30 @@ class UmaAutoGUI:
         finally:
             self.root.after(0, self.stop_bot)
 
-    # Settings methods
+    def load_tab_settings(self):
+        """Load tab settings after tabs are created"""
+        try:
+            if not os.path.exists('bot_settings.json'):
+                return
+
+            with open('bot_settings.json', 'r') as f:
+                settings = json.load(f)
+
+            # Load tab settings
+            self.strategy_tab.load_settings(settings)
+            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
+
+            # Update race manager filters with loaded settings
+            race_filters = {
+                'track': settings.get('track', {'turf': True, 'dirt': True}),
+                'distance': settings.get('distance', {'sprint': True, 'mile': True, 'medium': True, 'long': True}),
+                'grade': settings.get('grade', {'g1': True, 'g2': True, 'g3': True})
+            }
+            self.race_manager.update_filters(race_filters)
+
+        except Exception as e:
+            self.log_message(f"Warning: Could not load tab settings: {e}")
+
     def get_event_choice_settings(self):
         """Get current event choice settings"""
         return self.event_choice_tab.get_settings()
@@ -441,7 +568,7 @@ class UmaAutoGUI:
             with open('bot_settings.json', 'w') as f:
                 json.dump(all_settings, f, indent=2)
 
-            # Update race manager filters
+            # Update race manager filters immediately after save
             race_filters = {
                 'track': strategy_settings.get('track', {}),
                 'distance': strategy_settings.get('distance', {}),
@@ -452,35 +579,6 @@ class UmaAutoGUI:
         except Exception as e:
             self.log_message(f"Warning: Could not save settings: {e}")
 
-    def load_settings(self):
-        """Load settings from file"""
-        try:
-            if not os.path.exists('bot_settings.json'):
-                return
-
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
-
-            # Load window settings if they exist
-            if 'window' in settings:
-                self.window_settings = settings['window']
-
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
-
-            # Update race manager filters
-            race_filters = {
-                'track': settings.get('track', {}),
-                'distance': settings.get('distance', {}),
-                'grade': settings.get('grade', {})
-            }
-            self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not load settings: {e}")
-
-    # Status update methods
     def log_message(self, message):
         """Add message to log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -499,7 +597,6 @@ class UmaAutoGUI:
         """Update game status display"""
         self.status_section.update_game_status(status, color)
 
-    # Cleanup methods
     def on_closing(self):
         """Handle window close event"""
         self.save_settings()

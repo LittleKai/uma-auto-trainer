@@ -83,7 +83,6 @@ class EventChoiceHandler:
                     filename = os.path.basename(file_path).replace('.json', '')
                     with open(file_path, 'r', encoding='utf-8') as f:
                         self.support_card_events[filename] = json.load(f)
-                        self.log(f"[DEBUG] Loaded Support Card events for: {filename}")
         except Exception as e:
             self.log(f"[ERROR] Failed to load Support Card events: {e}")
 
@@ -154,10 +153,6 @@ class EventChoiceHandler:
             self.current_config_hash = config_hash
             self.cached_database = database
 
-            self.log(f"[DEBUG] Built and cached database - Scenario: {len(database['train_event_scenario'])}, "
-                     f"Uma Musume: {len(database['train_event_uma_musume'])}, "
-                     f"Support Card: {len(database['train_event_support_card'])}")
-
             return database
 
         except Exception as e:
@@ -178,7 +173,6 @@ class EventChoiceHandler:
                     if os.path.exists(self.cache_file):
                         with open(self.cache_file, 'r', encoding='utf-8') as f:
                             self.cached_database = json.load(f)
-                            self.log("[DEBUG] Loaded database from cache")
 
                 if self.cached_database:
                     return self.cached_database
@@ -248,7 +242,6 @@ class EventChoiceHandler:
                             region_format='xywh'
                         )
                         if position:
-                            self.log(f"[DEBUG] Detected event type: {event_type}")
                             return event_type
                     except Exception as e:
                         continue
@@ -281,10 +274,8 @@ class EventChoiceHandler:
             event_name_text = extract_text(event_name_img)
 
             if event_name_text:
-                self.log(f"[DEBUG] Extracted event name: '{event_name_text}'")
                 return event_name_text.strip()
             else:
-                self.log("[DEBUG] No event name text extracted")
                 return None
 
         except Exception as e:
@@ -301,7 +292,6 @@ class EventChoiceHandler:
         try:
             from core.state import check_mood
             mood = check_mood()
-            self.log(f"[DEBUG] Current mood detected: {mood}")
             return mood
         except Exception as e:
             self.log(f"[ERROR] Failed to get current mood: {e}")
@@ -317,7 +307,6 @@ class EventChoiceHandler:
         try:
             from core.state import check_energy_percentage
             energy = check_energy_percentage()
-            self.log(f"[DEBUG] Current energy detected: {energy}%")
             return energy
         except Exception as e:
             self.log(f"[ERROR] Failed to get current energy: {e}")
@@ -397,7 +386,7 @@ class EventChoiceHandler:
             if not matched_event:
                 return None
 
-            self.log(f"[DEBUG] Found matching event: '{matched_name}' for '{event_name}'")
+            self.log(f"[INFO] Found event: '{matched_name}'")
 
             # Step 3: Check if event has simple choice first
             if "choice" in matched_event:
@@ -406,7 +395,6 @@ class EventChoiceHandler:
                     self.log(f"[DEBUG] Event has simple 'bottom' choice - selecting choice 5")
                     return 5
                 elif isinstance(choice, int):
-                    self.log(f"[DEBUG] Event has simple choice {choice} - selecting immediately")
                     return choice
 
             # Step 4: Only check mood if event has mood-related conditions
@@ -617,8 +605,8 @@ class EventChoiceHandler:
 
                 position = find_template_position(
                     template_path=choice_icon,
-                    region=screen_region,
-                    threshold=0.8,
+                    region=EVENT_CHOICE_REGION,
+                    threshold=0.85,
                     return_center=True,
                     region_format='xywh'
                 )

@@ -6,8 +6,8 @@
     },
     {
       "name": "Awkward Honesty",
-      "choice_1_if_energy_gt": 75,
-      "choice_2_if_energy_lte": 75
+      "choice_1_if_energy_gt": 80,
+      "choice_2_if_energy_lte": 80
     },
     {
       "name": "Sugar and Spice",

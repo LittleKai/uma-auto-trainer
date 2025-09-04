@@ -336,12 +336,6 @@ class StrategyTab:
             'target_month': self.target_month.get()
         }
 
-        # **DEBUG: Log current filter settings**
-        print(f"[DEBUG] Current filter settings:")
-        print(f"  Track: {settings['track']}")
-        print(f"  Distance: {settings['distance']}")
-        print(f"  Grade: {settings['grade']}")
-
         return settings
 
     def load_settings(self, settings):

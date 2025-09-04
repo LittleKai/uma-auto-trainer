@@ -15,68 +15,57 @@
   ],
   "train_event_uma_musume": [
     {
+      "name": "A Page about Apples",
+      "choice_1_if_energy_gt": 80,
+      "choice_2_if_energy_lte": 80
+    },
+    {
       "name": "Dance Lesson",
-      "choice": 1
-    },
-    {
-      "name": "The Red of the Protagonist!",
-      "choice": 1
-    },
-    {
-      "name": "A Date, Golshi Style",
       "choice": 2
     },
     {
-      "name": "A Sudden Episode from Golshi's Past!",
+      "name": "Am I Enough?",
       "choice": 2
     },
     {
-      "name": "Pair Discount Repeat Offender",
+      "name": "Sweet & Lively Joy",
+      "choice": 1
+    },
+    {
+      "name": "I Am Enough",
       "choice": 2
     },
     {
-      "name": "Which Did You Lose?",
+      "name": "Training Inspiration",
       "choice": 2
     },
     {
-      "name": "My Part-Time Job Is... Crazy?",
-      "choice": 1
-    },
-    {
-      "name": "The Day After, Voices Hoarse",
-      "choice": 1
-    },
-    {
-      "name": "This One's For Keeps!",
+      "name": "Wonderful New Worlds",
       "choice": 2
     },
     {
-      "name": "Summer Camp (Year 3) Ends",
+      "name": "Looking on the Bright Side",
       "choice": 1
     },
     {
-      "name": "Killer Appetite!",
+      "name": "Even When the Ladybugs Are Gone",
       "choice": 1
     },
     {
-      "name": "Legend of the Left Pinky",
+      "name": "Even When Clouds Cover the Sky",
       "choice": 1
     },
     {
-      "name": "Hello From About 1.5 Billion Years Ago",
+      "name": "My Sun",
       "choice": 2
     },
     {
-      "name": "And Then She...",
-      "choice": 3
-    },
-    {
-      "name": "A Lovely Place",
-      "choice": 1
-    },
-    {
-      "name": "Nighttime Park Visit",
+      "name": "I've Got This!",
       "choice": 2
+    },
+    {
+      "name": "A Page about Sunsets",
+      "choice": 1
     },
     {
       "name": "Victory!",
@@ -153,11 +142,16 @@
       "choice": 1
     },
     {
-      "name": "Just Don't Bother Me",
-      "choice": 2
+      "name": "So Many Options!",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
     },
     {
-      "name": "Just Leave Me Alone",
+      "name": "Just a Little Closer",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going!",
       "choice": 2
     },
     {

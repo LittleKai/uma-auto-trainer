@@ -1,6 +1,11 @@
 {
   "events": [
     {
+      "name": "Killer Appetite!",
+      "choice_1_if_energy_gt": 80,
+      "choice_2_if_energy_lte": 80
+    },
+    {
       "name": "Dance Lesson",
       "choice": 1
     },
@@ -41,10 +46,6 @@
       "choice": 1
     },
     {
-      "name": "Killer Appetite!",
-      "choice": 1
-    },
-    {
       "name": "Legend of the Left Pinky",
       "choice": 1
     },
@@ -63,7 +64,10 @@
     {
       "name": "Nighttime Park Visit",
       "choice": 2
+    },
+    {
+      "name": "After the Takarazuka Kinen: Keyword 2",
+      "choice": 1
     }
-
   ]
 }

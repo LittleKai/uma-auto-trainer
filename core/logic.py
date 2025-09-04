@@ -336,7 +336,7 @@ def most_support_card(results, current_date=None):
     valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
 
     if valid_trainings:
-      # Create list of tuples for stable sorting with WIT bonus applied
+      # For Pre-Debut: Use WIT bonus since it's strategic period
       training_list = []
       for key, data in valid_trainings.items():
         score = data.get("total_score", 0)
@@ -344,35 +344,31 @@ def most_support_card(results, current_date=None):
         priority_index = get_priority_by_stage(key, current_date)
         training_list.append((key, data, adjusted_score, priority_index))
 
-      # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+      # Sort by adjusted score (descending), then by priority (ascending)
       training_list.sort(key=lambda x: (-x[2], x[3]))
 
-      # Select the best training (first in sorted list)
       best_key, best_data, best_score, best_priority = training_list[0]
-
       return best_key
 
     return None
 
-  # Post Pre-Debut fallback logic using unified scoring with WIT bonus
+  # Post Pre-Debut fallback logic - use ORIGINAL scores only for fair comparison
   if not results:
     return None
 
-  # Create list for stable sorting in post pre-debut with WIT bonus
   training_list = []
   for key, data in results.items():
-    total_score = data.get("total_score", 0)
-    adjusted_score = apply_early_stage_wit_bonus(key, total_score, current_date)
+    original_score = data.get("total_score", 0)  # Use original score, no WIT bonus
     priority_index = get_priority_by_stage(key, current_date)
-    training_list.append((key, data, adjusted_score, priority_index))
+    training_list.append((key, data, original_score, priority_index))
 
-  # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+  # Sort by original score (descending), then by priority (ascending)
   training_list.sort(key=lambda x: (-x[2], x[3]))
 
-  best_key, best_data, adjusted_score, best_priority = training_list[0]
+  best_key, best_data, original_score, best_priority = training_list[0]
 
-  # Check minimum score requirements
-  if adjusted_score <= 1:
+  # Check minimum score requirements using original score
+  if original_score <= 1:
     if best_key == "wit":
       return None
     return best_key
@@ -400,26 +396,31 @@ def low_energy_training(results, current_date=None):
   return None
 
 def fallback_training(results, current_date):
-  """Enhanced fallback training with unified scoring system and WIT early stage bonus"""
+  """Enhanced fallback training using original scores without artificial bonuses"""
   if not results:
     return None
 
   stage_info = get_career_stage_info(current_date)
 
-  # Calculate best training using unified scoring with WIT bonus
+  # Calculate best training using ORIGINAL scores only (no WIT bonus for fairness in fallback)
   training_list = []
   for key, data in results.items():
-    total_score = data.get("total_score", 0)
-    adjusted_score = apply_early_stage_wit_bonus(key, total_score, current_date)
+    original_score = data.get("total_score", 0)
     priority_index = get_priority_by_stage(key, current_date)
-    training_list.append((key, data, adjusted_score, priority_index))
+    training_list.append((key, data, original_score, priority_index))
 
-  # Sort by score (descending), then by priority (ascending - lower index = higher priority)
+    # DEBUG: Log original scores used for fallback selection
+    print(f"[DEBUG] Fallback {key.upper()}: Original Score={original_score:.2f}, Priority={priority_index}")
+
+  # Sort by original score (descending), then by priority (ascending - lower index = higher priority)
   training_list.sort(key=lambda x: (-x[2], x[3]))
 
-  best_key, best_data, adjusted_score, best_priority = training_list[0]
+  # DEBUG: Show selection reasoning
+  print(f"[DEBUG] Fallback selected: {training_list[0][0].upper()} with original score {training_list[0][2]:.2f}")
 
-  if adjusted_score <= 0:
+  best_key, best_data, original_score, best_priority = training_list[0]
+
+  if original_score <= 0:
     return None
 
   score_info = format_score_info(best_key, best_data, current_date)

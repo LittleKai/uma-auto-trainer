@@ -2,7 +2,7 @@ import json
 
 # UI Region Constants
 SUPPORT_CARD_ICON_REGION = (845, 155, 180, 700)
-MOOD_REGION = (740, 123, 63, 27)
+MOOD_REGION = (700, 123, 120, 27)
 TURN_REGION = (260, 84, 108, 47)
 ENERGY_BAR = (441, 136, 676, 136)  # Energy bar endpoints (x1, y1, x2, y2)
 RACE_REGION = (260, 588, 580, 266)
@@ -28,7 +28,7 @@ STAT_REGIONS = {
 # Default regions for settings reset
 DEFAULT_REGIONS = {
     'SUPPORT_CARD_ICON_REGION': (845, 155, 180, 700),
-    'MOOD_REGION': (740, 123, 63, 27),
+    'MOOD_REGION': (700, 123, 120, 27),
     'TURN_REGION': (260, 84, 108, 47),
     'ENERGY_BAR': (441, 136, 676, 136),
     'RACE_REGION': (260, 588, 580, 266),

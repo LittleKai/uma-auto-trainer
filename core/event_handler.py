@@ -2,6 +2,7 @@ import pyautogui
 import json
 import os
 import glob
+import hashlib
 from difflib import SequenceMatcher
 from typing import Optional, Dict, List, Tuple, Any
 from core.ocr import extract_text
@@ -9,8 +10,10 @@ from core.recognizer import find_template_position
 from utils.screenshot import enhanced_screenshot
 from utils.constants import get_current_regions
 
+EVENT_CHOICE_REGION = (223, 290, 200, 770)
+
 class EventChoiceHandler:
-    """Handles automatic event choice selection based on event maps"""
+    """Handles automatic event choice selection based on event maps with optimized database caching"""
 
     def __init__(self, check_stop_func, check_window_func, log_func):
         """
@@ -25,13 +28,22 @@ class EventChoiceHandler:
         self.check_window = check_window_func
         self.log = log_func
 
-        # Load event maps
+        # Cache paths
+        self.cache_dir = "assets/event_map"
+        self.cache_file = os.path.join(self.cache_dir, "cached_database.json")
+        self.config_hash_file = os.path.join(self.cache_dir, "config_hash.txt")
+
+        # Load base event maps
         self.common_events = self.load_common_events()
         self.uma_musume_events = {}
         self.support_card_events = {}
 
         self.load_uma_musume_events()
         self.load_support_card_events()
+
+        # Current cached database
+        self.cached_database = None
+        self.current_config_hash = None
 
     def load_common_events(self) -> Dict[str, List[Dict]]:
         """Load common event maps from assets/event_map/common.json"""
@@ -75,6 +87,109 @@ class EventChoiceHandler:
         except Exception as e:
             self.log(f"[ERROR] Failed to load Support Card events: {e}")
 
+    def generate_config_hash(self, uma_musume: str, support_cards: List[str]) -> str:
+        """Generate hash for current configuration to detect changes"""
+        config_str = f"{uma_musume}|{'|'.join(sorted(support_cards))}"
+        return hashlib.md5(config_str.encode()).hexdigest()
+
+    def is_cache_valid(self, uma_musume: str, support_cards: List[str]) -> bool:
+        """Check if cached database is still valid for current configuration"""
+        new_hash = self.generate_config_hash(uma_musume, support_cards)
+
+        # Check if hash matches
+        if self.current_config_hash == new_hash:
+            return True
+
+        # Check if hash file exists and matches
+        try:
+            if os.path.exists(self.config_hash_file):
+                with open(self.config_hash_file, 'r') as f:
+                    stored_hash = f.read().strip()
+                    if stored_hash == new_hash:
+                        self.current_config_hash = new_hash
+                        return True
+        except Exception:
+            pass
+
+        return False
+
+    def build_and_cache_database(self, uma_musume: str, support_cards: List[str]) -> Dict[str, List[Dict]]:
+        """Build complete database and cache it for current configuration"""
+        try:
+            database = {
+                "train_event_scenario": [],
+                "train_event_uma_musume": [],
+                "train_event_support_card": []
+            }
+
+            # Build scenario events
+            database["train_event_scenario"] = self.common_events.get("train_event_scenario", [])
+
+            # Build uma musume events
+            if uma_musume != "None" and uma_musume in self.uma_musume_events:
+                uma_events = self.uma_musume_events[uma_musume].get("events", [])
+                database["train_event_uma_musume"].extend(uma_events)
+
+            # Add common uma musume events
+            common_uma_events = self.common_events.get("train_event_uma_musume", [])
+            database["train_event_uma_musume"].extend(common_uma_events)
+
+            # Build support card events
+            for support_card in support_cards:
+                if support_card != "None" and support_card in self.support_card_events:
+                    card_events = self.support_card_events[support_card].get("events", [])
+                    database["train_event_support_card"].extend(card_events)
+
+            # Save cache
+            os.makedirs(self.cache_dir, exist_ok=True)
+
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(database, f, indent=2, ensure_ascii=False)
+
+            # Save config hash
+            config_hash = self.generate_config_hash(uma_musume, support_cards)
+            with open(self.config_hash_file, 'w') as f:
+                f.write(config_hash)
+
+            self.current_config_hash = config_hash
+            self.cached_database = database
+
+            self.log(f"[DEBUG] Built and cached database - Scenario: {len(database['train_event_scenario'])}, "
+                     f"Uma Musume: {len(database['train_event_uma_musume'])}, "
+                     f"Support Card: {len(database['train_event_support_card'])}")
+
+            return database
+
+        except Exception as e:
+            self.log(f"[ERROR] Failed to build and cache database: {e}")
+            return {
+                "train_event_scenario": [],
+                "train_event_uma_musume": [],
+                "train_event_support_card": []
+            }
+
+    def get_database(self, uma_musume: str, support_cards: List[str]) -> Dict[str, List[Dict]]:
+        """Get database for current configuration, using cache if valid"""
+        try:
+            # Check if cache is valid
+            if self.is_cache_valid(uma_musume, support_cards):
+                # Load from cache if not already loaded
+                if self.cached_database is None:
+                    if os.path.exists(self.cache_file):
+                        with open(self.cache_file, 'r', encoding='utf-8') as f:
+                            self.cached_database = json.load(f)
+                            self.log("[DEBUG] Loaded database from cache")
+
+                if self.cached_database:
+                    return self.cached_database
+
+            # Cache is invalid, rebuild
+            return self.build_and_cache_database(uma_musume, support_cards)
+
+        except Exception as e:
+            self.log(f"[ERROR] Failed to get database: {e}")
+            return self.build_and_cache_database(uma_musume, support_cards)
+
     def find_similar_text(self, target_text: str, ref_text_list: List[str], threshold: float = 0) -> str:
         """
         Find similar text from reference list using sequence matching
@@ -101,7 +216,7 @@ class EventChoiceHandler:
 
     def detect_event_type(self) -> Optional[str]:
         """
-        Detect event type from event region using template matching
+        Detect event type from event region using OpenCV template matching
 
         Returns:
             Event type string or None if not detected
@@ -115,7 +230,7 @@ class EventChoiceHandler:
                 self.log("[WARNING] EVENT_REGION not configured")
                 return None
 
-            # Check for event type icons using template matching with OpenCV
+            # Check for event type icons using OpenCV template matching
             event_types = [
                 ("assets/icons/train_event_scenario.png", "train_event_scenario"),
                 ("assets/icons/train_event_uma_musume.png", "train_event_uma_musume"),
@@ -208,48 +323,6 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to get current energy: {e}")
             return 100
 
-    def build_event_database(self, event_type: str, uma_musume: str, support_cards: List[str]) -> List[Dict]:
-        """
-        Build event database based on event type and selected cards
-
-        Args:
-            event_type: Type of event (scenario/uma_musume/support_card)
-            uma_musume: Selected Uma Musume name
-            support_cards: List of selected support cards
-
-        Returns:
-            Combined event list from appropriate sources
-        """
-        event_list = []
-
-        if event_type == "train_event_scenario":
-            # Only from common.json train_event_scenario
-            event_list = self.common_events.get("train_event_scenario", [])
-            self.log(f"[DEBUG] Loaded {len(event_list)} scenario events from common.json")
-
-        elif event_type == "train_event_uma_musume":
-            # Uma Musume specific events + common uma musume events
-            if uma_musume != "None" and uma_musume in self.uma_musume_events:
-                uma_events = self.uma_musume_events[uma_musume].get("events", [])
-                event_list.extend(uma_events)
-                self.log(f"[DEBUG] Loaded {len(uma_events)} events for Uma Musume: {uma_musume}")
-
-            # Add common uma musume events
-            common_uma_events = self.common_events.get("train_event_uma_musume", [])
-            event_list.extend(common_uma_events)
-            self.log(f"[DEBUG] Added {len(common_uma_events)} common uma musume events")
-
-        elif event_type == "train_event_support_card":
-            # Events from all selected support cards
-            for support_card in support_cards:
-                if support_card != "None" and support_card in self.support_card_events:
-                    card_events = self.support_card_events[support_card].get("events", [])
-                    event_list.extend(card_events)
-                    self.log(f"[DEBUG] Loaded {len(card_events)} events for support card: {support_card}")
-
-        self.log(f"[DEBUG] Total events in database: {len(event_list)}")
-        return event_list
-
     def requires_mood_check(self, event_config: Dict) -> bool:
         """
         Check if event conditions require mood information
@@ -298,14 +371,15 @@ class EventChoiceHandler:
             Choice number (1-5) or None if not found
         """
         try:
-            # Build event database based on type and selections
-            event_list = self.build_event_database(event_type, uma_musume, support_cards)
+            # Step 1: Get database for current configuration (cached)
+            database = self.get_database(uma_musume, support_cards)
+            event_list = database.get(event_type, [])
 
             if not event_list:
                 self.log(f"[DEBUG] No events in database for type: {event_type}")
                 return None
 
-            # Find matching event
+            # Step 2: Find matching event by name
             event_names = [event.get("name", "") for event in event_list]
             matched_name = self.find_similar_text(event_name, event_names, threshold=0.6)
 
@@ -325,26 +399,49 @@ class EventChoiceHandler:
 
             self.log(f"[DEBUG] Found matching event: '{matched_name}' for '{event_name}'")
 
-            # Check if we need mood information
+            # Step 3: Check if event has simple choice first
+            if "choice" in matched_event:
+                choice = matched_event["choice"]
+                if choice == "bottom":
+                    self.log(f"[DEBUG] Event has simple 'bottom' choice - selecting choice 5")
+                    return 5
+                elif isinstance(choice, int):
+                    self.log(f"[DEBUG] Event has simple choice {choice} - selecting immediately")
+                    return choice
+
+            # Step 4: Only check mood if event has mood-related conditions
+            current_mood = None
+            mood_checked = False
             if self.requires_mood_check(matched_event):
                 current_mood = self.get_current_mood()
+                mood_checked = True
                 if current_mood == "UNKNOWN":
                     self.log("[WARNING] Event requires mood check but mood is UNKNOWN - waiting for user")
                     return None
-            else:
-                current_mood = "NORMAL"  # Default if not needed
 
-            # Check if we need energy information
+            # Step 5: Only check energy if event has energy-related conditions  
+            current_energy = None
+            energy_checked = False
             if self.requires_energy_check(matched_event):
                 current_energy = self.get_current_energy()
-            else:
-                current_energy = 100  # Default if not needed
+                energy_checked = True
 
-            # Determine choice based on conditions
+            # Step 6: Evaluate conditions to determine choice
             choice = self.evaluate_event_conditions(matched_event, current_energy, current_mood, uma_musume)
 
             if choice:
-                self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}' (Energy: {current_energy}%, Mood: {current_mood})")
+                # Build condition info string based on what was actually checked
+                condition_parts = []
+                if energy_checked and current_energy is not None:
+                    condition_parts.append(f"Energy: {current_energy}%")
+                if mood_checked and current_mood is not None:
+                    condition_parts.append(f"Mood: {current_mood}")
+
+                if condition_parts:
+                    condition_info = f" ({', '.join(condition_parts)})"
+                    self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}'{condition_info}")
+                else:
+                    self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}'")
                 return choice
             else:
                 self.log(f"[DEBUG] No valid choice determined for event '{matched_name}'")
@@ -363,7 +460,7 @@ class EventChoiceHandler:
         Args:
             event_config: Event configuration dictionary
             current_energy: Current energy percentage (None if not checked)
-            current_mood: Current mood (None if not checked)
+            current_mood: Current mood (None if not checked) 
             uma_musume: Current Uma Musume name
 
         Returns:
@@ -489,7 +586,7 @@ class EventChoiceHandler:
 
     def click_choice(self, choice_number: int) -> bool:
         """
-        Click on the specified choice button
+        Click on the specified choice button using OpenCV template matching
 
         Args:
             choice_number: Choice number (1-5)
@@ -512,20 +609,46 @@ class EventChoiceHandler:
                 self.log(f"[WARNING] Choice icon not found: {choice_icon}")
                 return False
 
-            # Try to find and click the choice button
-            choice_btn = pyautogui.locateCenterOnScreen(choice_icon, confidence=0.8, minSearchTime=1.0)
+            # Use OpenCV template matching instead of pyautogui
+            try:
+                # Get screen dimensions for region
+                screen_width, screen_height = pyautogui.size()
+                screen_region = (0, 0, screen_width, screen_height)
 
-            if choice_btn:
-                if self.check_stop():
+                position = find_template_position(
+                    template_path=choice_icon,
+                    region=screen_region,
+                    threshold=0.8,
+                    return_center=True,
+                    region_format='xywh'
+                )
+
+                if position:
+                    if self.check_stop():
+                        return False
+
+                    pyautogui.moveTo(position, duration=0.2)
+                    pyautogui.click()
+                    self.log(f"[INFO] Selected event choice {choice_number}")
+                    return True
+                else:
+                    self.log(f"[WARNING] Choice {choice_number} button not found on screen")
                     return False
 
-                pyautogui.moveTo(choice_btn, duration=0.2)
-                pyautogui.click()
-                self.log(f"[INFO] Selected event choice {choice_number}")
-                return True
-            else:
-                self.log(f"[WARNING] Choice {choice_number} button not found on screen")
-                return False
+            except Exception as e:
+                self.log(f"[WARNING] OpenCV matching failed, trying pyautogui fallback: {e}")
+                # Fallback to pyautogui if OpenCV fails
+                choice_btn = pyautogui.locateCenterOnScreen(choice_icon, confidence=0.8, minSearchTime=1.0)
+                if choice_btn:
+                    if self.check_stop():
+                        return False
+                    pyautogui.moveTo(choice_btn, duration=0.2)
+                    pyautogui.click()
+                    self.log(f"[INFO] Selected event choice {choice_number} (fallback)")
+                    return True
+                else:
+                    self.log(f"[WARNING] Choice {choice_number} button not found on screen (fallback)")
+                    return False
 
         except Exception as e:
             self.log(f"[ERROR] Failed to click choice {choice_number}: {e}")
@@ -539,12 +662,51 @@ class EventChoiceHandler:
             True if event choice is visible, False otherwise
         """
         try:
-            # Check for first choice button
+            # Check for first choice button using OpenCV in event choice region
             choice_1_icon = "assets/icons/event_choice_1.png"
             if os.path.exists(choice_1_icon):
-                choice_btn = pyautogui.locateOnScreen(choice_1_icon, confidence=0.8, minSearchTime=0.2)
-                return choice_btn is not None
+                try:
+                    position = find_template_position(
+                        template_path=choice_1_icon,
+                        region=EVENT_CHOICE_REGION,
+                        threshold=0.8,
+                        return_center=True,
+                        region_format='xywh'
+                    )
+                    return position is not None
+                except Exception:
+                    # Fallback to pyautogui with region
+                    left, top, width, height = EVENT_CHOICE_REGION
+                    region_ltrb = (left, top, left + width, top + height)
+                    choice_btn = pyautogui.locateOnScreen(choice_1_icon, confidence=0.8,
+                                                          minSearchTime=0.2, region=region_ltrb)
+                    return choice_btn is not None
             return False
         except Exception as e:
             self.log(f"[ERROR] Failed to check event choice visibility: {e}")
             return False
+
+    def clear_cache(self):
+        """Clear cached database and force rebuild on next use"""
+        try:
+            self.cached_database = None
+            self.current_config_hash = None
+
+            if os.path.exists(self.cache_file):
+                os.remove(self.cache_file)
+            if os.path.exists(self.config_hash_file):
+                os.remove(self.config_hash_file)
+
+            self.log("[DEBUG] Event database cache cleared")
+        except Exception as e:
+            self.log(f"[ERROR] Failed to clear cache: {e}")
+
+    def update_configuration(self, uma_musume: str, support_cards: List[str]):
+        """Update configuration and rebuild cache if needed"""
+        try:
+            new_hash = self.generate_config_hash(uma_musume, support_cards)
+            if self.current_config_hash != new_hash:
+                self.log("[DEBUG] Configuration changed, rebuilding event database cache")
+                self.build_and_cache_database(uma_musume, support_cards)
+        except Exception as e:
+            self.log(f"[ERROR] Failed to update configuration: {e}")

@@ -1,0 +1,180 @@
+{
+  "train_event_scenario": [
+    {
+      "name": "Exhilarating! What a Scoop!",
+      "choice": 1
+    },
+    {
+      "name": "A Trainer's Knowledge",
+      "choice": 1
+    },
+    {
+      "name": "At Summer Camp (Year 2)",
+      "choice": 1
+    }
+  ],
+  "train_event_uma_musume": [
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "The Red of the Protagonist!",
+      "choice": 1
+    },
+    {
+      "name": "A Date, Golshi Style",
+      "choice": 2
+    },
+    {
+      "name": "A Sudden Episode from Golshi's Past!",
+      "choice": 2
+    },
+    {
+      "name": "Pair Discount Repeat Offender",
+      "choice": 2
+    },
+    {
+      "name": "Which Did You Lose?",
+      "choice": 2
+    },
+    {
+      "name": "My Part-Time Job Is... Crazy?",
+      "choice": 1
+    },
+    {
+      "name": "The Day After, Voices Hoarse",
+      "choice": 1
+    },
+    {
+      "name": "This One's For Keeps!",
+      "choice": 2
+    },
+    {
+      "name": "Summer Camp (Year 3) Ends",
+      "choice": 1
+    },
+    {
+      "name": "Killer Appetite!",
+      "choice": 1
+    },
+    {
+      "name": "Legend of the Left Pinky",
+      "choice": 1
+    },
+    {
+      "name": "Hello From About 1.5 Billion Years Ago",
+      "choice": 2
+    },
+    {
+      "name": "And Then She...",
+      "choice": 3
+    },
+    {
+      "name": "A Lovely Place",
+      "choice": 1
+    },
+    {
+      "name": "Nighttime Park Visit",
+      "choice": 2
+    },
+    {
+      "name": "Victory!",
+      "choice": 1
+    },
+    {
+      "name": "Extra Training",
+      "choice": 1
+    },
+    {
+      "name": "Get Well Soon!",
+      "choice": 1
+    },
+    {
+      "name": "Don't Overdo It!",
+      "choice": 1
+    },
+    {
+      "name": "Solid Showing",
+      "choice": 1
+    },
+    {
+      "name": "Etsuko's Exhaustive Coverage",
+      "choice": "bottom"
+    },
+    {
+      "name": "New Year's Resolutions",
+      "choice_2_if_energy_lte": 82,
+      "choice_3_if_energy_gt": 82
+    },
+    {
+      "name": "New Year's Shrine Visit",
+      "choice_1_if_energy_lte": 74,
+      "choice_2_if_energy_gt": 74
+    }
+  ],
+  "train_event_support_card": [
+    {
+      "name": "Ah, Friendship",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Paying It Forward",
+      "choice": 2
+    },
+    {
+      "name": "Ah, Home Sweet Home",
+      "choice": 2
+    },
+    {
+      "name": "Some Very Green Friends",
+      "choice": 1
+    },
+    {
+      "name": "Premeditated Mischief",
+      "choice": 1
+    },
+    {
+      "name": "Premeditated Mischief",
+      "choice": 1
+    },
+    {
+      "name": "Miracle ☆ Escape!",
+      "choice_2_if_energy_gt": 92
+    },
+    {
+      "name": "My Chosen Way of Life",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Enthusiastic Pair",
+      "choice": 1
+    },
+    {
+      "name": "Just Don't Bother Me",
+      "choice": 2
+    },
+    {
+      "name": "Just Leave Me Alone",
+      "choice": 2
+    },
+    {
+      "name": "To Maintain My Weight",
+      "choice": 2
+    },
+    {
+      "name": "To Reach the Greatest Heights",
+      "choice": 1
+    },
+    {
+      "name": "Leave it to Me to Be Considerate! ♪",
+      "choice": 2
+    },
+    {
+      "name": "Leave it to Me to Help Out! ♪",
+      "choice_2_if_energy_gt": 95
+    }
+  ]
+}

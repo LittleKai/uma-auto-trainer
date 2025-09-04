@@ -7,6 +7,8 @@ simple_uma.spec
 uma_auto.spec
 pass_link.txt
 window_settings.json
+assets/event_map/cached_database.json
+assets/event_map/config_hash.txt
 
 # Ignore specific folders
 logs/

@@ -57,7 +57,7 @@ class StrategyTab:
         self.bind_variable_changes()
 
     def bind_variable_changes(self):
-        """Bind variable change events to auto-save"""
+        """Bind variable change events to auto-save with immediate filter update"""
         variables = [
             *self.track_filters.values(),
             *self.distance_filters.values(),
@@ -77,8 +77,30 @@ class StrategyTab:
             self.target_month
         ]
 
+        def on_filter_change(*args):
+            """Handle filter changes with immediate race manager update"""
+            # Save settings to file
+            self.main_window.save_settings()
+
+            # **FIX: Immediately update race manager filters**
+            try:
+                current_settings = self.get_settings()
+                race_filters = {
+                    'track': current_settings['track'],
+                    'distance': current_settings['distance'],
+                    'grade': current_settings['grade']
+                }
+
+                # Update race manager with new filters
+                if hasattr(self.main_window, 'race_manager'):
+                    self.main_window.race_manager.update_filters(race_filters)
+                    print(f"[DEBUG] Updated race manager filters: {race_filters}")
+
+            except Exception as e:
+                print(f"[ERROR] Failed to update race manager filters: {e}")
+
         for var in variables:
-            var.trace('w', lambda *args: self.main_window.save_settings())
+            var.trace('w', on_filter_change)
 
     def create_content(self):
         """Create tab content"""
@@ -294,8 +316,8 @@ class StrategyTab:
             print(f"Error opening stop conditions dialog: {e}")
 
     def get_settings(self):
-        """Get current tab settings"""
-        return {
+        """Get current tab settings with debug logging"""
+        settings = {
             'track': {k: v.get() for k, v in self.track_filters.items()},
             'distance': {k: v.get() for k, v in self.distance_filters.items()},
             'grade': {k: v.get() for k, v in self.grade_filters.items()},
@@ -313,6 +335,14 @@ class StrategyTab:
             'stop_at_month': self.stop_at_month.get(),
             'target_month': self.target_month.get()
         }
+
+        # **DEBUG: Log current filter settings**
+        print(f"[DEBUG] Current filter settings:")
+        print(f"  Track: {settings['track']}")
+        print(f"  Distance: {settings['distance']}")
+        print(f"  Grade: {settings['grade']}")
+
+        return settings
 
     def load_settings(self, settings):
         """Load settings into tab"""

@@ -22,7 +22,11 @@
     },
     "support_score": {
       "base_value": 1.0,
-      "friend_multiplier": 1.1,
+      "friend_multiplier": {
+        "early_stage": 1.1,
+        "late_stage": 1.0,
+        "friend_wit_multiplier": 0.5
+      },
       "rainbow_multiplier": {
         "pre_debut": 1.0,
         "early_stage": 1.0,

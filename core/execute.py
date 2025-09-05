@@ -277,7 +277,6 @@ class EventHandler:
             handled = self.controller.event_choice_handler.handle_event_choice(event_settings)
 
             if handled:
-                self.controller.log_message("🎭 Event choice handled automatically")
                 return True
             else:
                 # Check if this is because of UNKNOWN mood or unknown event requiring user input

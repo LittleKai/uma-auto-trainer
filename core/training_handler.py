@@ -221,21 +221,21 @@ class TrainingHandler:
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
         """Log training result with unified score information"""
-        hint_info = ""
+        # Build bonus information components
+        bonus_components = []
+
+        # Add hint info if exists
         if training_result.get('hint_count', 0) > 0:
-            hint_info = f"{training_result['hint_count']} hints ({training_result['hint_score']} score)"
+            bonus_components.append(f"hints +{training_result['hint_score']}")
 
-        npc_info = ""
+        # Add NPC info if exists
         if training_result.get('npc_count', 0) > 0:
-            npc_info = f" + {training_result['npc_count']} NPCs ({training_result['npc_score']} score)"
-
-        # Get unified total score
-        total_score = training_result.get('total_score', 0)
+            bonus_components.append(f"NPCs +{training_result['npc_score']}")
 
         # Check if WIT early stage bonus was applied
         from core.state import get_current_date_info, get_stage_thresholds
         current_date = get_current_date_info()
-        wit_bonus_info = ""
+        is_early_stage = False
 
         if current_date and key == "wit":
             stage_thresholds = get_stage_thresholds()
@@ -245,13 +245,24 @@ class TrainingHandler:
             if is_early_stage:
                 from core.logic import get_wit_early_stage_bonus
                 bonus = get_wit_early_stage_bonus()
-                wit_bonus_info = f" + Early WIT bonus ({bonus})"
+                bonus_components.append(f"early WIT +{bonus}")
 
-        # Enhanced stage info
+        # Get unified total score
+        total_score = training_result.get('total_score', 0)
+
+        # Build the final message
+        base_message = f"[{key.upper()}] → {training_result['support']} score: {total_score}"
+
+        # Add bonus information if any exists
+        if bonus_components:
+            bonus_info = " (" + ", ".join(bonus_components) + ")"
+            base_message += bonus_info
+
+        # Add stage indicator
         if is_early_stage:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score}({hint_info}{npc_info}{wit_bonus_info})) (Early-Stage)")
-        else:
-            self.log(f"[{key.upper()}] → {training_result['support']} (score: {total_score} ({hint_info}{npc_info}{wit_bonus_info}))")
+            base_message += " (Early-Stage)"
+
+        self.log(base_message)
 
         # Verify friend score calculation for WIT
         if key == "wit" and training_result['support'].get('friend', 0) > 0:

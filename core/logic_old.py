@@ -41,31 +41,10 @@ def get_support_base_score():
   support_config = SCORING_CONFIG.get("support_score", {})
   return support_config.get("base_value", 1.0)
 
-def get_friend_multiplier(training_type=None, current_date=None):
-  """Get friend card score multiplier based on training type and stage"""
+def get_friend_multiplier():
+  """Get friend card score multiplier"""
   support_config = SCORING_CONFIG.get("support_score", {})
-  friend_config = support_config.get("friend_multiplier", {})
-
-  # If friend_multiplier is not a dict (old config format), return it directly
-  if not isinstance(friend_config, dict):
-    return friend_config
-
-  # Check if we're in early stage (day < 24)
-  is_early_stage = False
-  if current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    is_early_stage = absolute_day < EARLY_STAGE_THRESHOLD
-
-  # Special handling for WIT training - always 0.5 regardless of stage
-  if training_type == "wit":
-    return friend_config.get("friend_wit_multiplier", 0.5)
-
-  # For other training types
-  if is_early_stage:
-    return friend_config.get("early_stage", 1.1)
-  else:
-    # Default multiplier for late stage (if not specified in nested config, use 1.0)
-    return friend_config.get("late_stage", 1.0)
+  return support_config.get("friend_multiplier", 1.0)
 
 def get_rainbow_multiplier(stage):
   """Get rainbow card multiplier based on stage"""
@@ -169,7 +148,7 @@ def calculate_training_score(training_key, training_data, current_date):
   # Apply early stage WIT bonus if applicable
   total_score = apply_early_stage_wit_bonus(training_key, total_score, current_date)
 
-  support_counts = training_data.get("support", {})
+  support_counts = training_data["support"]
   rainbow_count = support_counts.get(training_key, 0)
   hint_score = training_data.get("hint_score", 0)
   npc_score = training_data.get("npc_score", 0)
@@ -195,7 +174,7 @@ def format_score_info(training_key, training_data, current_date):
       wit_bonus_info = f" + Early WIT bonus ({bonus})"
 
   if stage_info['is_pre_debut']:
-    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info}{wit_bonus_info} - Pre-Debut: Score-based selection)"
+    return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info}{wit_bonus_info} - Pre-Debut: No strategy, no rainbow bonus)"
   elif stage_info['stage'] == 'early':
     return f"(score: {total_score} - {support_count} supports{hint_info}{npc_info}{wit_bonus_info} - Early Stage: Strategy applies, no rainbow bonus)"
   elif stage_info['stage'] == 'mid':
@@ -229,7 +208,11 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
 
   stage_info = get_career_stage_info(current_date)
 
-  # Apply strategy scoring using unified total_score with WIT bonus for all stages
+  # In Pre-Debut period, don't apply strategy scoring
+  if stage_info['is_pre_debut']:
+    return None
+
+  # After Pre-Debut, apply strategy scoring using unified total_score with WIT bonus
   valid_trainings = {}
   for key, data in results.items():
     total_score = data.get("total_score", 0)
@@ -258,31 +241,6 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   best_score = best_data.get("adjusted_score", best_data.get("total_score", 0))
 
   return best_key
-
-def score_based_training_selection(results, current_date):
-  """Score-based training selection for all stages including Pre-Debut"""
-  if not results:
-    return None
-
-  # Calculate score for each training with WIT bonus applied
-  training_list = []
-  for key, data in results.items():
-    score = data.get("total_score", 0)
-    adjusted_score = apply_early_stage_wit_bonus(key, score, current_date)
-    priority_index = get_priority_by_stage(key, current_date)
-    training_list.append((key, data, adjusted_score, priority_index))
-
-  # Sort by adjusted score (descending), then by priority (ascending - lower index = higher priority)
-  training_list.sort(key=lambda x: (-x[2], x[3]))
-
-  best_key, best_data, best_score, best_priority = training_list[0]
-
-  # Return None if no valid training found
-  if best_score <= 0:
-    return None
-
-  score_info = format_score_info(best_key, best_data, current_date)
-  return best_key, score_info
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """Enhanced training decision with unified scoring system and WIT early stage bonus"""
@@ -336,13 +294,11 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
     # G1 or G2 strategy - prioritize racing, no training
     return None
   else:
-    # Score-based training strategy for all stages
+    # Score-based training strategy
     if stage_info['is_pre_debut']:
-      # Pre-Debut: Use score-based selection instead of support card counting
-      result = score_based_training_selection(filtered_results, current_date)
-      if result:
-        return result[0]  # Return only the training key
-      return None
+      # Pre-Debut: Use fallback logic (most_support_card) - don't apply priority strategy
+      result = most_support_card(filtered_results, current_date)
+      return result
     else:
       # Post Pre-Debut: Apply strategy scoring using unified system with WIT bonus
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
@@ -370,6 +326,54 @@ def medium_energy_wit_training(results, current_date):
     return "wit"
 
   return None
+
+def most_support_card(results, current_date=None):
+  """Fallback logic for Pre-Debut period and when no training meets strategy requirements"""
+  stage_info = get_career_stage_info(current_date)
+
+  # In pre-debut, prioritize by highest score first, then normal priority
+  if stage_info['is_pre_debut']:
+    valid_trainings = {k: v for k, v in results.items() if v.get("total_score", 0) > 0}
+
+    if valid_trainings:
+      # For Pre-Debut: Use WIT bonus since it's strategic period
+      training_list = []
+      for key, data in valid_trainings.items():
+        score = data.get("total_score", 0)
+        adjusted_score = apply_early_stage_wit_bonus(key, score, current_date)
+        priority_index = get_priority_by_stage(key, current_date)
+        training_list.append((key, data, adjusted_score, priority_index))
+
+      # Sort by adjusted score (descending), then by priority (ascending)
+      training_list.sort(key=lambda x: (-x[2], x[3]))
+
+      best_key, best_data, best_score, best_priority = training_list[0]
+      return best_key
+
+    return None
+
+  # Post Pre-Debut fallback logic - use ORIGINAL scores only for fair comparison
+  if not results:
+    return None
+
+  training_list = []
+  for key, data in results.items():
+    original_score = data.get("total_score", 0)  # Use original score, no WIT bonus
+    priority_index = get_priority_by_stage(key, current_date)
+    training_list.append((key, data, original_score, priority_index))
+
+  # Sort by original score (descending), then by priority (ascending)
+  training_list.sort(key=lambda x: (-x[2], x[3]))
+
+  best_key, best_data, original_score, best_priority = training_list[0]
+
+  # Check minimum score requirements using original score
+  if original_score <= 1:
+    if best_key == "wit":
+      return None
+    return best_key
+
+  return best_key
 
 def low_energy_training(results, current_date=None):
   """Enhanced low energy training logic with configurable score requirements and early stage bonus"""
@@ -464,13 +468,9 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     # G1 or G2 strategy - prioritize racing, no training
     return None
   else:
-    # Score-based training strategy for all stages
+    # Score-based training strategy
     if stage_info['is_pre_debut']:
-      # Use score-based selection for Pre-Debut
-      result = score_based_training_selection(filtered, current_date)
-      if result:
-        return result[0]  # Return only the training key
-      return None
+      return most_support_card(filtered, current_date)
     else:
       result = find_best_training_by_score(filtered, current_date, score_threshold)
 

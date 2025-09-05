@@ -74,9 +74,11 @@ def get_stage_thresholds():
 
 def calculate_unified_training_score(training_type, support_counts, current_date):
   """Calculate training score using unified logic with early stage WIT bonus"""
+  # Import the unified function from logic.py
+  from core.logic import get_friend_multiplier
+
   # Get configuration values
   base_score = get_support_base_score()
-  friend_multiplier = get_friend_multiplier()
   hint_score = support_counts.get("hint_score", 0)
   npc_score = support_counts.get("npc_score", 0)
 
@@ -93,13 +95,11 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   rainbow_count = support_counts.get(training_type, 0)
   friend_count = support_counts.get("friend", 0)
 
-  # Special handling for friend cards in WIT training
+  # Calculate friend score using unified function from logic.py
   friend_score = 0
   if friend_count > 0:
-    if training_type == "wit":
-      friend_score = friend_count * 0.5  # Friend in WIT = 0.5 score each
-    else:
-      friend_score = friend_count * friend_multiplier
+    friend_multiplier = get_friend_multiplier(training_type, current_date)
+    friend_score = friend_count * friend_multiplier
 
   # Calculate other support cards (excluding rainbow, friend, and npc)
   other_support = sum(count for key, count in support_counts.items()

@@ -21,6 +21,16 @@
       "choice_2_if_energy_lte": 97
     },
     {
+      "name": "Serial Riddler",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Taste of Home",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
       "name": "Dance Lesson",
       "choice": 1
     },
@@ -39,16 +49,6 @@
     {
       "name": "Harvest Festival",
       "choice": 1
-    },
-    {
-      "name": "Serial Riddler",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice": 2
-    },
-    {
-      "name": "Taste of Home",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice": 2
     },
     {
       "name": "Rainy Power",

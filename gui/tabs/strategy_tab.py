@@ -56,6 +56,36 @@ class StrategyTab:
         # Bind variable changes to auto-save
         self.bind_variable_changes()
 
+    def update_filters_from_uma_data(self, uma_data):
+        """Update filters based on Uma Musume data from Event Choice Tab
+
+        Args:
+            uma_data (dict): Dictionary containing track and distance preferences
+                            Format: {'turf': bool, 'dirt': bool, 'sprint': bool,
+                                    'mile': bool, 'medium': bool, 'long': bool}
+        """
+        try:
+            # Temporarily disable auto-save to prevent multiple saves
+            self.disable_auto_save = True
+
+            # Update track filters
+            self.track_filters['turf'].set(uma_data.get('turf', False))
+            self.track_filters['dirt'].set(uma_data.get('dirt', False))
+
+            # Update distance filters
+            self.distance_filters['sprint'].set(uma_data.get('sprint', False))
+            self.distance_filters['mile'].set(uma_data.get('mile', False))
+            self.distance_filters['medium'].set(uma_data.get('medium', False))
+            self.distance_filters['long'].set(uma_data.get('long', False))
+
+            # Re-enable auto-save and trigger one save
+            self.disable_auto_save = False
+            self.main_window.save_settings()
+
+        except Exception as e:
+            print(f"Warning: Could not update strategy filters from Uma data: {e}")
+            self.disable_auto_save = False
+
     def bind_variable_changes(self):
         """Bind variable change events to auto-save with immediate filter update"""
         variables = [
@@ -77,29 +107,13 @@ class StrategyTab:
             self.target_month
         ]
 
-        def on_filter_change(*args):
-            """Handle filter changes with immediate race manager update"""
-            # Save settings to file
-            self.main_window.save_settings()
-
-            # **FIX: Immediately update race manager filters**
-            try:
-                current_settings = self.get_settings()
-                race_filters = {
-                    'track': current_settings['track'],
-                    'distance': current_settings['distance'],
-                    'grade': current_settings['grade']
-                }
-
-                # Update race manager with new filters
-                if hasattr(self.main_window, 'race_manager'):
-                    self.main_window.race_manager.update_filters(race_filters)
-
-            except Exception as e:
-                print(f"[ERROR] Failed to update race manager filters: {e}")
+        # Modified auto-save function to check disable flag
+        def auto_save_with_check(*args):
+            if not getattr(self, 'disable_auto_save', False):
+                self.main_window.save_settings()
 
         for var in variables:
-            var.trace('w', on_filter_change)
+            var.trace('w', auto_save_with_check)
 
     def create_content(self):
         """Create tab content"""

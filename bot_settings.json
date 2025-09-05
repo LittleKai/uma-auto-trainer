@@ -5,18 +5,18 @@
   },
   "distance": {
     "sprint": true,
-    "mile": true,
+    "mile": false,
     "medium": false,
     "long": false
   },
   "grade": {
     "g1": true,
-    "g2": false,
+    "g2": true,
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "G1 (no training)",
-  "allow_continuous_racing": true,
+  "priority_strategy": "Train Score 3.5+",
+  "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
@@ -24,23 +24,23 @@
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
   "target_month": "November",
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Taiki Shuttle",
+    "uma_musume": "Curren Chan",
     "support_cards": [
       "Kitasan Black (SSR)",
       "Tazuna Hayakawa (SSR)",
       "Special Week (SSR)",
       "Sweep Tosho (SR)",
-      "Oguri Cap (SSR)",
-      "Vodka (SSR)"
+      "Vodka (SSR)",
+      "Biwa Hayahide (SR)"
     ],
     "unknown_event_action": "Wait for user selection",
-    "current_set": 3,
+    "current_set": 6,
     "preset_sets": {
       "1": {
         "uma_musume": "Vodka",
@@ -65,14 +65,14 @@
         ]
       },
       "3": {
-        "uma_musume": "Air Groove (Wedding)",
+        "uma_musume": "Curren Chan",
         "support_cards": [
           "Kitasan Black (SSR)",
           "Tazuna Hayakawa (SSR)",
           "Special Week (SSR)",
-          "None",
-          "None",
-          "None"
+          "Sweep Tosho (SR)",
+          "Oguri Cap (SSR)",
+          "Vodka (SSR)"
         ]
       },
       "4": {
@@ -98,14 +98,14 @@
         ]
       },
       "6": {
-        "uma_musume": "None",
+        "uma_musume": "Curren Chan",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "Kitasan Black (SSR)",
+          "Tazuna Hayakawa (SSR)",
+          "Special Week (SSR)",
+          "Narita Taishin (SR)",
+          "Vodka (SSR)",
+          "Biwa Hayahide (SR)"
         ]
       }
     }

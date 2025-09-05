@@ -611,6 +611,68 @@ class UmaAutoGUI:
             self.log_message(f"Error checking stop conditions: {e}")
             return False
 
+    def update_strategy_filters(self, uma_data):
+        """Update Strategy Tab filters based on Uma Musume data
+
+        Args:
+            uma_data (dict): Dictionary containing track and distance preferences
+                            Format: {'turf': bool, 'dirt': bool, 'sprint': bool,
+                                    'mile': bool, 'medium': bool, 'long': bool}
+        """
+        try:
+            # Get strategy tab reference
+            strategy_tab = getattr(self, 'strategy_tab', None)
+            if strategy_tab:
+                # Update track filters
+                strategy_tab.track_filters['turf'].set(uma_data.get('turf', False))
+                strategy_tab.track_filters['dirt'].set(uma_data.get('dirt', False))
+
+                # Update distance filters
+                strategy_tab.distance_filters['sprint'].set(uma_data.get('sprint', False))
+                strategy_tab.distance_filters['mile'].set(uma_data.get('mile', False))
+                strategy_tab.distance_filters['medium'].set(uma_data.get('medium', False))
+                strategy_tab.distance_filters['long'].set(uma_data.get('long', False))
+
+                # Trigger auto-save for strategy tab
+                self.save_settings()
+
+        except Exception as e:
+            print(f"Warning: Could not update strategy filters: {e}")
+
+    # Alternative method if you want to call strategy tab directly
+    def update_strategy_filters_direct(self, uma_data):
+        """Direct update of Strategy Tab filters without going through main window
+
+        Args:
+            uma_data (dict): Dictionary containing track and distance preferences
+        """
+        try:
+            # Access strategy tab through tabs collection
+            if hasattr(self, 'tabs') and 'Strategy' in self.tabs:
+                strategy_tab = self.tabs['Strategy']
+            elif hasattr(self, 'strategy_tab'):
+                strategy_tab = self.strategy_tab
+            else:
+                return
+
+            # Update track filters
+            if hasattr(strategy_tab, 'track_filters'):
+                strategy_tab.track_filters['turf'].set(uma_data.get('turf', False))
+                strategy_tab.track_filters['dirt'].set(uma_data.get('dirt', False))
+
+            # Update distance filters
+            if hasattr(strategy_tab, 'distance_filters'):
+                strategy_tab.distance_filters['sprint'].set(uma_data.get('sprint', False))
+                strategy_tab.distance_filters['mile'].set(uma_data.get('mile', False))
+                strategy_tab.distance_filters['medium'].set(uma_data.get('medium', False))
+                strategy_tab.distance_filters['long'].set(uma_data.get('long', False))
+
+            # Save settings
+            self.save_settings()
+
+        except Exception as e:
+            print(f"Warning: Could not update strategy filters: {e}")
+
     def run(self):
         """Start the GUI application"""
         self.log_message("Configure strategy settings and race filters before starting.")

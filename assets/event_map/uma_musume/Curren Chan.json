@@ -1,0 +1,62 @@
+{
+  "events": [
+    {
+      "name": "Wanna Eat Together?",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "",
+      "choice_2_if_energy_gt": 97,
+      "choice_1_if_energy_lte": 97
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Which Curren Do You Like?",
+      "choice": 1
+    },
+    {
+      "name": "How Curren Handles Social Media ♪",
+      "choice": 1
+    },
+    {
+      "name": "Curren's Signature Racewear",
+      "choice": 2
+    },
+    {
+      "name": "One, Two, Three, Curren Chan!",
+      "choice": 1
+    },
+    {
+      "name": "Ms. Worldwide",
+      "choice": 1
+    },
+    {
+      "name": "Thanks for the Lesson ♪",
+      "choice": 1
+    },
+    {
+      "name": "Making Friends",
+      "choice": 1
+    },
+    {
+      "name": "Making Connections",
+      "choice": 2
+    },
+    {
+      "name": "Universal Cutie",
+      "choice": 1
+    },
+    {
+      "name": "A Nostalgic Flavor",
+      "choice": 2
+    },
+    {
+      "name": "Rattle, Rattle, Clunk",
+      "choice": 2
+    }
+  ]
+}

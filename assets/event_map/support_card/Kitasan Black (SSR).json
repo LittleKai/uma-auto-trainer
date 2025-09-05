@@ -3,7 +3,8 @@
     {
       "name": "Ah, Friendship",
       "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 98
+      "choice_2_if_energy_lte": 98,
+      "default_choice": 1
     },
     {
       "name": "Paying It Forward",

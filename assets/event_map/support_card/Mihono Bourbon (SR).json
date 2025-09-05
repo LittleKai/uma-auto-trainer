@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "I'm Not a Cyborg",
+      "choice": 1
+    },
+    {
+      "name": "Orders Must Be Followed",
+      "choice": 2
+    },
+    {
+      "name": "Do No Harm",
+      "choice_1_if_energy_gt": 96
+    }
+  ]
+}

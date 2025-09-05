@@ -2,8 +2,7 @@
   "events": [
     {
       "name": "How Should I Respond?",
-      "choice_2_if_uma": "Vodka",
-      "choice_1_if_uma": "El Pasa"
+      "choice_2_if_uma": ["Vodka", "Symboli Rudolf","Haru Urara","Nice Nature","King Halo","Grass Wonder","Matikanefukukitaru"]
     },
     {
       "name": "What I Want to Say",

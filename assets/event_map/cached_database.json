@@ -15,69 +15,61 @@
   ],
   "train_event_uma_musume": [
     {
-      "name": "Meaty Heaven",
+      "name": "Wanna Eat Together?",
       "choice_1_if_energy_gt": 85,
       "choice_2_if_energy_lte": 85
     },
     {
-      "name": "Embracing Guidance",
+      "name": "",
       "choice_2_if_energy_gt": 97,
       "choice_1_if_energy_lte": 97
-    },
-    {
-      "name": "Embracing Guidance",
-      "choice_1_if_energy_gt": 97,
-      "choice_2_if_energy_lte": 97
-    },
-    {
-      "name": "Let's Patrol!",
-      "choice_1_if_energy_gt": 97,
-      "choice_2_if_energy_lte": 97
     },
     {
       "name": "Dance Lesson",
       "choice": 1
     },
     {
-      "name": "Quick Draw Showdown",
+      "name": "Which Curren Do You Like?",
       "choice": 1
     },
     {
-      "name": "Must-Win Match",
+      "name": "How Curren Handles Social Media ♪",
+      "choice": 1
+    },
+    {
+      "name": "Curren's Signature Racewear",
       "choice": 2
     },
     {
-      "name": "To the Top!",
+      "name": "One, Two, Three, Curren Chan!",
       "choice": 1
     },
     {
-      "name": "Harvest Festival",
+      "name": "Ms. Worldwide",
       "choice": 1
     },
     {
-      "name": "Serial Riddler",
-      "choice_1_if_mood_lt": "GREAT",
+      "name": "Thanks for the Lesson ♪",
+      "choice": 1
+    },
+    {
+      "name": "Making Friends",
+      "choice": 1
+    },
+    {
+      "name": "Making Connections",
       "choice": 2
     },
     {
-      "name": "Taste of Home",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice": 2
-    },
-    {
-      "name": "Rainy Power",
-      "choice": 2
-    },
-    {
-      "name": "Rainy Choice",
+      "name": "Universal Cutie",
       "choice": 1
     },
     {
-      "name": "Rainy Rescue",
-      "choice": 1
+      "name": "A Nostalgic Flavor",
+      "choice": 2
     },
     {
-      "name": "Going Home Together",
+      "name": "Rattle, Rattle, Clunk",
       "choice": 2
     },
     {
@@ -127,7 +119,8 @@
     {
       "name": "Ah, Friendship",
       "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 98
+      "choice_2_if_energy_lte": 98,
+      "default_choice": 1
     },
     {
       "name": "Paying It Forward",
@@ -168,29 +161,8 @@
       "choice": 1
     },
     {
-      "name": "Premeditated Mischief",
-      "choice": 1
-    },
-    {
       "name": "Miracle ☆ Escape!",
       "choice_2_if_energy_gt": 92
-    },
-    {
-      "name": "How Should I Respond?",
-      "choice_2_if_uma": "Vodka",
-      "choice_1_if_uma": "El Pasa"
-    },
-    {
-      "name": "What I Want to Say",
-      "choice": 1
-    },
-    {
-      "name": "How Should I Respond?",
-      "choice": 1
-    },
-    {
-      "name": "Conquering the Crowds",
-      "choice": 1
     },
     {
       "name": "The Coolest Line",
@@ -198,6 +170,14 @@
     },
     {
       "name": "Enemies on Main Street",
+      "choice": 2
+    },
+    {
+      "name": "Last-Minute Modal Theory",
+      "choice": 2
+    },
+    {
+      "name": "Step-Out-of-Your-Comfort-Zone Theory",
       "choice": 2
     }
   ]

@@ -2,10 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 import os
 import glob
+import csv
 
 
 class EventChoiceTab:
-    """Event choice configuration tab"""
+    """Event choice configuration tab with Uma Musume data integration"""
 
     def __init__(self, parent, main_window):
         self.parent = parent
@@ -14,8 +15,73 @@ class EventChoiceTab:
         # Initialize variables
         self.init_variables()
 
+        # Load Uma Musume data from CSV
+        self.uma_musume_data = self.load_uma_musume_data()
+
         # Create tab content
         self.create_content()
+
+    def load_uma_musume_data(self):
+        """Load Uma Musume data from CSV file"""
+        data = {}
+        try:
+            csv_path = "assets/uma_musume_data.csv"
+            if os.path.exists(csv_path):
+                with open(csv_path, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        uma_name = row.get('uma_musume', '')
+                        if uma_name:
+                            data[uma_name] = {
+                                'turf': row.get('Turf', '').upper() in ['A', 'B'],
+                                'dirt': row.get('Dirt', '').upper() in ['A', 'B'],
+                                'sprint': row.get('Sprint', '').upper() in ['A', 'B'],
+                                'mile': row.get('Mile', '').upper() in ['A', 'B'],
+                                'medium': row.get('Medium', '').upper() in ['A', 'B'],
+                                'long': row.get('Long', '').upper() in ['A', 'B']
+                            }
+            else:
+                print(f"Warning: Uma Musume data file not found: {csv_path}")
+        except Exception as e:
+            print(f"Error loading Uma Musume data: {e}")
+        return data
+
+    def update_strategy_checkboxes(self, uma_musume_name):
+        """Update Strategy Tab checkboxes based on Uma Musume data"""
+        if uma_musume_name == "None" or uma_musume_name not in self.uma_musume_data:
+            return
+
+        uma_data = self.uma_musume_data[uma_musume_name]
+
+        # Try multiple approaches to update strategy tab
+        try:
+            # Method 1: Call main window method
+            if hasattr(self.main_window, 'update_strategy_filters'):
+                self.main_window.update_strategy_filters(uma_data)
+                return
+
+            # Method 2: Call strategy tab method directly
+            strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+            if strategy_tab and hasattr(strategy_tab, 'update_filters_from_uma_data'):
+                strategy_tab.update_filters_from_uma_data(uma_data)
+                return
+
+            # Method 3: Direct access to strategy tab variables
+            if strategy_tab:
+                strategy_tab.track_filters['turf'].set(uma_data['turf'])
+                strategy_tab.track_filters['dirt'].set(uma_data['dirt'])
+                strategy_tab.distance_filters['sprint'].set(uma_data['sprint'])
+                strategy_tab.distance_filters['mile'].set(uma_data['mile'])
+                strategy_tab.distance_filters['medium'].set(uma_data['medium'])
+                strategy_tab.distance_filters['long'].set(uma_data['long'])
+
+        except Exception as e:
+            print(f"Warning: Could not update strategy checkboxes: {e}")
+
+    def on_uma_musume_change(self, *args):
+        """Handle Uma Musume selection change"""
+        selected_uma = self.selected_uma_musume.get()
+        self.update_strategy_checkboxes(selected_uma)
 
     def init_variables(self):
         """Initialize tab variables"""
@@ -25,7 +91,7 @@ class EventChoiceTab:
         self.support_cards = [tk.StringVar(value="None") for _ in range(6)]
         self.unknown_event_action = tk.StringVar(value="Auto select first choice")
 
-        # Variables for 3 preset sets
+        # Variables for 6 preset sets
         self.current_set = tk.IntVar(value=1)
         self.preset_sets = {
             1: {
@@ -57,15 +123,14 @@ class EventChoiceTab:
         # Store preset button references for styling
         self.preset_buttons = {}
 
-        # Bind variable changes to auto-save
+        # Bind variable changes to auto-save and strategy updates
         self.bind_variable_changes()
 
     def bind_variable_changes(self):
-        """Bind variable change events to auto-save"""
+        """Bind variable change events to auto-save and strategy updates"""
         variables = [
             self.auto_event_map_var,
             self.auto_first_choice_var,
-            self.selected_uma_musume,
             self.unknown_event_action,
             *self.support_cards,
             self.current_set
@@ -77,6 +142,10 @@ class EventChoiceTab:
 
         for var in variables:
             var.trace('w', lambda *args: self.main_window.save_settings())
+
+        # Special handling for Uma Musume selection to update strategy
+        self.selected_uma_musume.trace('w', self.on_uma_musume_change)
+        self.selected_uma_musume.trace('w', lambda *args: self.main_window.save_settings())
 
     def create_content(self):
         """Create tab content with increased width"""
@@ -218,7 +287,7 @@ class EventChoiceTab:
 
         support_cards_list = self.get_support_cards_list()
 
-        # Create 2 rows of 3 support cards each
+        # Create 2 rows of 3 support cards each with original layout
         for i in range(6):
             row_pos = (i // 3) + 1  # Start from row 1
             col_pos = i % 3         # 0,1,2 for columns
@@ -228,6 +297,7 @@ class EventChoiceTab:
                             padx=8, pady=2)
             card_frame.columnconfigure(1, weight=1)
 
+            # Support label on top
             ttk.Label(
                 card_frame,
                 text=f"Support {i+1}:",
@@ -235,6 +305,7 @@ class EventChoiceTab:
                 foreground="#006600"
             ).grid(row=0, column=0, sticky=tk.W, pady=(0, 4))
 
+            # Dropdown below label
             support_combo = ttk.Combobox(
                 card_frame,
                 textvariable=self.support_cards[i],
@@ -246,7 +317,7 @@ class EventChoiceTab:
             support_combo.grid(row=1, column=0, sticky=(tk.W, tk.E))
 
     def switch_preset_set(self, set_number):
-        """Switch to a different preset set"""
+        """Switch to a different preset set and update strategy checkboxes"""
         # Save current values to current set
         current = self.current_set.get()
         self.preset_sets[current]['uma_musume'].set(self.selected_uma_musume.get())
@@ -255,7 +326,9 @@ class EventChoiceTab:
 
         # Load values from new set
         self.current_set.set(set_number)
-        self.selected_uma_musume.set(self.preset_sets[set_number]['uma_musume'].get())
+        selected_uma = self.preset_sets[set_number]['uma_musume'].get()
+        self.selected_uma_musume.set(selected_uma)
+
         for i, card in enumerate(self.support_cards):
             card.set(self.preset_sets[set_number]['support_cards'][i].get())
 
@@ -264,6 +337,9 @@ class EventChoiceTab:
 
         # Update button styles
         self.update_preset_button_styles()
+
+        # Update strategy checkboxes based on new Uma Musume selection
+        self.update_strategy_checkboxes(selected_uma)
 
     def update_preset_button_styles(self):
         """Update preset button visual styles to show active set"""
@@ -304,17 +380,25 @@ class EventChoiceTab:
 
     def get_uma_musume_list(self):
         """Get list of available Uma Musume from event map folder with None at top"""
-        uma_list = ["None"]  # None is already at the top
+        uma_list = ["None"]
         try:
             uma_folder = "assets/event_map/uma_musume"
             if os.path.exists(uma_folder):
                 json_files = glob.glob(os.path.join(uma_folder, "*.json"))
-                other_uma = []
                 for file_path in json_files:
                     filename = os.path.basename(file_path).replace('.json', '')
-                    other_uma.append(filename)
-                other_uma.sort()
-                uma_list.extend(other_uma)
+                    uma_list.append(filename)
+
+                # Try to get additional Uma Musume from other sources
+                other_uma_folder = "assets/uma_musume"
+                if os.path.exists(other_uma_folder):
+                    json_files = glob.glob(os.path.join(other_uma_folder, "*.json"))
+                    other_uma = []
+                    for file_path in json_files:
+                        filename = os.path.basename(file_path).replace('.json', '')
+                        other_uma.append(filename)
+                    other_uma.sort()
+                    uma_list.extend(other_uma)
         except Exception as e:
             print(f"Error loading Uma Musume list: {e}")
         return uma_list
@@ -403,6 +487,9 @@ class EventChoiceTab:
 
             # Update button styles after loading
             self.update_preset_button_styles()
+
+            # Update strategy checkboxes based on loaded Uma Musume
+            self.update_strategy_checkboxes(self.selected_uma_musume.get())
 
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")

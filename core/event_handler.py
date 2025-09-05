@@ -448,7 +448,7 @@ class EventChoiceHandler:
         Args:
             event_config: Event configuration dictionary
             current_energy: Current energy percentage (None if not checked)
-            current_mood: Current mood (None if not checked) 
+            current_mood: Current mood (None if not checked)
             uma_musume: Current Uma Musume name
 
         Returns:
@@ -458,9 +458,7 @@ class EventChoiceHandler:
             # Handle simple choice (should have been handled before this function)
             if "choice" in event_config:
                 choice = event_config["choice"]
-                if choice == "bottom":
-                    return 5
-                elif isinstance(choice, int):
+                if isinstance(choice, int) and 1 <= choice <= 5:
                     return choice
 
             # Handle conditional choices
@@ -495,12 +493,36 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} < {threshold_mood}")
                             return i
 
-                # Check Uma Musume specific condition
+                # Check mood greater than or equal condition
+                mood_gte_key = f"choice_{i}_if_mood_gte"
+                if mood_gte_key in event_config and current_mood_index is not None:
+                    threshold_mood = event_config[mood_gte_key]
+                    if threshold_mood in mood_priority:
+                        threshold_index = mood_priority.index(threshold_mood)
+                        if current_mood_index >= threshold_index:
+                            self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} >= {threshold_mood}")
+                            return i
+
+                # Check Uma Musume specific condition (supports multiple uma musume)
                 uma_key = f"choice_{i}_if_uma"
                 if uma_key in event_config:
-                    if uma_musume == event_config[uma_key]:
-                        self.log(f"[DEBUG] Choice {i} selected: uma musume matches {uma_musume}")
-                        return i
+                    uma_condition = event_config[uma_key]
+                    # Support both string and list of strings
+                    if isinstance(uma_condition, str):
+                        if uma_musume == uma_condition:
+                            self.log(f"[DEBUG] Choice {i} selected: uma musume matches {uma_musume}")
+                            return i
+                    elif isinstance(uma_condition, list):
+                        if uma_musume in uma_condition:
+                            self.log(f"[DEBUG] Choice {i} selected: uma musume {uma_musume} in {uma_condition}")
+                            return i
+
+            # Check for custom default choice
+            if "default_choice" in event_config:
+                default_choice = event_config["default_choice"]
+                if isinstance(default_choice, int) and 1 <= default_choice <= 5:
+                    self.log(f"[DEBUG] No conditions met, using custom default choice {default_choice}")
+                    return default_choice
 
             # Default fallback - return choice 1
             self.log("[DEBUG] No conditions met, using default choice 1")

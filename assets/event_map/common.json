@@ -1,7 +1,7 @@
 {
   "train_event_uma_musume": [
     {
-      "name": "Victory!",
+      "name": "Victory",
       "choice": 1
     },
     {
@@ -9,11 +9,11 @@
       "choice": 1
     },
     {
-      "name": "Get Well Soon!",
+      "name": "Get Well Soon",
       "choice": 1
     },
     {
-      "name": "Don't Overdo It!",
+      "name": "Don't Overdo It",
       "choice": 1
     },
     {
@@ -33,11 +33,15 @@
       "name": "New Year's Shrine Visit",
       "choice_1_if_energy_lte": 78,
       "choice_2_if_energy_gt": 78
+    },
+    {
+      "name": "At Summer Camp Year 2",
+      "choice": 1
     }
   ],
   "train_event_scenario": [
     {
-      "name": "Exhilarating! What a Scoop!",
+      "name": "Exhilarating What a Scoop",
       "choice": 1
     },
     {
@@ -45,7 +49,7 @@
       "choice": 1
     },
     {
-      "name": "At Summer Camp (Year 2)",
+      "name": "At Summer Camp Year 2",
       "choice": 1
     }
   ]

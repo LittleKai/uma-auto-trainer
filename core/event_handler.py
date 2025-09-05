@@ -370,7 +370,7 @@ class EventChoiceHandler:
 
             # Step 2: Find matching event by name
             event_names = [event.get("name", "") for event in event_list]
-            matched_name = self.find_similar_text(event_name, event_names, threshold=0.8)
+            matched_name = self.find_similar_text(event_name, event_names, threshold=0.75)
 
             if not matched_name:
                 self.log(f"[DEBUG] No matching event found for: '{event_name}'")
@@ -599,15 +599,11 @@ class EventChoiceHandler:
 
             # Use OpenCV template matching instead of pyautogui
             try:
-                # Get screen dimensions for region
-                screen_width, screen_height = pyautogui.size()
-                screen_region = (0, 0, screen_width, screen_height)
 
                 position = find_template_position(
                     template_path=choice_icon,
                     region=EVENT_CHOICE_REGION,
-                    threshold=0.85,
-                    return_center=True,
+                    threshold=0.8,
                     region_format='xywh'
                 )
 

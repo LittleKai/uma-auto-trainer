@@ -284,8 +284,7 @@ class EventHandler:
                 unknown_action = event_settings.get('unknown_event_action', 'Auto select first choice')
 
                 if unknown_action == "Wait for user selection":
-                    self.controller.log_message("🎭 EVENT REQUIRES USER INPUT!")
-                    self.controller.log_message("⏳ Either mood is UNKNOWN or event not in database - waiting for manual selection...")
+                    self.controller.log_message("⏳ Event may not in database - waiting for manual selection...")
 
                     # Wait for event completion like manual mode
                     event_handled = self._wait_for_event_completion(gui)

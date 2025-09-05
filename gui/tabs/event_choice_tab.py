@@ -25,6 +25,26 @@ class EventChoiceTab:
         self.support_cards = [tk.StringVar(value="None") for _ in range(6)]
         self.unknown_event_action = tk.StringVar(value="Auto select first choice")
 
+        # Variables for 3 preset sets
+        self.current_set = tk.IntVar(value=1)
+        self.preset_sets = {
+            1: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            },
+            2: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            },
+            3: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            }
+        }
+
+        # Store preset button references for styling
+        self.preset_buttons = {}
+
         # Bind variable changes to auto-save
         self.bind_variable_changes()
 
@@ -35,14 +55,19 @@ class EventChoiceTab:
             self.auto_first_choice_var,
             self.selected_uma_musume,
             self.unknown_event_action,
-            *self.support_cards
+            *self.support_cards,
+            self.current_set
         ]
+
+        # Add preset sets variables
+        for preset in self.preset_sets.values():
+            variables.extend([preset['uma_musume']] + preset['support_cards'])
 
         for var in variables:
             var.trace('w', lambda *args: self.main_window.save_settings())
 
     def create_content(self):
-        """Create tab content"""
+        """Create tab content with increased width"""
         # Create scrollable frame
         canvas = tk.Canvas(self.parent)
         scrollbar = ttk.Scrollbar(self.parent, orient="vertical", command=canvas.yview)
@@ -56,10 +81,10 @@ class EventChoiceTab:
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Main content frame with wider padding
-        content_frame = ttk.Frame(scrollable_frame, padding="10")
+        # Main content frame with increased width and reduced padding
+        content_frame = ttk.Frame(scrollable_frame, padding="8")
         content_frame.pack(fill=tk.BOTH, expand=True)
-        content_frame.columnconfigure(0, weight=1)
+        content_frame.columnconfigure(0, weight=1, minsize=740)
 
         # Create sections
         self.create_support_selection(content_frame, row=0)
@@ -69,57 +94,42 @@ class EventChoiceTab:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Bind mousewheel for scrolling
-        self.bind_mousewheel(canvas)
-
-    def bind_mousewheel(self, canvas):
-        """Bind mousewheel events for scrolling"""
-        def on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-        def on_mousewheel_linux(event):
-            if event.num == 4:
-                canvas.yview_scroll(-1, "units")
-            elif event.num == 5:
-                canvas.yview_scroll(1, "units")
-
-        canvas.bind("<MouseWheel>", on_mousewheel)
-        canvas.bind("<Button-4>", on_mousewheel_linux)
-        canvas.bind("<Button-5>", on_mousewheel_linux)
-
     def create_mode_selection(self, parent, row):
-        """Create event handling mode selection with checkboxes on same line and unknown event action below"""
-        mode_frame = ttk.LabelFrame(parent, text="Event Handling Mode", padding="10")
-        mode_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
-        mode_frame.columnconfigure(0, weight=1)
+        """Create mode selection section with checkboxes in same row"""
+        mode_frame = ttk.LabelFrame(parent, text="Event Choice Mode", padding="8")
+        mode_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(8, 0))
 
-        # Checkbox container - same line
-        checkbox_frame = ttk.Frame(mode_frame)
-        checkbox_frame.pack(fill=tk.X, pady=(0, 15))
+        # Checkboxes container
+        checkbox_container = ttk.Frame(mode_frame)
+        checkbox_container.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
 
+        # Auto Event Map mode
         self.auto_event_check = ttk.Checkbutton(
-            checkbox_frame,
-            text="Auto select events using event map",
+            checkbox_container,
+            text="Auto Event Map",
             variable=self.auto_event_map_var,
             command=self.on_mode_change
         )
-        self.auto_event_check.pack(side=tk.LEFT)
+        self.auto_event_check.pack(side=tk.LEFT, padx=(0, 20))
 
-        self.auto_first_check = ttk.Checkbutton(
-            checkbox_frame,
-            text="Always select first choice",
+        # Auto First Choice mode
+        auto_first_check = ttk.Checkbutton(
+            checkbox_container,
+            text="Auto First Choice",
             variable=self.auto_first_choice_var,
             command=self.on_mode_change
         )
-        self.auto_first_check.pack(side=tk.LEFT, padx=(30, 0))
+        auto_first_check.pack(side=tk.LEFT)
 
-        # Unknown event action container
+        # Unknown Event Action
         action_container = ttk.Frame(mode_frame)
-        action_container.pack(fill=tk.X)
-        action_container.columnconfigure(1)
+        action_container.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=0)
 
-        ttk.Label(action_container, text="When event not in map:",
-                  font=("Arial", 9, "bold")).grid(row=0, column=0, sticky=tk.W, padx=(0, 15))
+        ttk.Label(
+            action_container,
+            text="Unknown Event Action:",
+            font=("Arial", 9)
+        ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
 
         action_dropdown = ttk.Combobox(
             action_container,
@@ -132,58 +142,138 @@ class EventChoiceTab:
         action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
     def create_support_selection(self, parent, row):
-        """Create Support Card selection with 2x3 grid layout"""
-        support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="10")
-        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        """Create enhanced Support Card selection with preset sets"""
+        support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="8")
+        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
 
-        # Uma Musume selection section
+        # Uma Musume selection section with preset buttons
         uma_container = ttk.Frame(support_frame)
-        uma_container.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
+        uma_container.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 12))
 
-        ttk.Label(uma_container, text="Select Uma Musume:", font=("Arial", 9, "bold")).pack(
-            side=tk.LEFT, padx=(0, 15))
+        # Uma Musume label and dropdown
+        ttk.Label(
+            uma_container,
+            text="Select Uma Musume:",
+            font=("Arial", 9),
+            foreground="#CC0066"
+        ).pack(side=tk.LEFT, padx=(0, 15))
 
         self.uma_dropdown = ttk.Combobox(
             uma_container,
             textvariable=self.selected_uma_musume,
             values=self.get_uma_musume_list(),
             state="readonly",
-            font=("Arial", 10),
-            width=16
+            font=("Arial", 9),
+            width=18
         )
-        self.uma_dropdown.pack(side=tk.LEFT)
+        self.uma_dropdown.pack(side=tk.LEFT, padx=(0, 30))
 
-        # Configure columns for equal distribution
-        for i in range(2):
-            support_frame.columnconfigure(i, weight=1)
+        # Preset set buttons
+        preset_container = ttk.Frame(uma_container)
+        preset_container.pack(side=tk.LEFT, padx=(15, 0))
+
+        ttk.Label(
+            preset_container,
+            text="Preset Sets:",
+            font=("Arial", 9),
+            foreground="#0066CC"
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        # Create preset buttons with enhanced styling
+        button_frame = ttk.Frame(preset_container)
+        button_frame.pack(side=tk.LEFT)
+
+        for i in range(1, 4):
+            btn = tk.Button(
+                button_frame,
+                text=str(i),
+                command=lambda x=i: self.switch_preset_set(x),
+                width=3,
+                height=1,
+                font=("Arial", 9),
+                relief="raised",
+                bd=2
+            )
+            btn.pack(side=tk.LEFT, padx=1)
+            self.preset_buttons[i] = btn
+
+        # Set initial active button
+        self.update_preset_button_styles()
+
+        # Configure columns for equal distribution with increased space
+        for i in range(3):
+            support_frame.columnconfigure(i, weight=1, minsize=200)
 
         support_cards_list = self.get_support_cards_list()
 
-        # Create 3 rows of 2 support cards each
+        # Create 2 rows of 3 support cards each
         for i in range(6):
-            row_pos = (i // 2) + 1  # Start from row 1 (after Uma selection)
-            col_pos = i % 2         # 0,1 for columns
+            row_pos = (i // 3) + 1  # Start from row 1
+            col_pos = i % 3         # 0,1,2 for columns
 
             card_frame = ttk.Frame(support_frame)
             card_frame.grid(row=row_pos, column=col_pos, sticky=(tk.W, tk.E),
-                            padx=5, pady=5)
+                            padx=8, pady=2)
             card_frame.columnconfigure(1, weight=1)
 
             ttk.Label(
                 card_frame,
                 text=f"Support {i+1}:",
-                width=12,
-                font=("Arial", 10, "bold")
-            ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
+                font=("Arial", 9),
+                foreground="#006600"
+            ).grid(row=0, column=0, sticky=tk.W, pady=(0, 4))
 
             support_combo = ttk.Combobox(
                 card_frame,
                 textvariable=self.support_cards[i],
                 values=["None"] + support_cards_list,
                 state="readonly",
-                font=("Arial", 10)
+                font=("Arial", 9),
+                width=20
             )
-            support_combo.grid(row=0, column=1, sticky=(tk.W, tk.E))
+            support_combo.grid(row=1, column=0, sticky=(tk.W, tk.E))
+
+    def switch_preset_set(self, set_number):
+        """Switch to a different preset set"""
+        # Save current values to current set
+        current = self.current_set.get()
+        self.preset_sets[current]['uma_musume'].set(self.selected_uma_musume.get())
+        for i, card in enumerate(self.support_cards):
+            self.preset_sets[current]['support_cards'][i].set(card.get())
+
+        # Load values from new set
+        self.current_set.set(set_number)
+        self.selected_uma_musume.set(self.preset_sets[set_number]['uma_musume'].get())
+        for i, card in enumerate(self.support_cards):
+            card.set(self.preset_sets[set_number]['support_cards'][i].get())
+
+        # Update dropdown values to reflect new selection
+        self.uma_dropdown['values'] = self.get_uma_musume_list()
+
+        # Update button styles
+        self.update_preset_button_styles()
+
+    def update_preset_button_styles(self):
+        """Update preset button visual styles to show active set"""
+        current = self.current_set.get()
+
+        for i, btn in self.preset_buttons.items():
+            if i == current:
+                # Active button - highlighted
+                btn.configure(
+                    bg="#4CAF50",
+                    fg="white",
+                    relief="sunken",
+                    font=("Arial", 9, "bold")
+                )
+            else:
+                # Inactive button - normal
+                btn.configure(
+                    bg="SystemButtonFace",
+                    fg="black",
+                    relief="raised",
+                    font=("Arial", 9)
+                )
 
     def on_mode_change(self):
         """Handle mode change to ensure exactly one mode is selected"""
@@ -201,16 +291,18 @@ class EventChoiceTab:
                 self.auto_event_map_var.set(False)
 
     def get_uma_musume_list(self):
-        """Get list of available Uma Musume from event map folder"""
-        uma_list = ["None"]
+        """Get list of available Uma Musume from event map folder with None at top"""
+        uma_list = ["None"]  # None is already at the top
         try:
             uma_folder = "assets/event_map/uma_musume"
             if os.path.exists(uma_folder):
                 json_files = glob.glob(os.path.join(uma_folder, "*.json"))
+                other_uma = []
                 for file_path in json_files:
                     filename = os.path.basename(file_path).replace('.json', '')
-                    uma_list.append(filename)
-            uma_list.sort()
+                    other_uma.append(filename)
+                other_uma.sort()
+                uma_list.extend(other_uma)
         except Exception as e:
             print(f"Error loading Uma Musume list: {e}")
         return uma_list
@@ -231,17 +323,28 @@ class EventChoiceTab:
         return support_list
 
     def get_settings(self):
-        """Get current tab settings"""
-        return {
+        """Get current tab settings including preset sets"""
+        settings = {
             'auto_event_map': self.auto_event_map_var.get(),
             'auto_first_choice': self.auto_first_choice_var.get(),
             'uma_musume': self.selected_uma_musume.get(),
             'support_cards': [card.get() for card in self.support_cards],
-            'unknown_event_action': self.unknown_event_action.get()
+            'unknown_event_action': self.unknown_event_action.get(),
+            'current_set': self.current_set.get(),
+            'preset_sets': {}
         }
 
+        # Save preset sets
+        for set_num, preset in self.preset_sets.items():
+            settings['preset_sets'][set_num] = {
+                'uma_musume': preset['uma_musume'].get(),
+                'support_cards': [card.get() for card in preset['support_cards']]
+            }
+
+        return settings
+
     def load_settings(self, settings):
-        """Load settings into tab with validation for checkbox states"""
+        """Load settings into tab with validation for checkbox states and preset sets"""
         try:
             auto_event_map = settings.get('auto_event_map', False)
             auto_first_choice = settings.get('auto_first_choice', True)
@@ -262,6 +365,7 @@ class EventChoiceTab:
             self.auto_event_map_var.trace('w', lambda *args: self.main_window.save_settings())
             self.auto_first_choice_var.trace('w', lambda *args: self.main_window.save_settings())
 
+            # Load current selections
             if 'uma_musume' in settings:
                 self.selected_uma_musume.set(settings['uma_musume'])
             if 'unknown_event_action' in settings:
@@ -270,6 +374,23 @@ class EventChoiceTab:
             support_cards = settings.get('support_cards', ['None'] * 6)
             for i, card in enumerate(support_cards[:6]):
                 self.support_cards[i].set(card)
+
+            # Load preset sets
+            if 'preset_sets' in settings:
+                for set_num, preset_data in settings['preset_sets'].items():
+                    set_num = int(set_num)
+                    if set_num in self.preset_sets:
+                        self.preset_sets[set_num]['uma_musume'].set(preset_data.get('uma_musume', 'None'))
+                        preset_support_cards = preset_data.get('support_cards', ['None'] * 6)
+                        for i, card in enumerate(preset_support_cards[:6]):
+                            self.preset_sets[set_num]['support_cards'][i].set(card)
+
+            # Load current set and update button styles
+            if 'current_set' in settings:
+                self.current_set.set(settings['current_set'])
+
+            # Update button styles after loading
+            self.update_preset_button_styles()
 
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")

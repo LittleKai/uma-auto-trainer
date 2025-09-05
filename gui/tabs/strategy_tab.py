@@ -119,7 +119,7 @@ class StrategyTab:
         # Main content frame
         content_frame = ttk.Frame(scrollable_frame, padding="4")
         content_frame.pack(fill=tk.BOTH, expand=True)
-        content_frame.columnconfigure(0, weight=1)
+        content_frame.columnconfigure(0, weight=1, minsize=470)
 
         # Create sections
         self.create_strategy_settings(content_frame, row=0)

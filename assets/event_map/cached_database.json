@@ -1,7 +1,7 @@
 {
   "train_event_scenario": [
     {
-      "name": "Exhilarating! What a Scoop!",
+      "name": "Exhilarating What a Scoop",
       "choice": 1
     },
     {
@@ -9,67 +9,66 @@
       "choice": 1
     },
     {
-      "name": "At Summer Camp (Year 2)",
+      "name": "At Summer Camp Year 2",
       "choice": 1
     }
   ],
   "train_event_uma_musume": [
     {
-      "name": "Let's Take a Little Detour",
-      "choice_2_if_mood_lt": "GREAT"
-    },
-    {
-      "name": "Awkward Honesty",
+      "name": "A Page about Apples",
       "choice_1_if_energy_gt": 80,
       "choice_2_if_energy_lte": 80
-    },
-    {
-      "name": "Sugar and Spice",
-      "choice_2_if_energy_gt": 92,
-      "choice_1_if_energy_lte": 92
     },
     {
       "name": "Dance Lesson",
       "choice": 2
     },
     {
-      "name": "Vintage Style",
+      "name": "Am I Enough?",
       "choice": 2
     },
     {
-      "name": "Makings of a Friend",
+      "name": "Sweet & Lively Joy",
       "choice": 1
     },
     {
-      "name": "Hot and Cool",
+      "name": "I Am Enough",
       "choice": 2
     },
     {
-      "name": "Like a Kid",
+      "name": "Training Inspiration",
       "choice": 2
     },
     {
-      "name": "Challenging Fate",
-      "choice": 1
-    },
-    {
-      "name": "Showdown by the River!",
-      "choice": 1
-    },
-    {
-      "name": "The Standards of Coolness",
-      "choice": 1
-    },
-    {
-      "name": "Ring Out, Passionate Sound!",
+      "name": "Wonderful New Worlds",
       "choice": 2
     },
     {
-      "name": "The Way of Cool",
-      "choice": 3
+      "name": "Looking on the Bright Side",
+      "choice": 1
     },
     {
-      "name": "Victory!",
+      "name": "Even When the Ladybugs Are Gone",
+      "choice": 1
+    },
+    {
+      "name": "Even When Clouds Cover the Sky",
+      "choice": 1
+    },
+    {
+      "name": "My Sun",
+      "choice": 2
+    },
+    {
+      "name": "I've Got This!",
+      "choice": 2
+    },
+    {
+      "name": "A Page about Sunsets",
+      "choice": 1
+    },
+    {
+      "name": "Victory",
       "choice": 1
     },
     {
@@ -77,11 +76,11 @@
       "choice": 1
     },
     {
-      "name": "Get Well Soon!",
+      "name": "Get Well Soon",
       "choice": 1
     },
     {
-      "name": "Don't Overdo It!",
+      "name": "Don't Overdo It",
       "choice": 1
     },
     {
@@ -101,6 +100,10 @@
       "name": "New Year's Shrine Visit",
       "choice_1_if_energy_lte": 78,
       "choice_2_if_energy_gt": 78
+    },
+    {
+      "name": "At Summer Camp Year 2",
+      "choice": 1
     }
   ],
   "train_event_support_card": [
@@ -115,6 +118,28 @@
     },
     {
       "name": "Ah, Home Sweet Home",
+      "choice": 2
+    },
+    {
+      "name": "My Chosen Way of Life",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_gt": 98
+    },
+    {
+      "name": "Enthusiastic Pair",
+      "choice": 1
+    },
+    {
+      "name": "So Many Options!",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 98
+    },
+    {
+      "name": "Just a Little Closer",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going!",
       "choice": 2
     },
     {
@@ -134,45 +159,19 @@
       "choice_2_if_energy_gt": 92
     },
     {
-      "name": "My Chosen Way of Life",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_gt": 98
-    },
-    {
-      "name": "Enthusiastic Pair",
-      "choice": 1
-    },
-    {
-      "name": "Responding to the Unforeseen",
-      "choice": 1
-    },
-    {
-      "name": "Unforeseen Lunch",
-      "choice_2_if_energy_gt": 95
-    },
-    {
-      "name": "Full-Power Muscles!",
-      "choice_2_if_mood_lt": "GREAT"
-    },
-    {
-      "name": "Full-Power Racing!",
+      "name": "Leave it to Me to Be Considerate! ♪",
       "choice": 2
     },
     {
-      "name": "How Should I Respond?",
-      "choice_2_if_uma": "Vodka",
-      "choice_1_if_uma": "El Pasa"
+      "name": "Leave it to Me to Help Out! ♪",
+      "choice_2_if_energy_gt": 95
     },
     {
-      "name": "What I Want to Say",
-      "choice": 1
+      "name": "To Maintain My Weight",
+      "choice": 2
     },
     {
-      "name": "How Should I Respond?",
-      "choice": 1
-    },
-    {
-      "name": "Conquering the Crowds",
+      "name": "To Reach the Greatest Heights",
       "choice": 1
     }
   ]

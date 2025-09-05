@@ -10,7 +10,7 @@ from core.recognizer import find_template_position
 from utils.screenshot import enhanced_screenshot
 from utils.constants import get_current_regions
 
-EVENT_CHOICE_REGION = (223, 290, 200, 770)
+EVENT_CHOICE_REGION = (223, 290, 150, 770)
 
 class EventChoiceHandler:
     """Handles automatic event choice selection based on event maps with optimized database caching"""
@@ -572,16 +572,19 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to handle event choice: {e}")
             return False
 
-    def click_choice(self, choice_number: int) -> bool:
+    def click_choice(self, choice_number: int, max_retries: int = 1) -> bool:
         """
-        Click on the specified choice button using OpenCV template matching
+        Click on the specified choice button using OpenCV template matching with retry mechanism
 
         Args:
             choice_number: Choice number (1-5)
+            max_retries: Maximum number of retry attempts (default: 1)
 
         Returns:
             True if successful, False otherwise
         """
+        import time
+
         try:
             if self.check_stop():
                 return False
@@ -590,49 +593,88 @@ class EventChoiceHandler:
                 return False
 
             choice_number = max(1, min(5, choice_number))  # Clamp to 1-5
-
             choice_icon = f"assets/icons/event_choice_{choice_number}.png"
 
             if not os.path.exists(choice_icon):
                 self.log(f"[WARNING] Choice icon not found: {choice_icon}")
                 return False
 
-            # Use OpenCV template matching instead of pyautogui
-            try:
+            # Retry mechanism for clicking choice button
+            for attempt in range(max_retries + 1):
+                try:
+                    # Use OpenCV template matching first
+                    position = find_template_position(
+                        template_path=choice_icon,
+                        region=EVENT_CHOICE_REGION,
+                        threshold=0.82,
+                        return_center=True,
+                        region_format='xywh'
+                    )
 
-                position = find_template_position(
-                    template_path=choice_icon,
-                    region=EVENT_CHOICE_REGION,
-                    threshold=0.8,
-                    region_format='xywh'
-                )
+                    if position:
+                        if self.check_stop():
+                            return False
 
-                if position:
-                    if self.check_stop():
-                        return False
+                        pyautogui.moveTo(position, duration=0.2)
+                        pyautogui.click()
 
-                    pyautogui.moveTo(position, duration=0.2)
-                    pyautogui.click()
-                    self.log(f"[INFO] Selected event choice {choice_number}")
-                    return True
-                else:
-                    self.log(f"[WARNING] Choice {choice_number} button not found on screen")
-                    return False
+                        if attempt > 0:
+                            self.log(f"[INFO] Selected event choice {choice_number} (retry attempt {attempt})")
+                        else:
+                            self.log(f"[INFO] Selected event choice {choice_number}")
+                        return True
+                    else:
+                        # Log warning only on first attempt or final failure
+                        if attempt == max_retries:
+                            self.log(f"[WARNING] Choice {choice_number} button not found on screen")
 
-            except Exception as e:
-                self.log(f"[WARNING] OpenCV matching failed, trying pyautogui fallback: {e}")
-                # Fallback to pyautogui if OpenCV fails
-                choice_btn = pyautogui.locateCenterOnScreen(choice_icon, confidence=0.8, minSearchTime=1.0)
-                if choice_btn:
-                    if self.check_stop():
-                        return False
-                    pyautogui.moveTo(choice_btn, duration=0.2)
-                    pyautogui.click()
-                    self.log(f"[INFO] Selected event choice {choice_number} (fallback)")
-                    return True
-                else:
-                    self.log(f"[WARNING] Choice {choice_number} button not found on screen (fallback)")
-                    return False
+                        # If this is not the last attempt, wait a moment and try again
+                        if attempt < max_retries:
+                            time.sleep(0.5)  # Brief pause before retry
+                            continue
+
+                except Exception as e:
+                    self.log(f"[WARNING] OpenCV matching failed on attempt {attempt + 1}, trying pyautogui fallback: {e}")
+
+                    # Fallback to pyautogui if OpenCV fails
+                    try:
+                        choice_btn = pyautogui.locateCenterOnScreen(choice_icon, confidence=0.8, minSearchTime=1.0)
+                        if choice_btn:
+                            if self.check_stop():
+                                return False
+                            pyautogui.moveTo(choice_btn, duration=0.2)
+                            pyautogui.click()
+
+                            if attempt > 0:
+                                self.log(f"[INFO] Selected event choice {choice_number} (fallback retry attempt {attempt})")
+                            else:
+                                self.log(f"[INFO] Selected event choice {choice_number} (fallback)")
+                            return True
+                        else:
+                            if attempt == 0:
+                                self.log(f"[WARNING] Choice {choice_number} button not found on screen (fallback attempt {attempt + 1})")
+                            elif attempt == max_retries:
+                                self.log(f"[WARNING] Choice {choice_number} button not found on screen (fallback) after {max_retries + 1} attempts")
+
+                            # If this is not the last attempt, wait a moment and try again
+                            if attempt < max_retries:
+                                time.sleep(0.5)  # Brief pause before retry
+                                continue
+
+                    except Exception as fallback_e:
+                        if attempt == max_retries:
+                            self.log(f"[ERROR] Fallback method also failed on final attempt: {fallback_e}")
+                        elif attempt == 0:
+                            self.log(f"[WARNING] Fallback method failed on attempt {attempt + 1}: {fallback_e}")
+
+                        # If this is not the last attempt, wait a moment and try again
+                        if attempt < max_retries:
+                            time.sleep(0.5)  # Brief pause before retry
+                            continue
+
+            # All attempts failed
+            self.log(f"[WARNING] Choice {choice_number} button not found on screen after {max_retries + 1} attempts")
+            return False
 
         except Exception as e:
             self.log(f"[ERROR] Failed to click choice {choice_number}: {e}")

@@ -44,10 +44,6 @@
       "medium_energy_score_requirement": {
         "pre_debut": 2.5,
         "post_debut": 3.0
-      },
-      "low_energy_score_requirement": {
-        "pre_debut": 2.5,
-        "post_debut": 3.0
       }
     },
     "energy_restrictions": {

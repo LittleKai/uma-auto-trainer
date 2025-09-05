@@ -6,13 +6,13 @@
     },
     {
       "name": "Awkward Honesty",
-      "choice_1_if_energy_gt": 80,
-      "choice_2_if_energy_lte": 80
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
     },
     {
       "name": "Sugar and Spice",
-      "choice_2_if_energy_gt": 92,
-      "choice_1_if_energy_lte": 92
+      "choice_2_if_energy_gt": 94,
+      "choice_1_if_energy_lte": 94
     },
     {
       "name": "Dance Lesson",

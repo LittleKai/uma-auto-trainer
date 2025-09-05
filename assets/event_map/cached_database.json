@@ -15,57 +15,70 @@
   ],
   "train_event_uma_musume": [
     {
-      "name": "A Page about Apples",
-      "choice_1_if_energy_gt": 80,
-      "choice_2_if_energy_lte": 80
+      "name": "Meaty Heaven",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Embracing Guidance",
+      "choice_2_if_energy_gt": 97,
+      "choice_1_if_energy_lte": 97
+    },
+    {
+      "name": "Embracing Guidance",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Let's Patrol!",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
     },
     {
       "name": "Dance Lesson",
-      "choice": 2
-    },
-    {
-      "name": "Am I Enough?",
-      "choice": 2
-    },
-    {
-      "name": "Sweet & Lively Joy",
       "choice": 1
     },
     {
-      "name": "I Am Enough",
-      "choice": 2
-    },
-    {
-      "name": "Training Inspiration",
-      "choice": 2
-    },
-    {
-      "name": "Wonderful New Worlds",
-      "choice": 2
-    },
-    {
-      "name": "Looking on the Bright Side",
+      "name": "Quick Draw Showdown",
       "choice": 1
     },
     {
-      "name": "Even When the Ladybugs Are Gone",
-      "choice": 1
-    },
-    {
-      "name": "Even When Clouds Cover the Sky",
-      "choice": 1
-    },
-    {
-      "name": "My Sun",
+      "name": "Must-Win Match",
       "choice": 2
     },
     {
-      "name": "I've Got This!",
+      "name": "To the Top!",
+      "choice": 1
+    },
+    {
+      "name": "Harvest Festival",
+      "choice": 1
+    },
+    {
+      "name": "Serial Riddler",
+      "choice_1_if_mood_lt": "GREAT",
       "choice": 2
     },
     {
-      "name": "A Page about Sunsets",
+      "name": "Taste of Home",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice": 2
+    },
+    {
+      "name": "Rainy Power",
+      "choice": 2
+    },
+    {
+      "name": "Rainy Choice",
       "choice": 1
+    },
+    {
+      "name": "Rainy Rescue",
+      "choice": 1
+    },
+    {
+      "name": "Going Home Together",
+      "choice": 2
     },
     {
       "name": "Victory",
@@ -85,6 +98,10 @@
     },
     {
       "name": "Solid Showing",
+      "choice": 1
+    },
+    {
+      "name": "Defeat",
       "choice": 1
     },
     {
@@ -159,20 +176,29 @@
       "choice_2_if_energy_gt": 92
     },
     {
-      "name": "Leave it to Me to Be Considerate! ♪",
-      "choice": 2
+      "name": "How Should I Respond?",
+      "choice_2_if_uma": "Vodka",
+      "choice_1_if_uma": "El Pasa"
     },
     {
-      "name": "Leave it to Me to Help Out! ♪",
-      "choice_2_if_energy_gt": 95
-    },
-    {
-      "name": "To Maintain My Weight",
-      "choice": 2
-    },
-    {
-      "name": "To Reach the Greatest Heights",
+      "name": "What I Want to Say",
       "choice": 1
+    },
+    {
+      "name": "How Should I Respond?",
+      "choice": 1
+    },
+    {
+      "name": "Conquering the Crowds",
+      "choice": 1
+    },
+    {
+      "name": "The Coolest Line",
+      "choice": 2
+    },
+    {
+      "name": "Enemies on Main Street",
+      "choice": 2
     }
   ]
 }

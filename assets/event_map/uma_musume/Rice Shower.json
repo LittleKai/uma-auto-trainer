@@ -2,8 +2,8 @@
   "events": [
     {
       "name": "A Page about Apples",
-      "choice_1_if_energy_gt": 80,
-      "choice_2_if_energy_lte": 80
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
     },
     {
       "name": "Dance Lesson",

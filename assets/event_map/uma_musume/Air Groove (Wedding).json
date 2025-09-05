@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "name": "A Taste of Effort",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Seize Her!",
+      "choice_2_if_mood_lt": "GREAT",
+      "choice_1_if_energy_lte": 98
+    },
+    {
+      "name": "Take Good Care of Your Tail",
+      "choice_2_if_mood_lt": "GREAT",
+      "choice_1_if_energy_lte": 98
+    },
+    {
+      "name": "Suggestion Box of Freedom",
+      "choice_2_if_mood_lt": "GREAT",
+      "choice_1_if_energy_lte": 98
+    },
+    {
+      "name": "",
+      "choice_2_if_energy_gt": 92,
+      "choice_1_if_energy_lte": 92
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Who Will Stand Beside Her?",
+      "choice": 2
+    },
+    {
+      "name": "Never-Ending Road",
+      "choice": 2
+    },
+    {
+      "name": "The Empress and Mom",
+      "choice": 1
+    },
+    {
+      "name": "Empress and Monarch",
+      "choice": 1
+    },
+    {
+      "name": "Operation: Flowerbed",
+      "choice": 1
+    },
+    {
+      "name": "Empress and Emperor",
+      "choice": 2
+    },
+    {
+      "name": "A Little Encounter",
+      "choice": 2
+    },
+    {
+      "name": "Sweet Potato Cake",
+      "choice": 2
+    },
+    {
+      "name": "Imprinted Memories",
+      "choice": 2
+    },
+    {
+      "name": "A Blinking Light Means Stop",
+      "choice": 2
+    },
+    {
+      "name": "Smoldering Silently",
+      "choice": 1
+    }
+  ]
+}

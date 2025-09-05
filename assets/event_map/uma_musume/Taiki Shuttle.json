@@ -1,0 +1,70 @@
+{
+  "events": [
+    {
+      "name": "Meaty Heaven",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Embracing Guidance",
+      "choice_2_if_energy_gt": 97,
+      "choice_1_if_energy_lte": 97
+    },
+    {
+      "name": "Embracing Guidance",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Let's Patrol!",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Quick Draw Showdown",
+      "choice": 1
+    },
+    {
+      "name": "Must-Win Match",
+      "choice": 2
+    },
+    {
+      "name": "To the Top!",
+      "choice": 1
+    },
+    {
+      "name": "Harvest Festival",
+      "choice": 1
+    },
+    {
+      "name": "Serial Riddler",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice": 2
+    },
+    {
+      "name": "Taste of Home",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice": 2
+    },
+    {
+      "name": "Rainy Power",
+      "choice": 2
+    },
+    {
+      "name": "Rainy Choice",
+      "choice": 1
+    },
+    {
+      "name": "Rainy Rescue",
+      "choice": 1
+    },
+    {
+      "name": "Going Home Together",
+      "choice": 2
+    }
+  ]
+}

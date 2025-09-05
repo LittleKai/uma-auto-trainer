@@ -39,6 +39,18 @@ class EventChoiceTab:
             3: {
                 'uma_musume': tk.StringVar(value="None"),
                 'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            },
+            4: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            },
+            5: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+            },
+            6: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
             }
         }
 
@@ -183,7 +195,7 @@ class EventChoiceTab:
         button_frame = ttk.Frame(preset_container)
         button_frame.pack(side=tk.LEFT)
 
-        for i in range(1, 4):
+        for i in range(1, 7):
             btn = tk.Button(
                 button_frame,
                 text=str(i),

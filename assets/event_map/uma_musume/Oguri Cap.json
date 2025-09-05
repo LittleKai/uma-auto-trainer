@@ -1,0 +1,62 @@
+{
+  "events": [
+    {
+      "name": "Bottomless Pit",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Oguri's Gluttony Championship",
+      "choice_2_if_energy_gt": 92,
+      "choice_1_if_energy_lte": 92
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Pinned Hopes",
+      "choice": 1
+    },
+    {
+      "name": "Oguri the Forest Guide?",
+      "choice": 2
+    },
+    {
+      "name": "Better Than a Plushie",
+      "choice": 2
+    },
+    {
+      "name": "Lost Umamusume",
+      "choice": 2
+    },
+    {
+      "name": "Field Workout",
+      "choice": 2
+    },
+    {
+      "name": "Running on Full",
+      "choice": 1
+    },
+    {
+      "name": "Oguri Makes a Resolution",
+      "choice": 1
+    },
+    {
+      "name": "Oguri Perseveres",
+      "choice": 2
+    },
+    {
+      "name": "Oguri Matures",
+      "choice": 2
+    },
+    {
+      "name": "Something Smells Good!",
+      "choice": 1
+    },
+    {
+      "name": "High-Level Rival",
+      "choice": 1
+    }
+  ]
+}

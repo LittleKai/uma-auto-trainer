@@ -11,8 +11,8 @@
     },
     {
       "name": "Sugar and Spice",
-      "choice_2_if_energy_gt": 94,
-      "choice_1_if_energy_lte": 94
+      "choice_2_if_energy_gt": 96,
+      "choice_1_if_energy_lte": 96
     },
     {
       "name": "Dance Lesson",

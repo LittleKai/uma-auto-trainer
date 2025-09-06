@@ -25,12 +25,12 @@
     },
     {
       "name": "Etsuko's Exhaustive Coverage",
-      "choice": "bottom"
+      "choice": 2
     },
     {
       "name": "New Year's Resolutions",
-      "choice_2_if_energy_lte": 90,
-      "choice_3_if_energy_gt": 90
+      "choice_2_if_energy_lte": 85,
+      "choice_3_if_energy_gt": 85
     },
     {
       "name": "New Year's Shrine Visit",

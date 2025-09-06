@@ -711,24 +711,34 @@ class EventChoiceHandler:
         """
         try:
             # Check for first choice button using OpenCV in event choice region
-            choice_2_icon = "assets/icons/event_choice_2.png"
-            if os.path.exists(choice_2_icon):
+            choice_1_icon = "assets/icons/event_choice_1.png"
+            choice_2_icon = "assets/icons/event_choice_1.png"
+            if os.path.exists(choice_1_icon) and os.path.exists(choice_2_icon) :
                 try:
-                    position = find_template_position(
+                    position_1 = find_template_position(
+                        template_path=choice_1_icon,
+                        region=EVENT_CHOICE_REGION,
+                        threshold=0.8,
+                        return_center=True,
+                        region_format='xywh'
+                    )
+                    position_2 = find_template_position(
                         template_path=choice_2_icon,
                         region=EVENT_CHOICE_REGION,
                         threshold=0.8,
                         return_center=True,
                         region_format='xywh'
                     )
-                    return position is not None
+                    return (position_1 is not None and position_2 is not None)
                 except Exception:
                     # Fallback to pyautogui with region
                     left, top, width, height = EVENT_CHOICE_REGION
                     region_ltrb = (left, top, left + width, top + height)
-                    choice_btn = pyautogui.locateOnScreen(choice_2_icon, confidence=0.8,
+                    choice_1_btn = pyautogui.locateOnScreen(choice_1_icon, confidence=0.8,
                                                           minSearchTime=0.2, region=region_ltrb)
-                    return choice_btn is not None
+                    choice_2_btn= pyautogui.locateOnScreen(choice_1_icon, confidence=0.8,
+                                                          minSearchTime=0.2, region=region_ltrb)
+                    return (choice_1_btn is not None and choice_2_btn is not None)
             return False
         except Exception as e:
             self.log(f"[ERROR] Failed to check event choice visibility: {e}")

@@ -6,11 +6,6 @@
       "choice_2_if_energy_lte": 85
     },
     {
-      "name": "",
-      "choice_2_if_energy_gt": 97,
-      "choice_1_if_energy_lte": 97
-    },
-    {
       "name": "Dance Lesson",
       "choice": 1
     },

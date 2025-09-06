@@ -8,22 +8,17 @@
     {
       "name": "Seize Her!",
       "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 98
+      "choice_1_if_energy_lte": 96
     },
     {
       "name": "Take Good Care of Your Tail",
       "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 98
+      "choice_1_if_energy_lte": 96
     },
     {
       "name": "Suggestion Box of Freedom",
       "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 98
-    },
-    {
-      "name": "",
-      "choice_2_if_energy_gt": 92,
-      "choice_1_if_energy_lte": 92
+      "choice_1_if_energy_lte": 96
     },
     {
       "name": "Dance Lesson",

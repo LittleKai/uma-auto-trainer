@@ -2,8 +2,7 @@
   "events": [
     {
       "name": "My Chosen Way of Life",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_gt": 98
+      "choice": 1
     },
     {
       "name": "Enthusiastic Pair",

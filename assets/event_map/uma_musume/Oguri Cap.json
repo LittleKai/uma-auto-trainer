@@ -7,8 +7,8 @@
     },
     {
       "name": "Oguri's Gluttony Championship",
-      "choice_2_if_energy_gt": 92,
-      "choice_1_if_energy_lte": 92
+      "choice_2_if_energy_gt": 85,
+      "choice_1_if_energy_lte": 85
     },
     {
       "name": "Dance Lesson",

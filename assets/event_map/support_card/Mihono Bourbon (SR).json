@@ -10,7 +10,7 @@
     },
     {
       "name": "Do No Harm",
-      "choice_1_if_energy_gt": 96
+      "choice_2_if_energy_lte": 96
     }
   ]
 }

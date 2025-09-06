@@ -574,10 +574,10 @@ class UmaAutoGUI:
                 mood_levels = ['AWFUL', 'BAD', 'NORMAL', 'GOOD', 'GREAT']
                 current_mood_index = mood_levels.index(current_mood) if current_mood in mood_levels else 2
                 threshold_mood_index = mood_levels.index(threshold_mood) if threshold_mood in mood_levels else 1
-
-                if current_mood_index < threshold_mood_index:
-                    self.log_message(f"Stop condition triggered: Mood ({current_mood}) below threshold ({threshold_mood})")
-                    return True
+                if not current_mood == "UNKNOWN":
+                    if current_mood_index < threshold_mood_index:
+                        self.log_message(f"Stop condition triggered: Mood ({current_mood}) below threshold ({threshold_mood})")
+                        return True
 
             # 5. Stop before summer (June - month 6)
             if settings.get('stop_before_summer', False):

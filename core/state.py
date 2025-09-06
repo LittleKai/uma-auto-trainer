@@ -177,7 +177,7 @@ def check_energy_percentage():
     # Count pixels with gray color (RGB: 118, 117, 118 which is hex 767576)
     target_color = (118, 117, 118)
     gray_pixel_count = 0
-    total_width = x2 - x1
+    total_width = 238
 
     # Check each pixel in the horizontal line
     for x in range(total_width):

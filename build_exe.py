@@ -377,7 +377,6 @@ Troubleshooting:
 - Make sure Tesseract is installed correctly
 - Ensure game window title contains "Umamusume"
 - Check that screen resolution is 1920x1080
-- Note: each time the game starts, the position of MOOD may change, leading to incorrect MOOD reading, so you will need to recheck the region position of MOOD.
 """
 
         with open(os.path.join(dist_dir, "README.txt"), "w", encoding="utf-8") as f:

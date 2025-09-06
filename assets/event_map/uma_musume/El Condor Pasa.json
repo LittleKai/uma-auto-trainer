@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "name": "Hot and Spicy!",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "The Academy at Night",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Flower Language",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Determination of the World's Strongest",
+      "choice": 2
+    },
+    {
+      "name": "Cactus Feast",
+      "choice": 1
+    },
+    {
+      "name": "Song of Courage",
+      "choice": 1
+    },
+    {
+      "name": "A Personalized Mask",
+      "choice": 2
+    },
+    {
+      "name": "Salsa Roja",
+      "choice": 1
+    },
+    {
+      "name": "Go for the Extra-Large Pizza!",
+      "choice": 1
+    },
+    {
+      "name": "The Wrestler I Admire",
+      "choice": 1
+    },
+    {
+      "name": "Shocking Retirement",
+      "choice": 2
+    },
+    {
+      "name": "Renewed Resolve",
+      "choice": 3
+    }
+  ]
+}

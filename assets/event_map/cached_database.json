@@ -15,73 +15,64 @@
   ],
   "train_event_uma_musume": [
     {
-      "name": "Killer Appetite!",
+      "name": "Hot and Spicy!",
       "choice_1_if_energy_gt": 85,
       "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "The Academy at Night",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Flower Language",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "",
+      "choice_2_if_energy_gt": 85,
+      "choice_1_if_energy_lte": 85
     },
     {
       "name": "Dance Lesson",
       "choice": 1
     },
     {
-      "name": "The Red of the Protagonist!",
+      "name": "Determination of the World's Strongest",
+      "choice": 2
+    },
+    {
+      "name": "Cactus Feast",
       "choice": 1
     },
     {
-      "name": "A Date, Golshi Style",
-      "choice": 2
-    },
-    {
-      "name": "A Sudden Episode from Golshi's Past!",
-      "choice": 2
-    },
-    {
-      "name": "Pair Discount Repeat Offender",
-      "choice": 2
-    },
-    {
-      "name": "Which Did You Lose?",
-      "choice": 2
-    },
-    {
-      "name": "My Part-Time Job Is... Crazy?",
+      "name": "Song of Courage",
       "choice": 1
     },
     {
-      "name": "The Day After, Voices Hoarse",
-      "choice": 1
-    },
-    {
-      "name": "This One's For Keeps!",
+      "name": "A Personalized Mask",
       "choice": 2
     },
     {
-      "name": "Summer Camp (Year 3) Ends",
+      "name": "Salsa Roja",
       "choice": 1
     },
     {
-      "name": "Legend of the Left Pinky",
+      "name": "Go for the Extra-Large Pizza!",
       "choice": 1
     },
     {
-      "name": "Hello From About 1.5 Billion Years Ago",
+      "name": "The Wrestler I Admire",
+      "choice": 1
+    },
+    {
+      "name": "Shocking Retirement",
       "choice": 2
     },
     {
-      "name": "And Then She...",
+      "name": "Renewed Resolve",
       "choice": 3
-    },
-    {
-      "name": "A Lovely Place",
-      "choice": 1
-    },
-    {
-      "name": "Nighttime Park Visit",
-      "choice": 2
-    },
-    {
-      "name": "After the Takarazuka Kinen: Keyword 2",
-      "choice": 1
     },
     {
       "name": "Victory",
@@ -113,8 +104,8 @@
     },
     {
       "name": "New Year's Resolutions",
-      "choice_2_if_energy_lte": 90,
-      "choice_3_if_energy_gt": 90
+      "choice_2_if_energy_lte": 85,
+      "choice_3_if_energy_gt": 85
     },
     {
       "name": "New Year's Shrine Visit",
@@ -130,7 +121,7 @@
     {
       "name": "Ah, Friendship",
       "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 98,
+      "choice_2_if_energy_lte": 96,
       "default_choice": 1
     },
     {
@@ -139,6 +130,27 @@
     },
     {
       "name": "Ah, Home Sweet Home",
+      "choice": 2
+    },
+    {
+      "name": "My Chosen Way of Life",
+      "choice": 1
+    },
+    {
+      "name": "Enthusiastic Pair",
+      "choice": 1
+    },
+    {
+      "name": "So Many Options!",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Just a Little Closer",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going!",
       "choice": 2
     },
     {
@@ -151,24 +163,7 @@
     },
     {
       "name": "Miracle ☆ Escape!",
-      "choice_2_if_energy_gt": 92
-    },
-    {
-      "name": "Just Don't Bother Me",
-      "choice": 2
-    },
-    {
-      "name": "Just Leave Me Alone",
-      "choice": 2
-    },
-    {
-      "name": "My Chosen Way of Life",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_gt": 98
-    },
-    {
-      "name": "Enthusiastic Pair",
-      "choice": 1
+      "choice_2_if_energy_gt": 94
     },
     {
       "name": "Leave it to Me to Be Considerate! ♪",
@@ -176,15 +171,15 @@
     },
     {
       "name": "Leave it to Me to Help Out! ♪",
-      "choice_2_if_energy_gt": 95
+      "choice_2_if_energy_gt": 96
     },
     {
-      "name": "To Maintain My Weight",
+      "name": "Fashion Advice for Mayano!",
       "choice": 2
     },
     {
-      "name": "To Reach the Greatest Heights",
-      "choice": 1
+      "name": "Snack Advice for Mayano!",
+      "choice": 2
     }
   ]
 }

@@ -628,7 +628,7 @@ class EventChoiceHandler:
                     position = find_template_position(
                         template_path=choice_icon,
                         region=EVENT_CHOICE_REGION,
-                        threshold=0.85-attempt*0.03,
+                        threshold=0.85-attempt*0.02,
                         return_center=True,
                         region_format='xywh'
                     )
@@ -640,8 +640,8 @@ class EventChoiceHandler:
                         pyautogui.moveTo(position, duration=0.2)
                         pyautogui.click()
 
-                        self.log(f"[INFO] Selected event choice {choice_number}")
-                        
+                        self.log(f"[INFO] Selected event choice {choice_number} after {attempt + 1} attempts")
+
                         return True
                     else:
                         # Log warning only on first attempt or final failure

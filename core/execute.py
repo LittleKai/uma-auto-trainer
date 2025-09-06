@@ -593,7 +593,7 @@ class DecisionEngine:
         )
 
         # Handle special case: STRATEGY_NOT_MET
-        if best_training == "STRATEGY_NOT_MET":
+        if best_training == "STRATEGY_NOT_MET" or best_training == "NO_TRAINING":
             # Check if can race instead
             should_race, available_races = race_manager.should_race_today(current_date)
 
@@ -605,11 +605,15 @@ class DecisionEngine:
                     allow_continuous_racing=allow_continuous_racing)
                 if race_found:
                     return True
+                # Race failed
+                elif best_training == "NO_TRAINING":
+                    best_training = "SHOULD_REST"
                 else:
-                    # Race failed, set best_training to None to trigger existing fallback logic
                     best_training = None
+                # No race available
+            elif best_training == "NO_TRAINING":
+                best_training = "SHOULD_REST"
             else:
-                # No race available, set to None to trigger fallback training
                 best_training = None
 
         # Handle special case: SHOULD_REST
@@ -775,7 +779,8 @@ class DecisionEngine:
                     return True
                 else:
                     # No suitable training found or should rest
-                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST" \
+                            or best_training == "NO_TRAINING":
                         self.controller.rest_handler.execute_rest()
                         self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
                     else:
@@ -846,7 +851,7 @@ class DecisionEngine:
                     current_date
                 )
 
-                if best_training and best_training != "SHOULD_REST":
+                if best_training and best_training != "SHOULD_REST" and best_training != "NO_TRAINING":
                     if self.controller.check_should_stop():
                         return False
                     self.controller.training_handler.go_to_training()
@@ -856,7 +861,8 @@ class DecisionEngine:
                     self.controller.training_handler.execute_training(best_training)
                     self.controller.log_message(f"Training: {best_training.upper()}")
                 else:
-                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST" \
+                            or best_training == "NO_TRAINING":
                         self.controller.rest_handler.execute_rest()
                         self.controller.log_message(
                             f"No suitable training or low energy ({energy_percentage}%) - Resting")
@@ -919,7 +925,7 @@ class DecisionEngine:
                     current_date
                 )
 
-                if best_training and best_training != "SHOULD_REST":
+                if best_training and best_training != "SHOULD_REST" and best_training != "NO_TRAINING":
                     if self.controller.check_should_stop():
                         return False
                     self.controller.training_handler.go_to_training()
@@ -929,7 +935,8 @@ class DecisionEngine:
                     self.controller.training_handler.execute_training(best_training)
                     self.controller.log_message(f"Training: {best_training.upper()}")
                 else:
-                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST":
+                    if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST" \
+                            or best_training == "NO_TRAINING":
                         self.controller.rest_handler.execute_rest()
                         self.controller.log_message(
                             f"No suitable training or low energy ({energy_percentage}%) - Resting")
@@ -1046,6 +1053,7 @@ class CareerLobbyManager:
 
     def __init__(self, controller: BotController):
         self.controller = controller
+        self.lobby_log_counter = 0  # Counter for reducing log frequency
 
     def verify_lobby_state(self, gui=None) -> bool:
         """Verify if currently in career lobby"""
@@ -1056,7 +1064,11 @@ class CareerLobbyManager:
         )
 
         if tazuna_hint is None:
-            self.controller.log_message("Should be in career lobby.")
+            # Only log message every 3 times instead of every time
+            self.lobby_log_counter += 1
+            if self.lobby_log_counter >= 3:
+                self.controller.log_message("Should be in career lobby.")
+                self.lobby_log_counter = 0  # Reset counter after logging
 
             if self.controller.increment_career_lobby_counter():
                 if gui:
@@ -1066,6 +1078,7 @@ class CareerLobbyManager:
             return False
         else:
             self.controller.reset_career_lobby_counter()
+            self.lobby_log_counter = 0  # Reset log counter when in lobby
             return True
 
     def handle_debuff_status(self, gui=None) -> bool:

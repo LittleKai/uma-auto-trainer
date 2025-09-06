@@ -15,64 +15,70 @@
   ],
   "train_event_uma_musume": [
     {
-      "name": "Hot and Spicy!",
+      "name": "Meaty Heaven",
       "choice_1_if_energy_gt": 85,
       "choice_2_if_energy_lte": 85
     },
     {
-      "name": "The Academy at Night",
+      "name": "Embracing Guidance",
+      "choice_2_if_energy_gt": 97,
+      "choice_1_if_energy_lte": 97
+    },
+    {
+      "name": "Embracing Guidance",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Let's Patrol!",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Serial Riddler",
       "choice_1_if_mood_lt": "GREAT",
       "default_choice": 2
     },
     {
-      "name": "Flower Language",
+      "name": "Taste of Home",
       "choice_1_if_mood_lt": "GREAT",
       "default_choice": 2
-    },
-    {
-      "name": "",
-      "choice_2_if_energy_gt": 85,
-      "choice_1_if_energy_lte": 85
     },
     {
       "name": "Dance Lesson",
       "choice": 1
     },
     {
-      "name": "Determination of the World's Strongest",
+      "name": "Quick Draw Showdown",
+      "choice": 1
+    },
+    {
+      "name": "Must-Win Match",
       "choice": 2
     },
     {
-      "name": "Cactus Feast",
+      "name": "To the Top!",
       "choice": 1
     },
     {
-      "name": "Song of Courage",
+      "name": "Harvest Festival",
       "choice": 1
     },
     {
-      "name": "A Personalized Mask",
+      "name": "Rainy Power",
       "choice": 2
     },
     {
-      "name": "Salsa Roja",
+      "name": "Rainy Choice",
       "choice": 1
     },
     {
-      "name": "Go for the Extra-Large Pizza!",
+      "name": "Rainy Rescue",
       "choice": 1
     },
     {
-      "name": "The Wrestler I Admire",
-      "choice": 1
-    },
-    {
-      "name": "Shocking Retirement",
+      "name": "Going Home Together",
       "choice": 2
-    },
-    {
-      "name": "Renewed Resolve",
-      "choice": 3
     },
     {
       "name": "Victory",
@@ -166,19 +172,35 @@
       "choice_2_if_energy_gt": 94
     },
     {
-      "name": "Leave it to Me to Be Considerate! ♪",
+      "name": "How Should I Respond?",
+      "choice_2_if_uma": [
+        "Vodka",
+        "Symboli Rudolf",
+        "Haru Urara",
+        "Nice Nature",
+        "King Halo",
+        "Grass Wonder",
+        "Matikanefukukitaru"
+      ]
+    },
+    {
+      "name": "What I Want to Say",
+      "choice": 1
+    },
+    {
+      "name": "How Should I Respond?",
+      "choice": 1
+    },
+    {
+      "name": "Conquering the Crowds",
+      "choice": 1
+    },
+    {
+      "name": "The Coolest Line",
       "choice": 2
     },
     {
-      "name": "Leave it to Me to Help Out! ♪",
-      "choice_2_if_energy_gt": 96
-    },
-    {
-      "name": "Fashion Advice for Mayano!",
-      "choice": 2
-    },
-    {
-      "name": "Snack Advice for Mayano!",
+      "name": "Enemies on Main Street",
       "choice": 2
     }
   ]

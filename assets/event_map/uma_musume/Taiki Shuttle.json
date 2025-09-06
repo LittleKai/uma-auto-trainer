@@ -23,12 +23,12 @@
     {
       "name": "Serial Riddler",
       "choice_1_if_mood_lt": "GREAT",
-      "default_choice": 2
+      "default_choice": 1
     },
     {
       "name": "Taste of Home",
       "choice_1_if_mood_lt": "GREAT",
-      "default_choice": 2
+      "default_choice": 1
     },
     {
       "name": "Dance Lesson",
@@ -44,6 +44,10 @@
     },
     {
       "name": "To the Top!",
+      "choice": 1
+    },
+    {
+      "name": "Hide-and-Seek",
       "choice": 1
     },
     {

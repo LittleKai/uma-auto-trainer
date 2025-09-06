@@ -220,7 +220,7 @@ def extract_score_threshold(priority_strategy):
   elif "Score 4.5+" in priority_strategy:
     return 4.5
   else:
-    return 2.5  # Default threshold
+    return 3.5  # Default threshold
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
   """Find best training that meets minimum score threshold using unified scoring with WIT early stage bonus"""
@@ -313,9 +313,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
 
   if (stage_info['stage'] in ['mid', 'late'] and
-          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit and
-          energy_percentage >= CRITICAL_ENERGY_PERCENTAGE):
-
+          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit):
     # Check if best available training score is <= threshold using unified scoring with WIT bonus
     best_score = 0
     for key, data in filtered_results.items():
@@ -325,11 +323,10 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
         best_score = total_score
 
     if best_score <= max_score_threshold:
-      # Return special marker to indicate "should rest" instead of "should race"
-      return "SHOULD_REST"
+      return "NO_TRAINING"
 
   # Get strategy
-  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3.5+')
   score_threshold = extract_score_threshold(priority_strategy)
 
   if score_threshold is None:
@@ -338,13 +335,13 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   else:
     # Score-based training strategy for all stages
     if stage_info['is_pre_debut']:
-      # Pre-Debut: Use score-based selection instead of support card counting
+      # Pre-Debut
       result = score_based_training_selection(filtered_results, current_date)
       if result:
         return result[0]  # Return only the training key
       return None
     else:
-      # Post Pre-Debut: Apply strategy scoring using unified system with WIT bonus
+      # Post Pre-Debut
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
 
       if result:
@@ -431,10 +428,10 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   if strategy_settings is None:
     strategy_settings = {
       'minimum_mood': 'NORMAL',
-      'priority_strategy': 'Train Score 2.5+'
+      'priority_strategy': 'Train Score 3.5+'
     }
 
-  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3.5+')
 
   # Get current date info to check stage
   from core.state import get_current_date_info

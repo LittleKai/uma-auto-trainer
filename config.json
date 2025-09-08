@@ -15,10 +15,10 @@
     "hint_score": {
       "early_stage": 0.75,
       "late_stage": 0.5,
-      "day_threshold": 20
+      "day_threshold": 24
     },
     "npc_score": {
-      "base_value": 0.5
+      "base_value": 0.25
     },
     "support_score": {
       "base_value": 1.0,
@@ -42,12 +42,12 @@
     "wit_training": {
       "early_stage_bonus": 0.25,
       "medium_energy_score_requirement": {
-        "pre_debut": 2.5,
+        "pre_debut": 2.25,
         "post_debut": 3.0
       }
     },
     "energy_restrictions": {
-      "medium_energy_upper_limit": 55,
+      "medium_energy_upper_limit": 53,
       "medium_energy_max_score_threshold": 2.8
     }
   }

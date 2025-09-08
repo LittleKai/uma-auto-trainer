@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "name": "The Perfect Dessert",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Operation: Extra Classes",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "",
+      "choice_1_if_energy_gt": 97,
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Trail of Light",
+      "choice": 1
+    },
+    {
+      "name": "Smiles Are Contagious",
+      "choice": 2
+    },
+    {
+      "name": "Who to Count On",
+      "choice": 2
+    },
+    {
+      "name": "Operation: Execute Orders",
+      "choice": 2
+    },
+    {
+      "name": "Operation: Excursion Trouble",
+      "choice": 1
+    },
+    {
+      "name": "Brutal Training",
+      "choice": 1
+    },
+    {
+      "name": "Let's Make Memories",
+      "choice": 1
+    },
+    {
+      "name": "Bourbon's Challenge?",
+      "choice": 1
+    },
+    {
+      "name": "You're Irreplaceable to Me",
+      "choice": 2
+    },
+    {
+      "name": "Operation: Dance Fever",
+      "choice": 2
+    },
+    {
+      "name": "Operation: Festival Fun",
+      "choice": 1
+    }
+  ]
+}

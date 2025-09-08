@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "On and On",
+      "choice": 1
+    },
+    {
+      "name": "What Should I Do?",
+      "choice": 1
+    }
+  ]
+}

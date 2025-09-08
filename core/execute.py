@@ -1263,7 +1263,6 @@ class MainExecutor:
 
         if gui:
             gui.root.after(0, gui.stop_bot)
-            gui.root.after(0, lambda: gui.log_message("🎉 Bot stopped automatically."))
 
         return False
 

@@ -640,7 +640,7 @@ class EventChoiceHandler:
                         pyautogui.moveTo(position, duration=0.2)
                         pyautogui.click()
 
-                        self.log(f"[INFO] Selected event choice {choice_number} after {attempt + 1} attempts")
+                        self.log(f"[INFO] Selected event choice {choice_number}")
 
                         return True
                     else:

@@ -4,10 +4,10 @@
     "dirt": true
   },
   "distance": {
-    "sprint": true,
+    "sprint": false,
     "mile": true,
-    "medium": false,
-    "long": false
+    "medium": true,
+    "long": true
   },
   "grade": {
     "g1": true,
@@ -15,13 +15,13 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "G1 (no training)",
+  "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
   "stop_on_need_rest": true,
-  "stop_on_low_mood": true,
+  "stop_on_low_mood": false,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
@@ -30,27 +30,27 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Taiki Shuttle",
+    "uma_musume": "Oguri Cap",
     "support_cards": [
       "Kitasan Black (SSR)",
       "Tazuna Hayakawa (SSR)",
       "Special Week (SSR)",
       "Sweep Tosho (SR)",
-      "Oguri Cap (SSR)",
-      "Vodka (SSR)"
+      "Super Creek (SSR)",
+      "Mejiro McQueen (SSR)"
     ],
     "unknown_event_action": "Wait for user selection",
-    "current_set": 3,
+    "current_set": 2,
     "preset_sets": {
       "1": {
-        "uma_musume": "Vodka",
+        "uma_musume": "Mihono Bourbon",
         "support_cards": [
           "Kitasan Black (SSR)",
           "Sweep Tosho (SR)",
           "Tazuna Hayakawa (SSR)",
-          "Eishin Flash (SR)",
-          "Winning Ticket (SSR)",
-          "Oguri Cap (SSR)"
+          "Silence Suzuka (SSR)",
+          "Mejiro McQueen (SSR)",
+          "Super Creek (SSR)"
         ]
       },
       "2": {
@@ -65,14 +65,14 @@
         ]
       },
       "3": {
-        "uma_musume": "Curren Chan",
+        "uma_musume": "Gold Ship",
         "support_cards": [
           "Kitasan Black (SSR)",
           "Tazuna Hayakawa (SSR)",
-          "Special Week (SSR)",
+          "Narita Taishin (SR)",
           "Sweep Tosho (SR)",
-          "Oguri Cap (SSR)",
-          "Vodka (SSR)"
+          "Super Creek (SSR)",
+          "Mejiro McQueen (SSR)"
         ]
       },
       "4": {
@@ -111,9 +111,9 @@
     }
   },
   "window": {
-    "width": 807,
-    "height": 950,
-    "x": 1029,
-    "y": 17
+    "width": 839,
+    "height": 956,
+    "x": 987,
+    "y": 1
   }
 }

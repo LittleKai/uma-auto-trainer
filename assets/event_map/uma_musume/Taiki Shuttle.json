@@ -11,11 +11,6 @@
       "choice_1_if_energy_lte": 97
     },
     {
-      "name": "Embracing Guidance",
-      "choice_1_if_energy_gt": 97,
-      "choice_2_if_energy_lte": 97
-    },
-    {
       "name": "Let's Patrol!",
       "choice_1_if_energy_gt": 97,
       "choice_2_if_energy_lte": 97
@@ -23,12 +18,12 @@
     {
       "name": "Serial Riddler",
       "choice_1_if_mood_lt": "GREAT",
-      "default_choice": 1
+      "default_choice": 2
     },
     {
       "name": "Taste of Home",
       "choice_1_if_mood_lt": "GREAT",
-      "default_choice": 1
+      "default_choice": 2
     },
     {
       "name": "Dance Lesson",

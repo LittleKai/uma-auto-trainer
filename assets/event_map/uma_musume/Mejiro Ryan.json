@@ -1,0 +1,65 @@
+{
+  "events": [
+    {
+      "name": "",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Rest Day",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "My Signature Racewear",
+      "choice": 2
+    },
+    {
+      "name": "Heart-Pounding Aquarium",
+      "choice": 2
+    },
+    {
+      "name": "Refreshingly Real",
+      "choice": 2
+    },
+    {
+      "name": "Muscle Jealousy",
+      "choice": 2
+    },
+    {
+      "name": "The Pony Girl and the Wolf Prince",
+      "choice": 2
+    },
+    {
+      "name": "Real Gains",
+      "choice": 1
+    },
+    {
+      "name": "Nerve-Racking Rest Time",
+      "choice": 2
+    },
+    {
+      "name": "Flush with Feelings",
+      "choice": 2
+    },
+    {
+      "name": "With Relaxation and Trust Comes",
+      "choice": 1
+    },
+    {
+      "name": "Ryan to the Rescue!",
+      "choice": 1
+    },
+    {
+      "name": "The Little Fans of the Umadol",
+      "choice": 1
+    }
+  ]
+}

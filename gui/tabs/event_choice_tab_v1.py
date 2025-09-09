@@ -6,7 +6,7 @@ import csv
 
 
 class EventChoiceTab:
-    """Event choice configuration tab with Uma Musume data integration and improved support card loading"""
+    """Event choice configuration tab with Uma Musume data integration"""
 
     def __init__(self, parent, main_window):
         self.parent = parent
@@ -18,17 +18,70 @@ class EventChoiceTab:
         # Load Uma Musume data from CSV
         self.uma_musume_data = self.load_uma_musume_data()
 
-        # Store reference to unknown event action dropdown
-        self.action_dropdown = None
-
-        # Store preset button references for styling
-        self.preset_buttons = {}
-
-        # Bind variable changes to auto-save and strategy updates
-        self.bind_variable_changes()
-
         # Create tab content
         self.create_content()
+
+    def load_uma_musume_data(self):
+        """Load Uma Musume data from CSV file"""
+        data = {}
+        try:
+            csv_path = "assets/uma_musume_data.csv"
+            if os.path.exists(csv_path):
+                with open(csv_path, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        uma_name = row.get('uma_musume', '')
+                        if uma_name:
+                            data[uma_name] = {
+                                'turf': row.get('Turf', '').upper() in ['A', 'B'],
+                                'dirt': row.get('Dirt', '').upper() in ['A', 'B'],
+                                'sprint': row.get('Sprint', '').upper() in ['A', 'B'],
+                                'mile': row.get('Mile', '').upper() in ['A', 'B'],
+                                'medium': row.get('Medium', '').upper() in ['A', 'B'],
+                                'long': row.get('Long', '').upper() in ['A', 'B']
+                            }
+            else:
+                print(f"Warning: Uma Musume data file not found: {csv_path}")
+        except Exception as e:
+            print(f"Error loading Uma Musume data: {e}")
+        return data
+
+    def update_strategy_checkboxes(self, uma_musume_name):
+        """Update Strategy Tab checkboxes based on Uma Musume data"""
+        if uma_musume_name == "None" or uma_musume_name not in self.uma_musume_data:
+            return
+
+        uma_data = self.uma_musume_data[uma_musume_name]
+
+        # Try multiple approaches to update strategy tab
+        try:
+            # Method 1: Call main window method
+            if hasattr(self.main_window, 'update_strategy_filters'):
+                self.main_window.update_strategy_filters(uma_data)
+                return
+
+            # Method 2: Call strategy tab method directly
+            strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+            if strategy_tab and hasattr(strategy_tab, 'update_filters_from_uma_data'):
+                strategy_tab.update_filters_from_uma_data(uma_data)
+                return
+
+            # Method 3: Direct access to strategy tab variables
+            if strategy_tab:
+                strategy_tab.track_filters['turf'].set(uma_data['turf'])
+                strategy_tab.track_filters['dirt'].set(uma_data['dirt'])
+                strategy_tab.distance_filters['sprint'].set(uma_data['sprint'])
+                strategy_tab.distance_filters['mile'].set(uma_data['mile'])
+                strategy_tab.distance_filters['medium'].set(uma_data['medium'])
+                strategy_tab.distance_filters['long'].set(uma_data['long'])
+
+        except Exception as e:
+            print(f"Warning: Could not update strategy checkboxes: {e}")
+
+    def on_uma_musume_change(self, *args):
+        """Handle Uma Musume selection change"""
+        selected_uma = self.selected_uma_musume.get()
+        self.update_strategy_checkboxes(selected_uma)
 
     def init_variables(self):
         """Initialize tab variables"""
@@ -67,30 +120,11 @@ class EventChoiceTab:
             }
         }
 
-    def load_uma_musume_data(self):
-        """Load Uma Musume data from CSV file"""
-        data = {}
-        try:
-            csv_path = "assets/uma_musume_data.csv"
-            if os.path.exists(csv_path):
-                with open(csv_path, 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        uma_name = row.get('uma_musume', '')
-                        if uma_name:
-                            data[uma_name] = {
-                                'turf': row.get('Turf', '').upper() in ['A', 'B'],
-                                'dirt': row.get('Dirt', '').upper() in ['A', 'B'],
-                                'sprint': row.get('Sprint', '').upper() in ['A', 'B'],
-                                'mile': row.get('Mile', '').upper() in ['A', 'B'],
-                                'medium': row.get('Medium', '').upper() in ['A', 'B'],
-                                'long': row.get('Long', '').upper() in ['A', 'B']
-                            }
-            else:
-                print(f"Warning: Uma Musume data file not found: {csv_path}")
-        except Exception as e:
-            print(f"Error loading Uma Musume data: {e}")
-        return data
+        # Store preset button references for styling
+        self.preset_buttons = {}
+
+        # Bind variable changes to auto-save and strategy updates
+        self.bind_variable_changes()
 
     def bind_variable_changes(self):
         """Bind variable change events to auto-save and strategy updates"""
@@ -178,18 +212,15 @@ class EventChoiceTab:
             font=("Arial", 9)
         ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
 
-        self.action_dropdown = ttk.Combobox(
+        action_dropdown = ttk.Combobox(
             action_container,
             textvariable=self.unknown_event_action,
-            values=["Auto select first choice", "Wait for user selection", "Search in other special events"],
+            values=["Auto select first choice", "Wait for user selection"],
             state="readonly",
             font=("Arial", 9),
             width=30
         )
-        self.action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
-
-        # Set initial visibility state
-        self.update_action_dropdown_visibility()
+        action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
     def create_support_selection(self, parent, row):
         """Create enhanced Support Card selection with preset sets"""
@@ -333,7 +364,7 @@ class EventChoiceTab:
                 )
 
     def on_mode_change(self):
-        """Handle mode change to ensure exactly one mode is selected and update UI visibility"""
+        """Handle mode change to ensure exactly one mode is selected"""
         # If both are unchecked, automatically check auto_first_choice
         if not self.auto_event_map_var.get() and not self.auto_first_choice_var.get():
             self.auto_first_choice_var.set(True)
@@ -346,19 +377,6 @@ class EventChoiceTab:
                 self.auto_first_choice_var.set(False)
             else:
                 self.auto_event_map_var.set(False)
-
-        # Update dropdown visibility based on mode
-        self.update_action_dropdown_visibility()
-
-    def update_action_dropdown_visibility(self):
-        """Update visibility of unknown event action dropdown based on mode selection"""
-        if hasattr(self, 'action_dropdown') and self.action_dropdown:
-            if self.auto_first_choice_var.get():
-                # Disable dropdown when auto first choice is selected (grayed out)
-                self.action_dropdown.configure(state="disabled")
-            else:
-                # Enable dropdown when auto event map is selected
-                self.action_dropdown.configure(state="readonly")
 
     def get_uma_musume_list(self):
         """Get list of available Uma Musume from event map folder with None at top"""
@@ -386,73 +404,19 @@ class EventChoiceTab:
         return uma_list
 
     def get_support_cards_list(self):
-        """Get list of available Support Cards from event map subfolders with formatted names"""
+        """Get list of available Support Cards from event map folder"""
         support_list = []
         try:
             support_folder = "assets/event_map/support_card"
             if os.path.exists(support_folder):
-                # Define the order of support card types: spd, sta, pow, gut, wit, frd
-                card_types = ["spd", "sta", "pow", "gut", "wit", "frd"]
-
-                for card_type in card_types:
-                    type_folder = os.path.join(support_folder, card_type)
-                    if os.path.exists(type_folder):
-                        json_files = glob.glob(os.path.join(type_folder, "*.json"))
-                        for file_path in json_files:
-                            filename = os.path.basename(file_path).replace('.json', '')
-                            # Format display name as "type: filename"
-                            display_name = f"{card_type}: {filename}"
-                            support_list.append(display_name)
-
-                # Also check for any JSON files directly in the support_card folder for backward compatibility
-                direct_json_files = glob.glob(os.path.join(support_folder, "*.json"))
-                for file_path in direct_json_files:
+                json_files = glob.glob(os.path.join(support_folder, "*.json"))
+                for file_path in json_files:
                     filename = os.path.basename(file_path).replace('.json', '')
                     support_list.append(filename)
-
+            support_list.sort()
         except Exception as e:
             print(f"Error loading Support Cards list: {e}")
         return support_list
-
-    def update_strategy_checkboxes(self, uma_musume_name):
-        """Update Strategy Tab checkboxes based on Uma Musume data"""
-        if uma_musume_name == "None" or uma_musume_name not in self.uma_musume_data:
-            return
-
-        uma_data = self.uma_musume_data[uma_musume_name]
-
-        # Try multiple approaches to update strategy tab
-        try:
-            # Method 1: Call main window method
-            if hasattr(self.main_window, 'update_strategy_filters'):
-                self.main_window.update_strategy_filters(uma_data)
-                return
-
-            # Method 2: Call strategy tab method directly
-            strategy_tab = getattr(self.main_window, 'strategy_tab', None)
-            if strategy_tab and hasattr(strategy_tab, 'update_filters_from_uma_data'):
-                strategy_tab.update_filters_from_uma_data(uma_data)
-                return
-
-            # Method 3: Direct access to strategy tab variables
-            if strategy_tab:
-                if hasattr(strategy_tab, 'track_filters'):
-                    strategy_tab.track_filters['turf'].set(uma_data['turf'])
-                    strategy_tab.track_filters['dirt'].set(uma_data['dirt'])
-
-                if hasattr(strategy_tab, 'distance_filters'):
-                    strategy_tab.distance_filters['sprint'].set(uma_data['sprint'])
-                    strategy_tab.distance_filters['mile'].set(uma_data['mile'])
-                    strategy_tab.distance_filters['medium'].set(uma_data['medium'])
-                    strategy_tab.distance_filters['long'].set(uma_data['long'])
-
-        except Exception as e:
-            print(f"Warning: Could not update strategy checkboxes: {e}")
-
-    def on_uma_musume_change(self, *args):
-        """Handle Uma Musume selection change to update strategy checkboxes"""
-        selected_uma = self.selected_uma_musume.get()
-        self.update_strategy_checkboxes(selected_uma)
 
     def get_settings(self):
         """Get current tab settings including preset sets"""
@@ -526,9 +490,6 @@ class EventChoiceTab:
 
             # Update strategy checkboxes based on loaded Uma Musume
             self.update_strategy_checkboxes(self.selected_uma_musume.get())
-
-            # Update dropdown visibility
-            self.update_action_dropdown_visibility()
 
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")

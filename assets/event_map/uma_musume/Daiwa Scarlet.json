@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "name": "Recommended Restaurant",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "How to Spend a Day Off",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Can't Lose Sight of Number One",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "The Best Pose",
+      "choice": 1
+    },
+    {
+      "name": "The Weight of Racewear",
+      "choice": 1
+    },
+    {
+      "name": "Looking Good",
+      "choice": 1
+    },
+    {
+      "name": "Her",
+      "choice": 2
+    },
+    {
+      "name": "Advice from an Older Student",
+      "choice": 2
+    },
+    {
+      "name": "Enjoying Number One",
+      "choice": 1
+    },
+    {
+      "name": "As a Model Student...",
+      "choice": 2
+    },
+    {
+      "name": "Just a Little More",
+      "choice": 1
+    },
+    {
+      "name": "Under the Evening Star",
+      "choice": 1
+    },
+    {
+      "name": "Rained On",
+      "choice": 2
+    }
+  ]
+}

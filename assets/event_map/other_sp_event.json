@@ -1,0 +1,555 @@
+{
+  "events": [
+    {
+      "name": "",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 96,
+      "default_choice": 1
+    },
+    {
+      "name": "You May Socialize With Me",
+      "choice": 1
+    },
+    {
+      "name": "You May Advise Me",
+      "choice": 1
+    },
+    {
+      "name": "A Hero's Woes",
+      "choice": 1
+    },
+    {
+      "name": "Preparing My Special Move",
+      "choice": 2
+    },
+    {
+      "name": "Let's Bloom Beautifully",
+      "choice": 2
+    },
+    {
+      "name": "Just Don't Bother Me",
+      "choice": 2
+    },
+    {
+      "name": "Just Leave Me Alone",
+      "choice": 2
+    },
+    {
+      "name": "Responding to the Unforeseen",
+      "choice": 1
+    },
+    {
+      "name": "Unforeseen Lunch",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "Genius Efficiency",
+      "choice": 2
+    },
+    {
+      "name": "Enough to Break into a Dash",
+      "choice": 2
+    },
+    {
+      "name": "08:36 Crap, I Overslept",
+      "choice": 2
+    },
+    {
+      "name": "13:12 Lunch Break, Gotta Get Myself Together",
+      "choice": 1
+    },
+    {
+      "name": "Yes Let's Hug",
+      "choice": 2
+    },
+    {
+      "name": "Yeehaw Party Tonight",
+      "choice": 1
+    },
+    {
+      "name": "For an Adorable Younger Student",
+      "choice": 2
+    },
+    {
+      "name": "Drive Destination",
+      "choice": 1
+    },
+    {
+      "name": "My Way, Or...",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "My Weapon",
+      "choice": 1
+    },
+    {
+      "name": "On and On",
+      "choice": 1
+    },
+    {
+      "name": "What Should I Do?",
+      "choice": 1
+    },
+    {
+      "name": "Miracle Escape",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "I'm All Fired Up",
+      "choice": 1
+    },
+    {
+      "name": "Just Start Running",
+      "choice": 2
+    },
+    {
+      "name": "Ah, Friendship",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Ah, Home Sweet Home",
+      "choice": 2
+    },
+    {
+      "name": "Princess Punch",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Princess Escape",
+      "choice": 1
+    },
+    {
+      "name": "Some Very Green Friends",
+      "choice": 1
+    },
+    {
+      "name": "I'm Not Afraid",
+      "choice_2_if_energy_lte": 97
+    },
+    {
+      "name": "Modestly Boldly",
+      "choice": 1
+    },
+    {
+      "name": "Solo Nighttime Run",
+      "choice": 2
+    },
+    {
+      "name": "A Taste of Silence",
+      "choice": 1
+    },
+    {
+      "name": "Snack Advice for Mayano",
+      "choice": 2
+    },
+    {
+      "name": "Fashion Advice for Mayano",
+      "choice": 2
+    },
+    {
+      "name": "Tamamo's School Tour",
+      "choice": 2
+    },
+    {
+      "name": "A Battle I Can't Lose",
+      "choice": 2
+    },
+    {
+      "name": "Leave it to Me to Help Out ♪",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "Leave it to Me to Be Considerate ♪",
+      "choice": 2
+    },
+    {
+      "name": "A Page of Flower Shop Assistance",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "A Page About Cloudy Weather",
+      "choice": 1
+    },
+    {
+      "name": "Recruiting Cat Catchers",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "Recruiting Advisors",
+      "choice": 1
+    },
+    {
+      "name": "Etude to Victory",
+      "choice": 2
+    },
+    {
+      "name": "Beyond Our Limited Time",
+      "choice": 1
+    },
+    {
+      "name": "To Maintain My Weight",
+      "choice": 2
+    },
+    {
+      "name": "To Reach the Greatest Heights",
+      "choice": 1
+    },
+    {
+      "name": "Adventurer Gold Ship",
+      "choice": 1
+    },
+    {
+      "name": "Revive the Brand Golshi's Yakisoba",
+      "choice": 2
+    },
+    {
+      "name": "I Love New Things",
+      "choice": 2
+    },
+    {
+      "name": "I Love Complicated Things",
+      "choice": 1
+    },
+    {
+      "name": "Book-lover Quirks",
+      "choice": 2
+    },
+    {
+      "name": "A Tale Entrusted",
+      "choice": 1
+    },
+    {
+      "name": "Today's Words of Wisdom",
+      "choice": 1
+    },
+    {
+      "name": "Until I Bloom...",
+      "choice": 2
+    },
+    {
+      "name": "The Bookworm and the Magical Girl",
+      "choice": 2
+    },
+    {
+      "name": "Be Strategic",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "Chants Are the Life of a Concert",
+      "choice": 2
+    },
+    {
+      "name": "If I'm Cute, Come to My Show",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "My Muscles and Me, Onward to Tomorrow",
+      "choice": 2
+    },
+    {
+      "name": "It's Not Like I Like Romance",
+      "choice": 2
+    },
+    {
+      "name": "Do No Harm",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "Orders Must Be Followed",
+      "choice": 2
+    },
+    {
+      "name": "Last-Minute Modal Theory",
+      "choice": 2
+    },
+    {
+      "name": "Step-Out-of-Your-Comfort-Zone Theory",
+      "choice": 2
+    },
+    {
+      "name": "Umamusume Deficiency",
+      "choice": 1
+    },
+    {
+      "name": "Heavy Romance",
+      "choice": 2
+    },
+    {
+      "name": "Hishiama's Struggles: Problem Children",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "Hishiama's Struggles: Final Stretch",
+      "choice": 2
+    },
+    {
+      "name": "Blazing Fire",
+      "choice": 1
+    },
+    {
+      "name": "Secret Notebook",
+      "choice": 1
+    },
+    {
+      "name": "The Coolest Line",
+      "choice": 2
+    },
+    {
+      "name": "Enemies on Main Street",
+      "choice": 2
+    },
+    {
+      "name": "How Should I Respond?",
+      "choice": 1
+    },
+    {
+      "name": "Conquering the Crowds",
+      "choice": 1
+    },
+    {
+      "name": "Encounter With the Sun",
+      "choice": 2
+    },
+    {
+      "name": "Smiles Forever",
+      "choice": 1
+    },
+    {
+      "name": "Firm and Plain, Yet Close to Virtue",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "The Will to Protect",
+      "choice": 1
+    },
+    {
+      "name": "I'm Not a Cyborg",
+      "choice": 1
+    },
+    {
+      "name": "#BFF #Party",
+      "choice": 2
+    },
+    {
+      "name": "Always on Stage",
+      "choice": 2
+    },
+    {
+      "name": "Not like Meow",
+      "choice": 2
+    },
+    {
+      "name": "Delicious Burden",
+      "choice": 2
+    },
+    {
+      "name": "I... Will Change",
+      "choice": 1
+    },
+    {
+      "name": "Please... Buy Some Carrots",
+      "choice": 2
+    },
+    {
+      "name": "It's a Game of Tag",
+      "choice": 1
+    },
+    {
+      "name": "Ten Minutes Left",
+      "choice": 2
+    },
+    {
+      "name": "For a Spiffy Concert",
+      "choice": 1
+    },
+    {
+      "name": "Aiming for the City Spots",
+      "choice": 1
+    },
+    {
+      "name": "Strict but Gracious",
+      "choice": 2
+    },
+    {
+      "name": "Agile but Strong",
+      "choice": 2
+    },
+    {
+      "name": "Urara's Study Review",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Urara's Long Shot Dash",
+      "choice": 2
+    },
+    {
+      "name": "Full-Power Muscles",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Full-Power Racing",
+      "choice": 2
+    },
+    {
+      "name": "Library Vexation",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going",
+      "choice": 2
+    },
+    {
+      "name": "So Many Options",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "An Inescapable Choice",
+      "choice": 2
+    },
+    {
+      "name": "Optimistic Escapism",
+      "choice": 1
+    },
+    {
+      "name": "Just Your Typical Hard Work",
+      "choice": 2
+    },
+    {
+      "name": "Just A Typical Accident",
+      "choice": 1
+    },
+    {
+      "name": "Full-Power Passion",
+      "choice": 1
+    },
+    {
+      "name": "Eat Up",
+      "choice_2_if_energy_gt": 97
+    },
+    {
+      "name": "Leave It to Me",
+      "choice": 1
+    },
+    {
+      "name": "What I'm Destined For...",
+      "choice_2_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "No More Words ♪ Use Body Language",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_2_if_energy_lte": 90,
+      "default_choice": 2
+    },
+    {
+      "name": "Run Away to First Base",
+      "choice": 1
+    },
+    {
+      "name": "Seeking Uniqueness",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Sleight of Hand",
+      "choice": 2
+    },
+    {
+      "name": "Misdirection",
+      "choice": 2
+    },
+    {
+      "name": "Give It a Try",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Hope She'll Like It...",
+      "choice": 1
+    },
+    {
+      "name": "Maximum Spirituality",
+      "choice": 1
+    },
+    {
+      "name": "When Piety and Kindness Intersect",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "Marvelous, No Question",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "How To Be More Marvelous",
+      "choice": 1
+    },
+    {
+      "name": "Verification Required",
+      "choice_2_if_energy_lte": 96
+    },
+    {
+      "name": "Absolute Desire",
+      "choice": 2
+    },
+    {
+      "name": "The Correlation between Sleep and Efficiency",
+      "choice": 1
+    },
+    {
+      "name": "Happenstance Introduced Through Intervention",
+      "choice": 2
+    },
+    {
+      "name": "Wonderful New Shoes",
+      "choice": 1
+    },
+    {
+      "name": "Reminiscent Clover",
+      "choice": 2
+    },
+    {
+      "name": "I'm Going to Win Tomorrow",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "This Is Nothing",
+      "choice": 2
+    },
+    {
+      "name": "The Emperor's Encouragement",
+      "choice": 2
+    },
+    {
+      "name": "The Student Council President's Thoughtfulness",
+      "choice": 2
+    },
+    {
+      "name": "Ikuno-Style Flawless Method",
+      "choice": 2
+    },
+    {
+      "name": "Ikuno-Style Management",
+      "choice": 1
+    },
+    {
+      "name": "Chasing Their Backs",
+      "choice": 1
+    },
+    {
+      "name": "Lovely Training Weather",
+      "choice": 3
+    },
+    {
+      "name": "Cozy Memories of Wanko Soba",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "One Step Forward",
+      "choice": 1
+    }
+  ]
+}

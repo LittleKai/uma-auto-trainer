@@ -628,7 +628,7 @@ class EventChoiceHandler:
                     position = find_template_position(
                         template_path=choice_icon,
                         region=EVENT_CHOICE_REGION,
-                        threshold=0.85-attempt*0.02,
+                        threshold=0.85-attempt*0.03,
                         return_center=True,
                         region_format='xywh'
                     )
@@ -657,7 +657,7 @@ class EventChoiceHandler:
                     self.log(f"[WARNING] OpenCV matching failed on attempt {attempt + 1}, trying pyautogui fallback: {e}")
 
             # All attempts failed
-            self.log(f"[WARNING] Choice {choice_number} button not found on screen after {max_retries + 1} attempts")
+            self.log(f"[WARNING] Choice {choice_number} button not found on screen")
             return False
 
         except Exception as e:

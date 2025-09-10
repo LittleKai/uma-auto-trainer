@@ -281,7 +281,7 @@ class EventChoiceTab:
                 values=["None"] + support_cards_list,
                 state="readonly",
                 font=("Arial", 9),
-                width=20
+                width=23
             )
             support_combo.grid(row=1, column=0, sticky=(tk.W, tk.E))
 

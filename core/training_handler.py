@@ -77,20 +77,21 @@ class TrainingHandler:
         # Get total_score from unified calculation in check_support_card
         total_score = support_counts.get("total_score", 0)
         total_support = sum(count for key, count in support_counts.items()
-                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"])
+                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"])
 
         first_result = {
             'support': {k: v for k, v in support_counts.items()
-                        if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"]},
+                        if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"]},
             'total_support': total_support,
             'hint_count': support_counts.get("hint", 0),
             'hint_score': support_counts.get("hint_score", 0),
             'npc_count': support_counts.get("npc_count", 0),
             'npc_score': support_counts.get("npc_score", 0),
-            'total_score': total_score
+            'total_score': total_score,
+            'support_card_bonus': support_counts.get("support_card_bonus", 0)
         }
 
-        # If total support <= 6, return immediately (no need for multiple checks)
+        # If total support <= 6, return immediately without logging
         if total_support <= 6:
             return first_result
 
@@ -113,17 +114,18 @@ class TrainingHandler:
             )
             total_score = support_counts.get("total_score", 0)
             total_support = sum(count for key, count in support_counts.items()
-                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"])
+                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"])
 
             support_results.append({
                 'support': {k: v for k, v in support_counts.items()
-                            if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score"]},
+                            if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"]},
                 'total_support': total_support,
                 'hint_count': support_counts.get("hint", 0),
                 'hint_score': support_counts.get("hint_score", 0),
                 'npc_count': support_counts.get("npc_count", 0),
                 'npc_score': support_counts.get("npc_score", 0),
-                'total_score': total_score
+                'total_score': total_score,
+                'support_card_bonus': support_counts.get("support_card_bonus", 0)
             })
 
         # Use the result with median total score
@@ -131,12 +133,9 @@ class TrainingHandler:
         median_index = len(support_results) // 2
         result = support_results[median_index]
 
-        # Enhanced logging with hint and grouped NPC information
-        hint_info = f" + {result['hint_count']} hints ({result['hint_score']} score)" if result['hint_count'] > 0 else ""
-        npc_info = f" + {result['npc_count']} NPCs ({result['npc_score']} score)" if result['npc_count'] > 0 else ""
-
+        # Only log for multiple checks case
         self.log(f"[{training_type.upper()}] Multiple checks completed, using median result: "
-                 f"{result['support']} (total: {result['total_support']}{hint_info}{npc_info}, "
+                 f"{result['support']} (total: {result['total_support']}, "
                  f"final score: {result['total_score']})")
 
         return result
@@ -220,9 +219,13 @@ class TrainingHandler:
         return results
 
     def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
-        """Log training result with unified score information"""
+        """Log training result with unified score information including support card bonus"""
         # Build bonus information components
         bonus_components = []
+
+        # Add support card bonus if exists
+        if training_result.get('support_card_bonus', 0) > 0:
+            bonus_components.append(f"Support Bonus +{training_result['support_card_bonus']}")
 
         # Add hint info if exists
         if training_result.get('hint_count', 0) > 0:
@@ -267,6 +270,7 @@ class TrainingHandler:
         # Verify friend score calculation for WIT
         if key == "wit" and training_result['support'].get('friend', 0) > 0:
             friend_count = training_result['support']['friend']
+            expected_score = friend_count * 0.5
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

@@ -10,6 +10,8 @@ from core.ocr import extract_text
 from core.recognizer import find_template_position
 from utils.screenshot import enhanced_screenshot
 from utils.constants import get_current_regions
+import unicodedata
+import re
 
 EVENT_CHOICE_REGION = (223, 290, 150, 770)
 
@@ -251,18 +253,45 @@ class EventChoiceHandler:
             }
 
     def find_similar_text(self, target_text: str, ref_text_list: List[str], threshold: float = 0.75) -> str:
-        """Find similar text from reference list using sequence matching"""
-        result = ""
-        best_ratio = threshold
+        """Find similar text from reference list using enhanced matching algorithms"""
+        if not target_text or not ref_text_list:
+            return ""
+
+        def preprocess(text: str) -> str:
+            """Normalize text for better matching"""
+            text = unicodedata.normalize('NFKC', text.lower().strip())
+            return re.sub(r'[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', '', text)
+
+        def calculate_similarity(text1: str, text2: str) -> float:
+            """Calculate combined similarity score"""
+            # Sequence similarity
+            seq_score = SequenceMatcher(None, text1, text2).ratio()
+
+            # Word-based similarity
+            words1, words2 = set(text1.split()), set(text2.split())
+            word_score = len(words1 & words2) / len(words1 | words2) if words1 | words2 else 0
+
+            # Character-based similarity
+            chars1, chars2 = set(text1), set(text2)
+            char_score = len(chars1 & chars2) / len(chars1 | chars2) if chars1 | chars2 else 0
+
+            # Exact word match bonus
+            exact_matches = sum(1 for w in words1 if w in words2 and len(w) > 2)
+            bonus = (exact_matches / max(len(words1), len(words2))) * 0.1 if words1 and words2 else 0
+
+            return min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + bonus)
+
+        processed_target = preprocess(target_text)
+        best_match = ""
+        best_score = threshold
 
         for ref_text in ref_text_list:
-            s = SequenceMatcher(None, target_text.upper(), ref_text.upper())
-            ratio = s.ratio()
-            if ratio > best_ratio:
-                result = ref_text
-                best_ratio = ratio
+            score = calculate_similarity(processed_target, preprocess(ref_text))
+            if score > best_score:
+                best_match = ref_text
+                best_score = score
 
-        return result
+        return best_match
 
     def detect_event_type(self) -> Optional[str]:
         """Detect event type from event region using OpenCV template matching"""

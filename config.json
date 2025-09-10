@@ -39,6 +39,11 @@
       "early_stage": 24,
       "mid_stage": 48
     },
+    "support_card_bonus": {
+      "score_bonus": 0.5,
+      "threshold_day": 24,
+      "max_bonus_types": 2
+    },
     "wit_training": {
       "early_stage_bonus": 0.25,
       "medium_energy_score_requirement": {

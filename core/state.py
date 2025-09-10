@@ -16,6 +16,8 @@ from utils.constants import (
 
 # Global variable to store current date info
 current_date_info = None
+# Global variable to store support card state
+_support_card_state = {}
 
 def load_scoring_config():
   """Load scoring configuration from config file"""
@@ -73,7 +75,7 @@ def get_stage_thresholds():
   })
 
 def calculate_unified_training_score(training_type, support_counts, current_date):
-  """Calculate training score using unified logic with early stage WIT bonus"""
+  """Calculate training score using unified logic with early stage WIT bonus and support card bonus"""
   # Import the unified function from logic.py
   from core.logic import get_friend_multiplier
 
@@ -103,33 +105,37 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
   # Calculate other support cards (excluding rainbow, friend, and npc)
   other_support = sum(count for key, count in support_counts.items()
-                      if key not in [training_type, "friend", "npc", "hint", "hint_score", "total_score", "npc_count", "npc_score"])
+                      if key not in [training_type, "friend", "hint", "hint_score",
+                                     "total_score", "npc", "npc_count", "npc_score"])
 
-  if is_pre_debut or is_early_stage:
-    # Pre-debut and early stage: all support = base score each, no rainbow bonus
-    rainbow_multiplier = get_rainbow_multiplier('pre_debut') if is_pre_debut else get_rainbow_multiplier('early_stage')
-    rainbow_score = rainbow_count * base_score
-    other_score = other_support * base_score
-
+  # Calculate rainbow multiplier based on stage
+  if is_pre_debut:
+    rainbow_multiplier = get_rainbow_multiplier("pre_debut")
+  elif is_early_stage:
+    rainbow_multiplier = get_rainbow_multiplier("early_stage")
   elif is_mid_stage:
-    # Mid stage: rainbow cards get multiplier
-    rainbow_multiplier = get_rainbow_multiplier('mid_stage')
-    rainbow_score = rainbow_count * rainbow_multiplier
-    other_score = other_support * base_score
-
+    rainbow_multiplier = get_rainbow_multiplier("mid_stage")
   else:
-    # Late stage: higher rainbow multiplier
-    rainbow_multiplier = get_rainbow_multiplier('late_stage')
-    rainbow_score = rainbow_count * rainbow_multiplier
-    other_score = other_support * base_score
+    rainbow_multiplier = get_rainbow_multiplier("late_stage")
 
+  # Calculate base total score
+  rainbow_score = rainbow_count * rainbow_multiplier * base_score
+  other_score = other_support * base_score
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
 
-  # Apply early stage WIT bonus (for days < 24, including Pre-Debut)
-  if training_type == "wit" and absolute_day < stage_thresholds.get("early_stage", 24):
+  # Add WIT early stage bonus if applicable
+  if training_type == "wit" and is_early_stage:
     from core.logic import get_wit_early_stage_bonus
     wit_bonus = get_wit_early_stage_bonus()
     total_score += wit_bonus
+
+  # Add support card bonus if applicable
+  support_bonus_dict = calculate_support_card_bonus(current_date)
+  support_bonus = support_bonus_dict.get(training_type, 0)
+  if support_bonus > 0:
+    total_score += support_bonus
+    # Store bonus info for logging
+    support_counts["support_card_bonus"] = support_bonus
 
   return total_score
 
@@ -495,7 +501,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
-  """Check support card in each training with unified score calculation"""
+  """Check support card in each training with unified score calculation and support card bonus"""
   # Get current region settings in case they were updated
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
@@ -554,7 +560,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["npc_count"] = total_npc_count
   count_result["npc_score"] = npc_score
 
-  # Calculate total score using unified logic (this will include WIT bonus if applicable)
+  # Calculate total score using unified logic (this will include support card bonus)
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
   count_result["total_score"] = total_score
 
@@ -657,3 +663,73 @@ def check_criteria():
   img = enhanced_screenshot(criteria_region)
   text = extract_text(img)
   return text
+
+def set_support_card_state(support_counts):
+  """Set the support card state from preset when F1 is pressed"""
+  global _support_card_state
+  _support_card_state = support_counts.copy()
+
+def get_support_card_state():
+  """Get the current support card state"""
+  global _support_card_state
+  return _support_card_state.copy()
+
+def get_support_card_bonus_config():
+  """Get support card bonus configuration from config file"""
+  scoring_config = load_scoring_config()
+  return scoring_config.get("support_card_bonus", {
+    "score_bonus": 0.5,
+    "threshold_day": 24,
+    "max_bonus_types": 2
+  })
+
+def calculate_support_card_bonus(current_date):
+  """Calculate support card bonus based on preset counts and current date"""
+  if not current_date:
+    return {}
+
+  absolute_day = current_date.get('absolute_day', 0)
+  bonus_config = get_support_card_bonus_config()
+  threshold_day = bonus_config.get("threshold_day", 24)
+
+  # Only apply bonus after threshold day
+  if absolute_day <= threshold_day:
+    return {}
+
+  support_state = get_support_card_state()
+  if not support_state:
+    return {}
+
+  score_bonus = bonus_config.get("score_bonus", 0.5)
+  max_bonus_types = bonus_config.get("max_bonus_types", 2)
+
+  # Get support card counts (excluding friend cards)
+  training_types = ['spd', 'sta', 'pwr', 'guts', 'wit']
+  type_counts = {t: support_state.get(t, 0) for t in training_types}
+
+  # Sort by count (descending) and get top types with max count
+  sorted_types = sorted(type_counts.items(), key=lambda x: x[1], reverse=True)
+
+  # Find the maximum count
+  if not sorted_types or sorted_types[0][1] == 0:
+    return {}
+
+  max_count = sorted_types[0][1]
+
+  # Get all types that have the max count (for ties)
+  max_count_types = [t for t, count in sorted_types if count == max_count]
+
+  # If we have more types with max count than allowed, apply to first max_bonus_types
+  bonus_types = max_count_types[:max_bonus_types]
+
+  # If we have fewer than max_bonus_types with max count, add next highest
+  if len(bonus_types) < max_bonus_types:
+    remaining_types = [t for t, count in sorted_types if t not in bonus_types and count > 0]
+    bonus_types.extend(remaining_types[:max_bonus_types - len(bonus_types)])
+
+  # Create bonus dictionary
+  bonus_dict = {}
+  for training_type in bonus_types:
+    bonus_dict[training_type] = score_bonus
+
+  return bonus_dict

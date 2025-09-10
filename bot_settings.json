@@ -1,11 +1,11 @@
 {
   "track": {
     "turf": true,
-    "dirt": false
+    "dirt": true
   },
   "distance": {
     "sprint": false,
-    "mile": false,
+    "mile": true,
     "medium": true,
     "long": true
   },
@@ -20,8 +20,8 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
-  "stop_on_low_mood": false,
+  "stop_on_need_rest": true,
+  "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
@@ -30,17 +30,17 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Mejiro Ryan",
+    "uma_musume": "Oguri Cap",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "frd: Tazuna Hayakawa (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
-      "sta: Super Creek (SSR)",
-      "sta: Mejiro McQueen (SSR)"
+      "frd: Tazuna Hayakawa (SSR)",
+      "spd: Special Week (SSR)",
+      "sta: Mejiro McQueen (SSR)",
+      "sta: Super Creek (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 2,
+    "current_set": 1,
     "preset_sets": {
       "1": {
         "uma_musume": "Mihono Bourbon",
@@ -56,23 +56,23 @@
       "2": {
         "uma_musume": "Mejiro Ryan",
         "support_cards": [
-          "spd/Kitasan Black (SSR) (SSR)",
-          "frd/Tazuna Hayakawa (SSR) (SSR)",
-          "spd/Eishin Flash (SR) (SR)",
-          "spd/Sweep Tosho (SR) (SR)",
-          "sta/Super Creek (SSR) (SSR)",
-          "sta/Mejiro McQueen (SSR) (SSR)"
+          "spd: Kitasan Black (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Eishin Flash (SR)",
+          "sta: Super Creek (SSR)",
+          "sta: Mejiro McQueen (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "El Condor Pasa",
+        "uma_musume": "Gold Ship",
         "support_cards": [
-          "Kitasan Black (SSR)",
-          "Tazuna Hayakawa (SSR)",
-          "Narita Taishin (SR)",
-          "Sweep Tosho (SR)",
-          "Super Creek (SSR)",
-          "Mejiro McQueen (SSR)"
+          "spd: Kitasan Black (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Narita Taishin (SR)",
+          "sta: Super Creek (SSR)",
+          "sta: Super Creek (SSR)"
         ]
       },
       "4": {

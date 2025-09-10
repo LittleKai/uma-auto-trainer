@@ -1,12 +1,6 @@
 {
   "events": [
     {
-      "name": "",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 96,
-      "default_choice": 1
-    },
-    {
       "name": "You May Socialize With Me",
       "choice": 1
     },

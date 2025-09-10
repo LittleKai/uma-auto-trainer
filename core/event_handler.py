@@ -498,7 +498,7 @@ class EventChoiceHandler:
                 return None
 
             # Get list of event names for similarity matching
-            event_names = [event.get("event_name", "") for event in other_events]
+            event_names = [event.get("name", "") for event in other_events]
 
             # Use find_similar_text for consistent matching logic
             matched_name = self.find_similar_text(event_name, event_names, threshold=0.75)
@@ -509,7 +509,7 @@ class EventChoiceHandler:
 
             # Find the matching event configuration
             for event in other_events:
-                if event.get("event_name") == matched_name:
+                if event.get("name") == matched_name:
                     choice = event.get("default_choice", 1)
                     if isinstance(choice, int) and 1 <= choice <= 5:
                         self.log(f"[DEBUG] Found matching event in other special events: '{matched_name}' -> choice {choice}")
@@ -676,11 +676,11 @@ class EventChoiceHandler:
                         self.log(f"[INFO] Found event '{event_name}' in other special events - using choice {choice}")
                         return self.click_choice(choice)
                     else:
-                        self.log(f"[WARNING] Event '{event_name}' not found in other special events - using choice 1 as fallback")
-                        return self.click_choice(1)
+                        self.log(f"[WARNING] Event '{event_name}' not found in other special events")
+                        return False
                 else:
-                    self.log(f"[WARNING] No choice found for event '{event_name}' - using choice 1 as fallback")
-                    return self.click_choice(1)
+                    self.log(f"[WARNING] No choice found for event '{event_name}'")
+                    return False
 
         except Exception as e:
             self.log(f"[ERROR] Failed to handle event choice: {e}")

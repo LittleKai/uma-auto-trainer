@@ -22,9 +22,9 @@
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
-  "stop_on_race_day": true,
+  "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": true,
+  "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "November",
   "event_choice": {
@@ -43,14 +43,14 @@
     "current_set": 1,
     "preset_sets": {
       "1": {
-        "uma_musume": "Mihono Bourbon",
+        "uma_musume": "Oguri Cap",
         "support_cards": [
-          "Kitasan Black (SSR)",
-          "Sweep Tosho (SR)",
-          "Tazuna Hayakawa (SSR)",
-          "Silence Suzuka (SSR)",
-          "Mejiro McQueen (SSR)",
-          "Super Creek (SSR)"
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Special Week (SSR)",
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Super Creek (SSR)"
         ]
       },
       "2": {
@@ -72,48 +72,48 @@
           "spd: Sweep Tosho (SR)",
           "spd: Narita Taishin (SR)",
           "sta: Super Creek (SSR)",
-          "sta: Super Creek (SSR)"
+          "sta: Mayano Top Gun (SR)"
         ]
       },
       "4": {
-        "uma_musume": "El Condor Pasa",
+        "uma_musume": "None",
         "support_cards": [
-          "Kitasan Black (SSR)",
-          "Tazuna Hayakawa (SSR)",
-          "Special Week (SSR)",
-          "Sweep Tosho (SR)",
-          "Super Creek (SSR)",
-          "Mayano Top Gun (SR)"
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
         ]
       },
       "5": {
-        "uma_musume": "Gold Ship",
+        "uma_musume": "None",
         "support_cards": [
-          "Kitasan Black (SSR)",
-          "Sweep Tosho (SR)",
-          "Narita Taishin (SR)",
-          "Tazuna Hayakawa (SSR)",
-          "Super Creek (SSR)",
-          "Mejiro McQueen (SSR)"
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
         ]
       },
       "6": {
-        "uma_musume": "Curren Chan",
+        "uma_musume": "None",
         "support_cards": [
-          "Kitasan Black (SSR)",
-          "Tazuna Hayakawa (SSR)",
-          "Special Week (SSR)",
-          "Sweep Tosho (SR)",
-          "Vodka (SSR)",
-          "Biwa Hayahide (SR)"
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
         ]
       }
     }
   },
   "window": {
-    "width": 839,
-    "height": 956,
-    "x": 987,
+    "width": 849,
+    "height": 850,
+    "x": 982,
     "y": 1
   }
 }

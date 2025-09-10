@@ -230,7 +230,7 @@ class DateManager:
         # Jul 1 - Aug 2 (July = month 7, August = month 8)
         month_num = date_info.get('month_num', 0)
 
-        if (month_num == 7 or month_num == 8) and absolute_day > 16:  # Updated from > 24
+        if (month_num == 7 or month_num == 8) and absolute_day > 24:
             return True
 
         return False

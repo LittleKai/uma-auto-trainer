@@ -504,7 +504,6 @@ class EventChoiceHandler:
             matched_name = self.find_similar_text(event_name, event_names, threshold=0.75)
 
             if not matched_name:
-                self.log(f"[DEBUG] No matching event found in other special events for: '{event_name}'")
                 return None
 
             # Find the matching event configuration
@@ -676,7 +675,7 @@ class EventChoiceHandler:
                         self.log(f"[INFO] Found event '{event_name}' in other special events - using choice {choice}")
                         return self.click_choice(choice)
                     else:
-                        self.log(f"[WARNING] Event '{event_name}' not found in other special events")
+                        self.log(f"[WARNING] Event '{event_name}' not found.")
                         return False
                 else:
                     self.log(f"[WARNING] No choice found for event '{event_name}'")

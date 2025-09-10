@@ -676,6 +676,23 @@ def get_support_card_state():
 
 def get_support_card_bonus_config():
   """Get support card bonus configuration from config file"""
+  # Get current date information
+  current_date = get_current_date_info()
+
+  # Check if current date exists and meets the special condition
+  if current_date:
+    month_num = current_date.get('month_num', 0)
+    absolute_day = current_date.get('absolute_day', 0)
+
+    # If month is July (7) or August (8) and absolute_day > 24, return zero bonus
+    if (month_num == 7 or month_num == 8) and absolute_day > 24:
+      return {
+        "score_bonus": 0,
+        "threshold_day": 24,
+        "max_bonus_types": 2
+      }
+
+  # Default configuration from config file
   scoring_config = load_scoring_config()
   return scoring_config.get("support_card_bonus", {
     "score_bonus": 0.5,

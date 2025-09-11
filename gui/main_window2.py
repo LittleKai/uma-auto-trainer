@@ -317,7 +317,7 @@ class UmaAutoGUI:
 
     # Bot control methods
     def start_bot(self):
-        """Start the bot and save support card counts from current preset"""
+        """Start the bot"""
         if self.is_running:
             return
 
@@ -334,9 +334,6 @@ class UmaAutoGUI:
             self.log_message("Cannot start bot: Game window not found or cannot be focused")
             return
 
-        # Save support card counts from current preset to state
-        self.save_support_card_state()
-
         set_stop_flag(False)
         self.is_running = True
 
@@ -349,52 +346,6 @@ class UmaAutoGUI:
         self.bot_thread.start()
 
         self.log_message("Bot started successfully!")
-
-    def save_support_card_state(self):
-        """Save support card counts from current preset when F1 is pressed"""
-        try:
-            # Get current support cards from event choice tab
-            current_settings = self.get_event_choice_settings()
-            support_cards = current_settings.get('support_cards', [])
-
-            # Count each support card type
-            support_card_counts = {
-                'spd': 0,
-                'sta': 0,
-                'pwr': 0,
-                'guts': 0,
-                'wit': 0,
-                'friend': 0
-            }
-
-            for card in support_cards:
-                if card == "None" or not card:
-                    continue
-
-                # Extract card type from card name (format: "type: Card Name" or "type/Card Name")
-                card_lower = card.lower()
-                if 'spd' in card_lower or 'speed' in card_lower:
-                    support_card_counts['spd'] += 1
-                elif 'sta' in card_lower or 'stamina' in card_lower:
-                    support_card_counts['sta'] += 1
-                elif 'pwr' in card_lower or 'power' in card_lower:
-                    support_card_counts['pwr'] += 1
-                elif 'guts' in card_lower:
-                    support_card_counts['guts'] += 1
-                elif 'wit' in card_lower or 'wisdom' in card_lower:
-                    support_card_counts['wit'] += 1
-                elif 'frd' in card_lower or 'friend' in card_lower:
-                    support_card_counts['friend'] += 1
-
-            # Save to global state for use in training calculations
-            from core.state import set_support_card_state
-            set_support_card_state(support_card_counts)
-
-            # Log the saved counts
-            self.log_message(f"Support cards: {support_card_counts}")
-
-        except Exception as e:
-            self.log_message(f"Error saving support card state: {e}")
 
     def stop_bot(self):
         """Stop the bot"""
@@ -611,7 +562,7 @@ class UmaAutoGUI:
             if settings.get('stop_on_need_rest', False):
                 energy_percentage = game_state.get('energy_percentage', 100)
                 # Consider need rest when energy is very low (below 30%)
-                if energy_percentage < 42:
+                if energy_percentage < 40:
                     self.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
                     return True
 

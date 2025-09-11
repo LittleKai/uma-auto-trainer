@@ -429,7 +429,7 @@ class EventChoiceHandler:
 
                 # Find matching event by name
                 event_names = [event.get("name", "") for event in events]
-                matched_name = self.find_similar_text(event_name, event_names, threshold=0.75)
+                matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
 
                 if not matched_name:
                     continue
@@ -501,7 +501,7 @@ class EventChoiceHandler:
             event_names = [event.get("name", "") for event in other_events]
 
             # Use find_similar_text for consistent matching logic
-            matched_name = self.find_similar_text(event_name, event_names, threshold=0.75)
+            matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
 
             if not matched_name:
                 return None

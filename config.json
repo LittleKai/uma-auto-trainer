@@ -45,7 +45,7 @@
       "max_bonus_types": 2
     },
     "wit_training": {
-      "early_stage_bonus": 0.25,
+      "early_stage_bonus": 0.1,
       "medium_energy_score_requirement": {
         "pre_debut": 2.25,
         "post_debut": 3.0

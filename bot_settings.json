@@ -1,11 +1,11 @@
 {
   "track": {
     "turf": true,
-    "dirt": true
+    "dirt": false
   },
   "distance": {
     "sprint": false,
-    "mile": true,
+    "mile": false,
     "medium": true,
     "long": true
   },
@@ -15,7 +15,7 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3.5+",
+  "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": true,
@@ -30,7 +30,7 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Oguri Cap",
+    "uma_musume": "Mejiro Ryan",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
@@ -111,8 +111,8 @@
     }
   },
   "window": {
-    "width": 849,
-    "height": 850,
+    "width": 808,
+    "height": 958,
     "x": 982,
     "y": 1
   }

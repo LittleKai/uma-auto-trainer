@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "name": "I Can Unwind Outdoors Too",
+      "choice_1_if_energy_gt": 85,
+      "choice_2_if_energy_lte": 85
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Sleepy Time Incense",
+      "choice": 2
+    },
+    {
+      "name": "Tactician vs. King",
+      "choice": 2
+    },
+    {
+      "name": "Who Do You Run For?",
+      "choice": 1
+    },
+    {
+      "name": "Is Cat Language Real?",
+      "choice": 1
+    },
+    {
+      "name": "Shady Dealings",
+      "choice": 1
+    },
+    {
+      "name": "Sei's Escape Plan",
+      "choice": 1
+    },
+    {
+      "name": "Sunny Day Standoff",
+      "choice": 3
+    },
+    {
+      "name": "Cat Expert",
+      "choice": 2
+    },
+    {
+      "name": "Cat Patrol",
+      "choice": 1
+    },
+    {
+      "name": "Goodbye, Cat",
+      "choice": 2
+    },
+    {
+      "name": "Nap Master",
+      "choice": 1
+    },
+    {
+      "name": "Cloudy, Followed By...",
+      "choice": 2
+    }
+  ]
+}

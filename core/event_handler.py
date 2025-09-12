@@ -490,7 +490,7 @@ class EventChoiceHandler:
             return None
 
     def find_event_in_other_special_events(self, event_name: str) -> Optional[int]:
-        """Find event in other special events database"""
+        """Find event in other special events database with improved choice selection"""
         try:
             other_events = self.other_special_events.get("events", [])
             if not other_events:
@@ -504,18 +504,41 @@ class EventChoiceHandler:
             matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
 
             if not matched_name:
+                self.log(f"[DEBUG] No matching event found in other special events for: '{event_name}'")
                 return None
 
             # Find the matching event configuration
             for event in other_events:
                 if event.get("name") == matched_name:
-                    choice = event.get("default_choice", 1)
-                    if isinstance(choice, int) and 1 <= choice <= 5:
-                        self.log(f"[DEBUG] Found matching event in other special events: '{matched_name}' -> choice {choice}")
-                        return choice
-                    else:
-                        self.log(f"[DEBUG] Found event '{matched_name}' but using default choice 1")
-                        return 1
+                    # Check for 'choice' field first (standard format)
+                    if "choice" in event:
+                        choice = event["choice"]
+                        if isinstance(choice, int) and 1 <= choice <= 5:
+                            self.log(f"[DEBUG] Using choice {choice} from 'choice' field")
+                            return choice
+                        else:
+                            self.log(f"[WARNING] Invalid choice value in 'choice' field: {choice}, using default")
+
+                    # Check for 'default_choice' field as fallback
+                    if "default_choice" in event:
+                        default_choice = event["default_choice"]
+                        if isinstance(default_choice, int) and 1 <= default_choice <= 5:
+                            self.log(f"[DEBUG] Using choice {default_choice} from 'default_choice' field")
+                            return default_choice
+                        else:
+                            self.log(f"[WARNING] Invalid default_choice value: {default_choice}, using fallback")
+
+                    # Check for conditional choices based on current game state
+                    current_mood = self.get_current_mood()
+                    current_energy = self.get_current_energy()
+
+                    conditional_choice = self.evaluate_event_conditions(event, current_energy, current_mood, "")
+                    if conditional_choice:
+                        return conditional_choice
+
+                    # Final fallback
+                    self.log(f"[DEBUG] No valid choice found for event '{matched_name}', using default choice 1")
+                    return 1
 
             return None
 
@@ -672,7 +695,7 @@ class EventChoiceHandler:
                     # Try to find in other special events
                     choice = self.find_event_in_other_special_events(event_name)
                     if choice:
-                        self.log(f"[INFO] Found event '{event_name}' in other special events - using choice {choice}")
+                        self.log(f"[INFO] Found event '{event_name}' in other special events")
                         return self.click_choice(choice)
                     else:
                         self.log(f"[WARNING] Event '{event_name}' not found.")

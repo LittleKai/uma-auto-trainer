@@ -406,6 +406,15 @@ class EventChoiceHandler:
                 return True
         return False
 
+    def requires_date_check(self, event_config: Dict) -> bool:
+        """Check if event conditions require date information"""
+        for i in range(1, 6):
+            day_lt_key = f"choice_{i}_if_day_lt"
+            day_gte_key = f"choice_{i}_if_day_gte"
+            if day_lt_key in event_config or day_gte_key in event_config:
+                return True
+        return False
+
     def find_event_choice(self, event_type: str, event_name: str, uma_musume: str, support_cards: List[str]) -> Optional[int]:
         """Find appropriate event choice based on event type and configuration"""
         try:
@@ -455,6 +464,7 @@ class EventChoiceHandler:
                 # Check if event needs mood/energy checks
                 current_mood = None
                 current_energy = None
+                current_date = None
 
                 if self.requires_mood_check(matched_event):
                     current_mood = self.get_current_mood()
@@ -464,6 +474,15 @@ class EventChoiceHandler:
 
                 if self.requires_energy_check(matched_event):
                     current_energy = self.get_current_energy()
+
+                if self.requires_date_check(matched_event):
+                    try:
+                        from core.state import get_current_date_info
+                        current_date = get_current_date_info()
+                        if current_date is None:
+                            self.log("[WARNING] Event requires date check but date is not available")
+                    except Exception as e:
+                        self.log(f"[WARNING] Failed to get date for event check: {e}")
 
                 # Evaluate conditions to determine choice
                 choice = self.evaluate_event_conditions(matched_event, current_energy, current_mood, uma_musume)
@@ -475,6 +494,8 @@ class EventChoiceHandler:
                         condition_parts.append(f"Energy: {current_energy}%")
                     if current_mood is not None:
                         condition_parts.append(f"Mood: {current_mood}")
+                    if current_date is not None:
+                        condition_parts.append(f"Day: {current_date.get('absolute_day', 0)}")
 
                     if condition_parts:
                         condition_info = f" ({', '.join(condition_parts)})"
@@ -580,8 +601,34 @@ class EventChoiceHandler:
             if current_mood and current_mood in mood_priority:
                 current_mood_index = mood_priority.index(current_mood)
 
+            # Get current date information for day conditions
+            current_date = None
+            try:
+                from core.state import get_current_date_info
+                current_date = get_current_date_info()
+            except Exception as e:
+                self.log(f"[WARNING] Failed to get current date: {e}")
+
             # Check conditions for each choice (priority order 1-5)
             for i in range(1, 6):
+                # Check day less than condition
+                day_lt_key = f"choice_{i}_if_day_lt"
+                if day_lt_key in event_config and current_date is not None:
+                    threshold_day = event_config[day_lt_key]
+                    current_day = current_date.get('absolute_day', 0)
+                    if current_day < threshold_day:
+                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} < {threshold_day}")
+                        return i
+
+                # Check day greater than or equal condition
+                day_gte_key = f"choice_{i}_if_day_gte"
+                if day_gte_key in event_config and current_date is not None:
+                    threshold_day = event_config[day_gte_key]
+                    current_day = current_date.get('absolute_day', 0)
+                    if current_day >= threshold_day:
+                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
+                        return i
+
                 # Check energy less than or equal condition
                 energy_lte_key = f"choice_{i}_if_energy_lte"
                 if energy_lte_key in event_config and current_energy is not None:

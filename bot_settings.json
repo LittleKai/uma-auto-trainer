@@ -5,7 +5,7 @@
   },
   "distance": {
     "sprint": false,
-    "mile": false,
+    "mile": true,
     "medium": true,
     "long": true
   },
@@ -15,10 +15,10 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3+",
+  "priority_strategy": "Train Score 3.5+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
@@ -30,7 +30,7 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Mejiro Ryan",
+    "uma_musume": "Seiun Sky",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",

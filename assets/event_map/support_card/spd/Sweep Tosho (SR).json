@@ -11,6 +11,10 @@
     {
       "name": "Miracle ☆ Escape!",
       "choice_2_if_energy_gt": 94
+    },
+    {
+      "name": "Wonderful ☆ Mistake!",
+      "choice_2_if_day_lt": 30
     }
   ]
 }

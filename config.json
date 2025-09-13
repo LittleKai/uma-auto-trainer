@@ -40,7 +40,7 @@
       "mid_stage": 48
     },
     "support_card_bonus": {
-      "score_bonus": 0.5,
+      "score_bonus": 0.75,
       "threshold_day": 24,
       "max_bonus_types": 2
     },

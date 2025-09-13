@@ -137,6 +137,7 @@ class BotController:
             self.log_message(f"[ERROR] Career lobby detection failed {MAX_CAREER_LOBBY_ATTEMPTS} times")
             self.log_message("[ERROR] Bot appears to be stuck - stopping program")
             self.set_stop_flag(True)
+            self.career_lobby_attempts = 0
             return True
 
         return False
@@ -558,9 +559,8 @@ class DecisionEngine:
                     if race_found:
                         return True
                     else:
-                        if not self.controller.check_should_stop():
-                            self._click_back_button("Matching race not found in game. Proceeding to training.")
-                            time.sleep(0.5)
+                        self._click_back_button("Matching race not found in game. Proceeding to training.")
+                        time.sleep(0.5)
             else:
                 if DateManager.is_restricted_period(current_date):
                     if current_date['absolute_day'] <= 16:
@@ -1039,6 +1039,7 @@ class DecisionEngine:
 
     def _click_back_button(self, text=""):
         """Click back button with logging"""
+        time.sleep(0.5)
         enhanced_click(
             "assets/buttons/back_btn.png",
             text=text,

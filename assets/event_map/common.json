@@ -6,7 +6,7 @@
     },
     {
       "name": "Extra Training",
-      "choice": 1
+      "choice_2_if_day_gte": 66
     },
     {
       "name": "Get Well Soon",

@@ -253,7 +253,7 @@ class EventChoiceHandler:
             }
 
     def find_similar_text(self, target_text: str, ref_text_list: List[str], threshold: float = 0.75) -> str:
-        """Find similar text from reference list using enhanced matching algorithms"""
+        """Find similar text from reference list using enhanced matching algorithms with adaptive threshold"""
         if not target_text or not ref_text_list:
             return ""
 
@@ -262,8 +262,19 @@ class EventChoiceHandler:
             text = unicodedata.normalize('NFKC', text.lower().strip())
             return re.sub(r'[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', '', text)
 
+        def has_special_characters(text: str) -> bool:
+            """Check if text contains special characters that might cause OCR issues"""
+            special_chars = ['☆', '★', '♪', '♡', '♥', '!', '?', '※', '○', '●', '△', '▲', '□', '■']
+            return any(char in text for char in special_chars)
+
+        def count_exact_word_matches(text1: str, text2: str) -> int:
+            """Count exact word matches between two texts"""
+            words1 = set(text1.split())
+            words2 = set(text2.split())
+            return len(words1 & words2)
+
         def calculate_similarity(text1: str, text2: str) -> float:
-            """Calculate combined similarity score"""
+            """Calculate combined similarity score with detailed logging"""
             # Sequence similarity
             seq_score = SequenceMatcher(None, text1, text2).ratio()
 
@@ -277,17 +288,60 @@ class EventChoiceHandler:
 
             # Exact word match bonus
             exact_matches = sum(1 for w in words1 if w in words2 and len(w) > 2)
-            bonus = (exact_matches / max(len(words1), len(words2))) * 0.1 if words1 and words2 else 0
+            word_bonus = (exact_matches / max(len(words1), len(words2))) * 0.15 if words1 and words2 else 0
 
-            return min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + bonus)
+            # Calculate final score
+            final_score = min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + word_bonus)
+
+            return final_score
+
+        def get_adaptive_threshold(target: str, reference: str) -> float:
+            """Calculate adaptive threshold based on text characteristics"""
+            base_threshold = threshold
+
+            # Check for special characters in either text
+            target_has_special = has_special_characters(target)
+            ref_has_special = has_special_characters(reference)
+
+            # Lower threshold if either text has special characters
+            if target_has_special or ref_has_special:
+                base_threshold = max(0.6, threshold - 0.15)
+
+            # Check exact word matches
+            exact_word_matches = count_exact_word_matches(target.lower(), reference.lower())
+            target_words = len(target.split())
+            ref_words = len(reference.split())
+
+            # If we have significant exact word matches, lower threshold
+            if exact_word_matches > 0 and target_words > 0:
+                word_match_ratio = exact_word_matches / max(target_words, ref_words)
+                if word_match_ratio >= 0.5:  # 50% or more words match exactly
+                    base_threshold = max(0.5, threshold - 0.2)
+
+            # Check text length similarity
+            len_diff = abs(len(target) - len(reference))
+            max_len = max(len(target), len(reference))
+            if max_len > 0:
+                len_ratio = len_diff / max_len
+                if len_ratio > 0.3:  # Significant length difference
+                    base_threshold = max(0.55, threshold - 0.1)
+
+            return base_threshold
 
         processed_target = preprocess(target_text)
         best_match = ""
-        best_score = threshold
+        best_score = 0.0
 
         for ref_text in ref_text_list:
-            score = calculate_similarity(processed_target, preprocess(ref_text))
-            if score > best_score:
+            processed_ref = preprocess(ref_text)
+
+            # Calculate adaptive threshold for this specific pair
+            adaptive_threshold = get_adaptive_threshold(target_text, ref_text)
+
+            # Calculate similarity with detailed breakdown
+            score = calculate_similarity(processed_target, processed_ref)
+
+            if score > adaptive_threshold and score > best_score:
                 best_match = ref_text
                 best_score = score
 

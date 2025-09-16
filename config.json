@@ -31,7 +31,7 @@
         "pre_debut": 1.0,
         "early_stage": 1.0,
         "mid_stage": 1.75,
-        "late_stage": 2.0
+        "late_stage": 2.25
       }
     },
     "stage_thresholds": {

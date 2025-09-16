@@ -439,7 +439,7 @@ class DecisionEngine:
                         gui.root.after(0, gui.stop_bot)
                     return False
 
-            is_junior_year = current_date and current_date.get('absolute_day', 0) < 24
+            is_junior_year = current_date and current_date.get('absolute_day', 0) <= 24
 
             if not is_junior_year:
                 self.controller.log_message(
@@ -1351,6 +1351,8 @@ def career_lobby(gui=None):
     _main_executor.controller.set_stop_flag(False)
 
     race_manager = RaceManager()
+    window_check_failures = 0
+    max_window_check_failures = 10
 
     if gui:
         race_manager = gui.race_manager
@@ -1359,17 +1361,82 @@ def career_lobby(gui=None):
             if not gui.is_running or _main_executor.controller.should_stop:
                 break
 
-            if not _main_executor.controller.is_game_window_active():
-                gui.log_message("Waiting for game window to be active...")
+            # Check if game window is active with retry mechanism
+            if not check_and_focus_game_window(gui, window_check_failures, max_window_check_failures):
+                window_check_failures += 1
+                if window_check_failures >= max_window_check_failures:
+                    gui.log_message(f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
+                    _main_executor.controller.set_stop_flag(True)
+                    break
                 time.sleep(2)
                 continue
+            else:
+                # Reset failure counter on successful window check
+                window_check_failures = 0
 
             if not _main_executor.execute_single_iteration(race_manager, gui):
                 time.sleep(1)
     else:
         while not _main_executor.controller.should_stop:
+            # Check if game window is active with retry mechanism
+            if not check_and_focus_game_window(None, window_check_failures, max_window_check_failures):
+                window_check_failures += 1
+                if window_check_failures >= max_window_check_failures:
+                    print(f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
+                    _main_executor.controller.set_stop_flag(True)
+                    break
+                time.sleep(2)
+                continue
+            else:
+                # Reset failure counter on successful window check
+                window_check_failures = 0
+
             if not _main_executor.execute_single_iteration(race_manager):
                 time.sleep(1)
+
+
+def check_and_focus_game_window(gui, current_failures, max_failures):
+    """Check if game window is active and attempt to focus if not active"""
+    try:
+        if not _main_executor.controller.is_game_window_active():
+            # Log the attempt to focus window
+            if gui:
+                gui.log_message(f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
+            else:
+                print(f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
+
+            # Use the existing focus_umamusume function from execute.py
+            from core.execute import focus_umamusume
+            focus_umamusume()
+
+            # Wait a moment and check again after focusing
+            time.sleep(1)
+            if _main_executor.controller.is_game_window_active():
+                if gui:
+                    gui.log_message("Successfully focused game window.")
+                else:
+                    print("Successfully focused game window.")
+                return True
+            else:
+                # If focus_umamusume didn't work, try GUI's focus method as fallback
+                if gui and hasattr(gui, 'game_monitor') and hasattr(gui.game_monitor, 'focus_game_window'):
+                    if gui.game_monitor.focus_game_window():
+                        time.sleep(1)
+                        if _main_executor.controller.is_game_window_active():
+                            gui.log_message("Successfully focused game window using GUI method.")
+                            return True
+
+            return False
+        return True
+
+    except Exception as e:
+        # Log the exception and treat as failure
+        error_msg = f"Error checking/focusing game window: {str(e)}"
+        if gui:
+            gui.log_message(error_msg)
+        else:
+            print(error_msg)
+        return False
 
 
 def focus_umamusume():

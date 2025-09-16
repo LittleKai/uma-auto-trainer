@@ -21,6 +21,11 @@
       "choice": 2
     },
     {
+      "name": "Warmth, Love, and Lunch",
+      "choice_1_if_day_lt": 30,
+      "default_choice": 2
+    },
+    {
       "name": "Just Don't Bother Me",
       "choice": 2
     },

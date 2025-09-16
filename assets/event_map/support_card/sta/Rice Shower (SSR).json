@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "name": "A Page of Flower Shop Assistance",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "A Page About Cloudy Weather",
+      "choice": 1
+    }
+  ]
+}

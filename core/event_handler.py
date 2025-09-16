@@ -809,7 +809,7 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to handle event choice: {e}")
             return False
 
-    def click_choice(self, choice_number: int, max_retries: int = 3) -> bool:
+    def click_choice(self, choice_number: int, max_retries: int = 5) -> bool:
         """Click on the specified choice button using template matching with retry mechanism"""
         try:
             if self.check_stop():

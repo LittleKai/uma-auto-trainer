@@ -377,9 +377,9 @@ class UmaAutoGUI:
                     support_card_counts['spd'] += 1
                 elif 'sta' in card_lower or 'stamina' in card_lower:
                     support_card_counts['sta'] += 1
-                elif 'pwr' in card_lower or 'power' in card_lower:
+                elif 'pow' in card_lower or 'power' in card_lower:
                     support_card_counts['pwr'] += 1
-                elif 'guts' in card_lower:
+                elif 'gut' in card_lower:
                     support_card_counts['guts'] += 1
                 elif 'wit' in card_lower or 'wisdom' in card_lower:
                     support_card_counts['wit'] += 1

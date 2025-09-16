@@ -29,13 +29,13 @@
     },
     {
       "name": "New Year's Resolutions",
-      "choice_2_if_energy_lte": 85,
-      "choice_3_if_energy_gt": 85
+      "choice_2_if_energy_lte": 88,
+      "choice_3_if_energy_gt": 88
     },
     {
       "name": "New Year's Shrine Visit",
-      "choice_1_if_energy_lte": 78,
-      "choice_2_if_energy_gt": 78
+      "choice_1_if_energy_lte": 81,
+      "choice_2_if_energy_gt": 81
     },
     {
       "name": "At Summer Camp Year 2",

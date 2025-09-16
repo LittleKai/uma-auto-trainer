@@ -1,13 +1,13 @@
 {
   "track": {
     "turf": true,
-    "dirt": false
+    "dirt": true
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
-    "medium": true,
-    "long": true
+    "medium": false,
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -18,32 +18,32 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
-  "stop_on_infirmary": false,
+  "enable_stop_conditions": true,
+  "stop_on_infirmary": true,
   "stop_on_need_rest": false,
-  "stop_on_low_mood": false,
+  "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
-  "stop_at_month": true,
+  "stop_at_month": false,
   "target_month": "August",
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Seiun Sky",
+    "uma_musume": "Taiki Shuttle",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
+      "frd: Tazuna Hayakawa (SSR)",
       "spd: Special Week (SSR)",
-      "sta: Mayano Top Gun (SR)",
-      "sta: Super Creek (SSR)"
+      "pow: Mihono Bourbon (SR)",
+      "pow: Vodka (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 6,
+    "current_set": 4,
     "preset_sets": {
       "1": {
-        "uma_musume": "Seiun Sky",
+        "uma_musume": "Gold Ship",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
@@ -54,17 +54,6 @@
         ]
       },
       "2": {
-        "uma_musume": "Mejiro Ryan",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
-          "sta: Super Creek (SSR)",
-          "sta: Mejiro McQueen (SSR)"
-        ]
-      },
-      "3": {
         "uma_musume": "Gold Ship",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
@@ -72,18 +61,29 @@
           "spd: Sweep Tosho (SR)",
           "spd: Narita Taishin (SR)",
           "sta: Super Creek (SSR)",
-          "sta: Mayano Top Gun (SR)"
+          "sta: Mejiro McQueen (SSR)"
+        ]
+      },
+      "3": {
+        "uma_musume": "Seiun Sky",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Silence Suzuka (SSR)",
+          "sta: Super Creek (SSR)",
+          "sta: Mejiro McQueen (SSR)"
         ]
       },
       "4": {
-        "uma_musume": "None",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Special Week (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "5": {
@@ -98,14 +98,14 @@
         ]
       },
       "6": {
-        "uma_musume": "None",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "sta: Mejiro McQueen (SSR)",
+          "spd: Silence Suzuka (SSR)",
+          "sta: Mayano Top Gun (SR)",
+          "sta: Super Creek (SSR)"
         ]
       }
     }

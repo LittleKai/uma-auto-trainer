@@ -160,8 +160,8 @@ def stat_state():
 
   return result
 
-def check_energy_percentage():
-  """Check energy percentage by counting gray pixels in energy bar"""
+def check_energy_percentage(return_max_energy=False):
+  """Check energy percentage by scanning for white pixels boundaries in energy bar"""
   try:
     # Get current region settings in case they were updated
     current_regions = get_current_regions()
@@ -171,8 +171,10 @@ def check_energy_percentage():
     x1, y1, x2, y2 = energy_bar
 
     # Convert to region format (left, top, width, height) for capture
-    # Use 1 pixel height for energy bar scanning
-    region = (x1, y1, x2 - x1, 1)
+    # Use 1 pixel height for energy bar scanning at the middle of the bar
+    bar_height = y2 - y1
+    middle_y = y1 + (bar_height // 2)  # Use middle point of energy bar
+    region = (x1, middle_y, x2 - x1, 1)
 
     screenshot = capture_region(region)
 
@@ -180,35 +182,176 @@ def check_energy_percentage():
     if screenshot.mode != 'RGB':
       screenshot = screenshot.convert('RGB')
 
-    # Count pixels with gray color (RGB: 118, 117, 118 which is hex 767576)
-    target_color = (118, 117, 118)
-    gray_pixel_count = 0
-    total_width = 238
+    # Constants for pixel detection
+    white_color = (255, 255, 255)  # 0xFFFFFF in RGB
+    gray_color = (118, 117, 118)   # Gray color for empty energy
+    base_energy_pixels = 236.0  # Reference pixel count for 100 energy
 
-    # Check each pixel in the horizontal line
-    for x in range(total_width):
+    # Variables to track energy boundaries
+    energy_start_pos = None
+    energy_end_pos = None
+    first_white_found = False
+    min_boundary_distance = 20  # Minimum distance between boundaries
+
+    # Scan pixels from left to right to find energy boundaries
+    image_width = screenshot.width
+
+    for x in range(image_width):
       try:
         pixel_color = screenshot.getpixel((x, 0))
-        # Allow some tolerance for color matching (±2 for each RGB component)
-        if (abs(pixel_color[0] - target_color[0]) <= 2 and
-                abs(pixel_color[1] - target_color[1]) <= 2 and
-                abs(pixel_color[2] - target_color[2]) <= 2):
-          gray_pixel_count += 1
-      except:
+
+        # Check if current pixel is white (with tolerance ±5 for better detection)
+        is_white = (abs(pixel_color[0] - white_color[0]) <= 5 and
+                    abs(pixel_color[1] - white_color[1]) <= 5 and
+                    abs(pixel_color[2] - white_color[2]) <= 5)
+
+        # Find first white pixel (energy bar start boundary)
+        if is_white and not first_white_found:
+          first_white_found = True
+
+        # Find transition from white to non-white after first white (energy start)
+        if first_white_found and not is_white and energy_start_pos is None:
+          energy_start_pos = x
+
+        # Find next white pixel after energy start (energy end)
+        if energy_start_pos is not None and is_white:
+          potential_end = x
+          distance = potential_end - energy_start_pos
+
+          # Check if distance is sufficient for a valid energy bar
+          if distance >= min_boundary_distance:
+            energy_end_pos = potential_end
+            break
+          else:
+            # Distance too small, treat this white pixel as new start boundary
+            print(f"[DEBUG] Distance {distance} < {min_boundary_distance}, treating as new start")
+            energy_start_pos = None  # Reset to look for new start
+            first_white_found = True  # We still found white pixels
+
+      except Exception as e:
+        print(f"[DEBUG] Error at pixel {x}: {e}")
         continue
 
-    # Calculate energy percentage
-    # Formula: 100 - (gray_pixels * 100 / total_width)
-    energy_percentage = 100 - (gray_pixel_count * 100 / total_width)
+    # If we didn't find a valid end, continue scanning for any remaining white pixels
+    if energy_start_pos is not None and energy_end_pos is None:
+      print(f"[DEBUG] No valid end found, continuing scan from position {energy_start_pos}")
+      for x in range(energy_start_pos + 1, image_width):
+        try:
+          pixel_color = screenshot.getpixel((x, 0))
+          is_white = (abs(pixel_color[0] - white_color[0]) <= 5 and
+                      abs(pixel_color[1] - white_color[1]) <= 5 and
+                      abs(pixel_color[2] - white_color[2]) <= 5)
 
-    # Clamp between 0 and 100
-    energy_percentage = max(0, min(100, energy_percentage))
+          if is_white:
+            distance = x - energy_start_pos
+            if distance >= min_boundary_distance:
+              energy_end_pos = x
+              break
+        except:
+          continue
 
-    return round(energy_percentage, 1)
+    if energy_start_pos is not None and energy_end_pos is not None:
+      # Calculate total energy bar pixels (distance between boundaries)
+      total_energy_pixels = energy_end_pos - energy_start_pos - 4
+
+      # Count gray pixels (empty energy) within the energy bar range
+      gray_pixel_count = 0
+
+      for x in range(energy_start_pos, energy_end_pos):
+        try:
+          pixel_color = screenshot.getpixel((x, 0))
+          # Check if pixel is gray (empty energy) with tolerance
+          is_gray = (abs(pixel_color[0] - gray_color[0]) <= 2 and
+                     abs(pixel_color[1] - gray_color[1]) <= 2 and
+                     abs(pixel_color[2] - gray_color[2]) <= 2)
+
+          if is_gray:
+            gray_pixel_count += 1
+        except:
+          continue
+
+      # Calculate current energy: total pixels - gray pixels
+      current_energy_pixels = total_energy_pixels - gray_pixel_count
+
+      # Calculate max energy percentage based on detected total pixels
+      max_energy = (total_energy_pixels * 100.0) / base_energy_pixels
+
+      # Calculate current energy percentage
+      current_energy = (current_energy_pixels * 100.0) / base_energy_pixels
+
+      # Clamp values to reasonable ranges
+      max_energy = max(0.0, max_energy)
+      current_energy = max(0.0, min(current_energy, max_energy))
+
+      # Return based on parameter
+      if return_max_energy:
+        return (round(current_energy, 1), round(max_energy, 1))
+      else:
+        return round(current_energy, 1)
+
+    elif first_white_found:
+      # If we found white pixels but no proper boundaries, try alternative approach
+      print("[DEBUG] White pixels found but no proper boundaries detected")
+      # Count gray pixels in entire image
+      gray_pixel_count = 0
+      total_pixels = 0
+
+      for x in range(image_width):
+        try:
+          pixel_color = screenshot.getpixel((x, 0))
+
+          # Check if pixel is gray (empty energy)
+          is_gray = (abs(pixel_color[0] - gray_color[0]) <= 2 and
+                     abs(pixel_color[1] - gray_color[1]) <= 2 and
+                     abs(pixel_color[2] - gray_color[2]) <= 2)
+
+          # Check if pixel is white (boundary)
+          is_white = (abs(pixel_color[0] - white_color[0]) <= 5 and
+                      abs(pixel_color[1] - white_color[1]) <= 5 and
+                      abs(pixel_color[2] - white_color[2]) <= 5)
+
+          # Count non-white pixels as energy bar pixels
+          if not is_white:
+            total_pixels += 1
+            if is_gray:
+              gray_pixel_count += 1
+
+        except:
+          continue
+
+      if total_pixels > 0:
+        # Current energy = total energy pixels - gray pixels
+        current_energy_pixels = total_pixels - gray_pixel_count
+
+        max_energy = (total_pixels * 100.0) / base_energy_pixels
+        current_energy = (current_energy_pixels * 100.0) / base_energy_pixels
+
+        # Clamp values to reasonable ranges
+        max_energy = max(0.0, max_energy)
+        current_energy = max(0.0, min(current_energy, max_energy))
+
+        # Return based on parameter
+        if return_max_energy:
+          return (round(current_energy, 1), round(max_energy, 1))
+        else:
+          return round(current_energy, 1)
+
+    else:
+      # Fallback: if no boundaries detected, assume full energy
+      print("[DEBUG] No energy boundaries detected - using fallback")
+      if return_max_energy:
+        return (100.0, 100.0)
+      else:
+        return 100.0
 
   except Exception as e:
     print(f"[WARNING] Energy detection failed: {e}")
-    return 100  # Return 100% if detection fails (safe default)
+    import traceback
+    traceback.print_exc()
+    if return_max_energy:
+      return (100.0, 100.0)
+    else:
+      return 100.0  # Return full energy if detection fails (safe default)
 
 def enhance_mood_image(img):
   """Enhanced image preprocessing specifically for mood text recognition"""

@@ -7,7 +7,7 @@
     "sprint": false,
     "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -18,29 +18,29 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
-  "target_month": "August",
+  "target_month": "April",
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Seiun Sky",
+    "uma_musume": "Vodka",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Silence Suzuka (SSR)",
-      "sta: Mejiro McQueen (SSR)",
-      "sta: Super Creek (SSR)",
-      "sta: Super Creek (SSR)"
+      "frd: Tazuna Hayakawa (SSR)",
+      "spd: Special Week (SSR)",
+      "pow: Mihono Bourbon (SR)",
+      "pow: Oguri Cap (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 6,
+    "current_set": 4,
     "preset_sets": {
       "1": {
         "uma_musume": "Gold Ship",
@@ -76,7 +76,7 @@
         ]
       },
       "4": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "El Condor Pasa",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
@@ -87,14 +87,14 @@
         ]
       },
       "5": {
-        "uma_musume": "None",
+        "uma_musume": "Vodka",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Eishin Flash (SR)",
+          "pow: Winning Ticket (SSR)",
+          "pow: Oguri Cap (SSR)"
         ]
       },
       "6": {
@@ -102,10 +102,10 @@
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "sta: Mejiro McQueen (SSR)",
           "spd: Silence Suzuka (SSR)",
-          "sta: Mayano Top Gun (SR)",
-          "sta: Super Creek (SSR)"
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Super Creek (SSR)",
+          "sta: Gold Ship (SSR)"
         ]
       }
     }

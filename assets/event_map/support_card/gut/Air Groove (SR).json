@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Strict but Gracious",
+      "choice": 2
+    },
+    {
+      "name": "Agile but Strong",
+      "choice": 2
+    }
+  ]
+}

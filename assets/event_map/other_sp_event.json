@@ -549,6 +549,23 @@
     {
       "name": "One Step Forward",
       "choice": 1
+    },
+    {
+      "name": "Chomp Extermination!",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Chomp Attack!",
+      "choice": 1
+    },
+    {
+      "name": "Overthrow the Rival!",
+      "choice": 2
+    },
+    {
+      "name": "Tons of Trouble!",
+      "choice": 1
     }
   ]
 }

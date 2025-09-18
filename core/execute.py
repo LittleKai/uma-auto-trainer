@@ -156,7 +156,7 @@ class GameStateManager:
             mood = check_mood()
             turn = check_turn()
             year = check_current_year()
-            energy_percentage = check_energy_percentage()
+            energy_percentage, energy_max = check_energy_percentage(True)
             current_date = get_current_date_info()
 
             if current_date is None:
@@ -173,6 +173,7 @@ class GameStateManager:
                 'turn': turn,
                 'year': year,
                 'energy_percentage': energy_percentage,
+                'energy_max': energy_max,
                 'current_date': current_date
             }
 
@@ -1176,7 +1177,7 @@ class StatusLogger:
         if game_state['current_date']:
             gui.update_current_date(game_state['current_date'])
 
-        gui.update_energy_display(game_state['energy_percentage'])
+        gui.update_energy_display((game_state['energy_percentage'],game_state['energy_max']))
 
 
 class MainExecutor:

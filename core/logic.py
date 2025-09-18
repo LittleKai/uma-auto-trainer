@@ -140,12 +140,40 @@ def get_priority_by_stage(stat_key, current_date):
   else:
     return 999
 
-def filter_by_stat_caps(results, current_stats):
-  """Filter training results by stat caps to exclude capped stats"""
-  return {
-    stat: data for stat, data in results.items()
-    if current_stats.get(stat, 0) < STAT_CAPS.get(stat, 1200)
-  }
+def filter_by_stat_caps(results, current_stats, current_date=None):
+  """Filter training results by stat caps, only applies after configured threshold day"""
+
+  # Check if stat cap filtering should be applied based on date
+  if current_date:
+    absolute_day = current_date.get('absolute_day', 0)
+    stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
+
+    # Only apply stat cap filtering after threshold day
+    if absolute_day <= stat_cap_threshold_day:
+      return results  # Return all results without filtering
+
+    # Print current stats when reaching threshold day for the first time
+    if absolute_day == stat_cap_threshold_day + 1:
+      print(f"[STAT CAPS] Day {absolute_day}: Stat cap filtering now active")
+      print(f"[STAT CAPS] Current stats vs caps:")
+      for stat in ["spd", "sta", "pwr", "guts", "wit"]:
+        current_value = current_stats.get(stat, 0)
+        cap_value = STAT_CAPS.get(stat, 1200)
+        status = "CAPPED" if current_value >= cap_value else "OK"
+        print(f"[STAT CAPS]   {stat.upper()}: {current_value}/{cap_value} ({status})")
+
+  # Apply stat cap filtering for days > threshold
+  filtered_results = {}
+  for stat, data in results.items():
+    current_value = current_stats.get(stat, 0)
+    cap_value = STAT_CAPS.get(stat, 1200)
+
+    if current_value < cap_value:
+      filtered_results[stat] = data
+    else:
+      print(f"[STAT CAPS] Filtered out {stat.upper()} training: {current_value}/{cap_value} (capped)")
+
+  return filtered_results
 
 def apply_early_stage_wit_bonus(training_key, total_score, current_date):
   """Apply early stage bonus to WIT training score"""
@@ -253,9 +281,9 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
       -get_priority_by_stage(x[0], current_date)
     )
   )
-
   best_key, best_data = best_training
   best_score = best_data.get("adjusted_score", best_data.get("total_score", 0))
+  print(f"best_score {best_key}: {best_score}")
 
   return best_key
 

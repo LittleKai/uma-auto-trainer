@@ -3,12 +3,13 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
+  "stat_cap_threshold_day": 60,
   "stat_caps": {
-    "spd": 1130,
-    "sta": 1130,
-    "pwr": 1130,
-    "guts": 1130,
-    "wit": 1130
+    "spd": 1100,
+    "sta": 1100,
+    "pwr": 1100,
+    "guts": 1100,
+    "wit": 1100
   },
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
@@ -31,7 +32,7 @@
         "pre_debut": 1.0,
         "early_stage": 1.0,
         "mid_stage": 1.75,
-        "late_stage": 2.25
+        "late_stage": 2.0
       }
     },
     "stage_thresholds": {

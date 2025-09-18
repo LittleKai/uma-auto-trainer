@@ -5,13 +5,8 @@
       "choice_2_if_mood_lt": "GREAT"
     },
     {
-      "name": "",
-      "choice_2_if_mood_lt": "GREAT"
-    },
-    {
       "name": "Rest Day",
-      "choice_1_if_energy_gt": 85,
-      "choice_2_if_energy_lte": 85
+      "choice_2_if_energy_shortage_gte": 19
     },
     {
       "name": "Dance Lesson",

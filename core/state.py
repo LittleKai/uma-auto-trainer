@@ -185,7 +185,8 @@ def check_energy_percentage(return_max_energy=False):
     # Constants for pixel detection
     white_color = (255, 255, 255)  # 0xFFFFFF in RGB
     gray_color = (118, 117, 118)   # Gray color for empty energy
-    base_energy_pixels = 236.0  # Reference pixel count for 100 energy
+    base_energy_pixels = 235.0  # Reference pixel count for 100 energy
+    total_energy_pixels_adjust = -2
 
     # Variables to track energy boundaries
     energy_start_pos = None
@@ -252,7 +253,7 @@ def check_energy_percentage(return_max_energy=False):
 
     if energy_start_pos is not None and energy_end_pos is not None:
       # Calculate total energy bar pixels (distance between boundaries)
-      total_energy_pixels = energy_end_pos - energy_start_pos - 4
+      total_energy_pixels = energy_end_pos - energy_start_pos + total_energy_pixels_adjust
 
       # Count gray pixels (empty energy) within the energy bar range
       gray_pixel_count = 0

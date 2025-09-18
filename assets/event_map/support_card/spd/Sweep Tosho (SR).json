@@ -10,7 +10,7 @@
     },
     {
       "name": "Miracle ☆ Escape!",
-      "choice_2_if_energy_gt": 94
+      "choice_2_if_energy_shortage_gte": 9
     },
     {
       "name": "Wonderful ☆ Mistake!",

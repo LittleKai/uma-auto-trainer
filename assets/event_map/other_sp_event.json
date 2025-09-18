@@ -39,7 +39,7 @@
     },
     {
       "name": "Unforeseen Lunch",
-      "choice_2_if_energy_lte": 96
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Genius Efficiency",
@@ -92,7 +92,7 @@
     },
     {
       "name": "Miracle Escape",
-      "choice_2_if_energy_gt": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "I'm All Fired Up",
@@ -105,7 +105,7 @@
     {
       "name": "Ah, Friendship",
       "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 97
+      "default_choice": 2
     },
     {
       "name": "Ah, Home Sweet Home",
@@ -125,7 +125,7 @@
     },
     {
       "name": "I'm Not Afraid",
-      "choice_2_if_energy_lte": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Modestly Boldly",
@@ -157,7 +157,7 @@
     },
     {
       "name": "Leave it to Me to Help Out ♪",
-      "choice_2_if_energy_gt": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Leave it to Me to Be Considerate ♪",
@@ -234,7 +234,7 @@
     },
     {
       "name": "Be Strategic ☆",
-      "choice_2_if_energy_gt": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Chants Are the Life of a Concert",
@@ -242,7 +242,7 @@
     },
     {
       "name": "If I'm Cute, Come to My Show",
-      "choice_2_if_energy_lte": 96
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "My Muscles and Me, Onward to Tomorrow",
@@ -254,7 +254,8 @@
     },
     {
       "name": "Do No Harm",
-      "choice_2_if_energy_lte": 96
+      "choice_2_if_energy_shortage_gte": 7,
+      "choice_1_if_energy_shortage_gte": 95
     },
     {
       "name": "Orders Must Be Followed",
@@ -278,7 +279,7 @@
     },
     {
       "name": "Hishiama's Struggles: Problem Children",
-      "choice_2_if_energy_gt": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Hishiama's Struggles: Final Stretch",
@@ -403,7 +404,7 @@
     {
       "name": "So Many Options",
       "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_gt": 97
+      "default_choice": 2
     },
     {
       "name": "An Inescapable Choice",
@@ -427,7 +428,7 @@
     },
     {
       "name": "Eat Up",
-      "choice_2_if_energy_gt": 97
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Leave It to Me",
@@ -435,13 +436,11 @@
     },
     {
       "name": "What I'm Destined For...",
-      "choice_2_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 96
+      "choice_2_if_mood_lt": "GREAT"
     },
     {
       "name": "No More Words ♪ Use Body Language",
-      "choice_1_if_mood_lt": "GREAT",
-      "choice_2_if_energy_lte": 90,
+      "choice_3_if_energy_shortage_gte": 15,
       "default_choice": 2
     },
     {
@@ -475,7 +474,7 @@
     },
     {
       "name": "When Piety and Kindness Intersect",
-      "choice_2_if_energy_lte": 96
+      "choice_2_if_energy_shortage_gte": 7
     },
     {
       "name": "Marvelous, No Question",

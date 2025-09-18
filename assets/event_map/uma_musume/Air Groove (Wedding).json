@@ -2,23 +2,18 @@
   "events": [
     {
       "name": "A Taste of Effort",
-      "choice_1_if_energy_gt": 85,
-      "choice_2_if_energy_lte": 85
+      "choice_2_if_energy_shortage_gte": 19
     },
     {
       "name": "Seize Her!",
-      "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 96
-    },
+      "choice_2_if_mood_lt": "GREAT"},
     {
       "name": "Take Good Care of Your Tail",
-      "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 96
+      "choice_2_if_mood_lt": "GREAT"
     },
     {
       "name": "Suggestion Box of Freedom",
-      "choice_2_if_mood_lt": "GREAT",
-      "choice_1_if_energy_lte": 96
+      "choice_2_if_mood_lt": "GREAT"
     },
     {
       "name": "Dance Lesson",

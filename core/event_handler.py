@@ -454,11 +454,31 @@ class EventChoiceHandler:
     def requires_energy_check(self, event_config: Dict) -> bool:
         """Check if event conditions require energy information"""
         for i in range(1, 6):
-            energy_lte_key = f"choice_{i}_if_energy_lte"
-            energy_gt_key = f"choice_{i}_if_energy_gt"
-            if energy_lte_key in event_config or energy_gt_key in event_config:
+            energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
+            if energy_shortage_gte_key in event_config:
                 return True
         return False
+
+    def get_current_energy_with_max(self) -> tuple:
+        """Get current energy percentage and maximum energy percentage"""
+        try:
+            from core.state import check_energy_percentage
+            energy_data = check_energy_percentage(return_max_energy=True)
+
+            if isinstance(energy_data, tuple):
+                current_energy, max_energy = energy_data
+                return current_energy, max_energy
+            else:
+                # Fallback to old format - assume max energy is 100
+                return energy_data, 100.0
+
+        except Exception as e:
+            self.log(f"[ERROR] Failed to get current energy with max: {e}")
+            return 100.0, 100.0
+
+    def calculate_energy_shortage(self, current_energy: float, max_energy: float) -> float:
+        """Calculate energy shortage as max_energy - current_energy"""
+        return max_energy - current_energy
 
     def requires_date_check(self, event_config: Dict) -> bool:
         """Check if event conditions require date information"""
@@ -548,15 +568,12 @@ class EventChoiceHandler:
                         condition_parts.append(f"Energy: {current_energy}%")
                     if current_mood is not None:
                         condition_parts.append(f"Mood: {current_mood}")
-                    if current_date is not None:
-                        condition_parts.append(f"Day: {current_date.get('absolute_day', 0)}")
 
-                    if condition_parts:
-                        condition_info = f" ({', '.join(condition_parts)})"
-                        self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}'{condition_info}")
-                    else:
-                        self.log(f"[DEBUG] Selected choice {choice} for event '{matched_name}'")
+                    condition_info = f" ({', '.join(condition_parts)})" if condition_parts else ""
+                    self.log(f"[INFO] Selected choice {choice} for event '{matched_name}'{condition_info}")
                     return choice
+
+                self.log(f"[WARNING] No valid choice found for event '{matched_name}'")
 
             return None
 
@@ -639,21 +656,19 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to match event names: {e}")
             return False
 
-    def evaluate_event_conditions(self, event_config: Dict, current_energy: Optional[int],
-                                  current_mood: Optional[str], uma_musume: str) -> Optional[int]:
-        """Evaluate event conditions and return appropriate choice"""
+    def evaluate_event_conditions(self, event_config: Dict, current_energy: Optional[float],
+                                  current_mood: Optional[str], uma_musume: str) -> int:
+        """Evaluate event conditions and return appropriate choice number"""
         try:
-            # Handle simple choice (should have been handled before this function)
-            if "choice" in event_config:
-                choice = event_config["choice"]
-                if isinstance(choice, int) and 1 <= choice <= 5:
-                    return choice
-
-            # Handle conditional choices
+            # Mood priority mapping
             mood_priority = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]
             current_mood_index = None
             if current_mood and current_mood in mood_priority:
                 current_mood_index = mood_priority.index(current_mood)
+
+            # Get energy data for shortage calculation
+            current_energy_val, max_energy_val = self.get_current_energy_with_max()
+            energy_shortage = self.calculate_energy_shortage(current_energy_val, max_energy_val)
 
             # Get current date information for day conditions
             current_date = None
@@ -683,21 +698,15 @@ class EventChoiceHandler:
                         self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
                         return i
 
-                # Check energy less than or equal condition
-                energy_lte_key = f"choice_{i}_if_energy_lte"
-                if energy_lte_key in event_config and current_energy is not None:
-                    if current_energy <= event_config[energy_lte_key]:
-                        self.log(f"[DEBUG] Choice {i} selected: energy {current_energy} <= {event_config[energy_lte_key]}")
+                # Check energy shortage greater than or equal condition
+                energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
+                if energy_shortage_gte_key in event_config:
+                    threshold_shortage = event_config[energy_shortage_gte_key]
+                    if energy_shortage >= threshold_shortage:
+                        self.log(f"[DEBUG] Choice {i} selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
                         return i
 
-                # Check energy greater than condition
-                energy_gt_key = f"choice_{i}_if_energy_gt"
-                if energy_gt_key in event_config and current_energy is not None:
-                    if current_energy > event_config[energy_gt_key]:
-                        self.log(f"[DEBUG] Choice {i} selected: energy {current_energy} > {event_config[energy_gt_key]}")
-                        return i
-
-                # Check mood condition
+                # Check mood less than condition
                 mood_lt_key = f"choice_{i}_if_mood_lt"
                 if mood_lt_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_lt_key]

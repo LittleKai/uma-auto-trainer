@@ -463,22 +463,13 @@ class EventChoiceHandler:
         """Get current energy percentage and maximum energy percentage"""
         try:
             from core.state import check_energy_percentage
-            energy_data = check_energy_percentage(return_max_energy=True)
+            current_energy, max_energy = check_energy_percentage(return_max_energy=True)
 
-            if isinstance(energy_data, tuple):
-                current_energy, max_energy = energy_data
-                return current_energy, max_energy
-            else:
-                # Fallback to old format - assume max energy is 100
-                return energy_data, 100.0
+            return current_energy, max_energy
 
         except Exception as e:
             self.log(f"[ERROR] Failed to get current energy with max: {e}")
             return 100.0, 100.0
-
-    def calculate_energy_shortage(self, current_energy: float, max_energy: float) -> float:
-        """Calculate energy shortage as max_energy - current_energy"""
-        return max_energy - current_energy
 
     def requires_date_check(self, event_config: Dict) -> bool:
         """Check if event conditions require date information"""
@@ -668,7 +659,7 @@ class EventChoiceHandler:
 
             # Get energy data for shortage calculation
             current_energy_val, max_energy_val = self.get_current_energy_with_max()
-            energy_shortage = self.calculate_energy_shortage(current_energy_val, max_energy_val)
+            energy_shortage = max_energy_val - current_energy_val
 
             # Get current date information for day conditions
             current_date = None
@@ -700,6 +691,8 @@ class EventChoiceHandler:
 
                 # Check energy shortage greater than or equal condition
                 energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
+
+
                 if energy_shortage_gte_key in event_config:
                     threshold_shortage = event_config[energy_shortage_gte_key]
                     if energy_shortage >= threshold_shortage:

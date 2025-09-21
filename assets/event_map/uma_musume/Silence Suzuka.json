@@ -1,0 +1,57 @@
+{
+  "events": [
+    {
+      "name": "White Temptation",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "Party Time",
+      "choice_1_if_energy_shortage_gte": 8,
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "The Color of the Landscape",
+      "choice": 2
+    },
+    {
+      "name": "Hobbies and Talents",
+      "choice": 1
+    },
+    {
+      "name": "Umadol ☆ Special Class!",
+      "choice": 1
+    },
+    {
+      "name": "Teaching Suzuka's Style",
+      "choice": 1
+    },
+    {
+      "name": "My Little Snowscape",
+      "choice": 1
+    },
+    {
+      "name": "On My Heels",
+      "choice": 1
+    },
+    {
+      "name": "To Make You Happy",
+      "choice": 1
+    },
+    {
+      "name": "Our Little Snowscape",
+      "choice": 3
+    },
+    {
+      "name": "How to Spend a Rainy Day",
+      "choice": 2
+    },
+    {
+      "name": "Are They Compatible?",
+      "choice": 2
+    }
+  ]
+}

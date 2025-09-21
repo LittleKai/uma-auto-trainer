@@ -185,8 +185,8 @@ def check_energy_percentage(return_max_energy=False):
     # Constants for pixel detection
     white_color = (255, 255, 255)  # 0xFFFFFF in RGB
     gray_color = (118, 117, 118)   # Gray color for empty energy
-    base_energy_pixels = 235.0  # Reference pixel count for 100 energy
-    total_energy_pixels_adjust = -2
+    base_energy_pixels = 236.0  # Reference pixel count for 100 energy
+    total_energy_pixels_adjust = -1
 
     # Variables to track energy boundaries
     energy_start_pos = None

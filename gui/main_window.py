@@ -9,6 +9,7 @@ from gui.components.status_section import StatusSection
 from gui.components.log_section import LogSection
 from gui.tabs.strategy_tab import StrategyTab
 from gui.tabs.event_choice_tab import EventChoiceTab
+from gui.tabs.team_trials_tab import TeamTrialsTab
 from gui.utils.game_window_monitor import GameWindowMonitor
 
 from core.execute import set_log_callback
@@ -132,7 +133,7 @@ class UmaAutoGUI:
                    command=self.open_region_settings).pack()
 
     def create_tabbed_section(self, parent, row):
-        """Create tabbed section with Strategy and Event Choice tabs"""
+        """Create tabbed section with Strategy, Event Choice, and Team Trials tabs"""
         notebook = ttk.Notebook(parent)
         notebook.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
 
@@ -145,6 +146,11 @@ class UmaAutoGUI:
         event_choice_frame = ttk.Frame(notebook)
         notebook.add(event_choice_frame, text="Event Choice")
         self.event_choice_tab = EventChoiceTab(event_choice_frame, self)
+
+        # Team Trials tab
+        team_trials_frame = ttk.Frame(notebook)
+        notebook.add(team_trials_frame, text="Team Trials")
+        self.team_trials_tab = TeamTrialsTab(team_trials_frame, self)
 
     def create_control_section(self, parent, row):
         """Create bot control buttons section"""
@@ -238,15 +244,21 @@ class UmaAutoGUI:
         """Get current event choice settings"""
         return self.event_choice_tab.get_settings()
 
+    def get_team_trials_settings(self):
+        """Get current team trials settings"""
+        return self.team_trials_tab.get_settings()
+
     def get_current_settings(self):
         """Get current strategy settings for bot logic"""
         strategy_settings = self.strategy_tab.get_settings()
         event_choice_settings = self.event_choice_tab.get_settings()
+        team_trials_settings = self.team_trials_tab.get_settings()
 
         # Combine settings for bot logic
         return {
             **strategy_settings,
-            'event_choice': event_choice_settings
+            'event_choice': event_choice_settings,
+            'team_trials': team_trials_settings
         }
 
     def save_settings(self):

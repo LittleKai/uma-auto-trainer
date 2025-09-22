@@ -80,6 +80,7 @@ class WindowManager:
             # Load tab settings
             self.main_window.strategy_tab.load_settings(settings)
             self.main_window.event_choice_tab.load_settings(settings.get('event_choice', {}))
+            self.main_window.team_trials_tab.load_settings(settings.get('team_trials', {}))
 
             # Update race manager filters - now safely initialized
             race_filters = {
@@ -98,6 +99,7 @@ class WindowManager:
             # Collect settings from all tabs
             strategy_settings = self.main_window.strategy_tab.get_settings()
             event_choice_settings = self.main_window.event_choice_tab.get_settings()
+            team_trials_settings = self.main_window.team_trials_tab.get_settings()
 
             # Save current window settings
             try:
@@ -115,6 +117,7 @@ class WindowManager:
             all_settings = {
                 **strategy_settings,
                 'event_choice': event_choice_settings,
+                'team_trials': team_trials_settings,
                 'window': self.window_settings
             }
 
@@ -150,6 +153,7 @@ class WindowManager:
             # Load tab settings
             self.main_window.strategy_tab.load_settings(settings)
             self.main_window.event_choice_tab.load_settings(settings.get('event_choice', {}))
+            self.main_window.team_trials_tab.load_settings(settings.get('team_trials', {}))
 
             # Update race manager filters - race_manager is now safely initialized
             if hasattr(self.main_window, 'race_manager') and self.main_window.race_manager:

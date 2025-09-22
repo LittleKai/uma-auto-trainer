@@ -1,21 +1,19 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+from tkinter import ttk, messagebox
 import threading
-import time
 from datetime import datetime
-import keyboard
-import json
-import os
 
-from core.execute import set_log_callback, career_lobby, set_stop_flag
-from core.race_manager import RaceManager, DateManager
-from key_validator import validate_application_key, is_key_valid
-
+from gui.window_manager import WindowManager
+from gui.bot_controller import BotController
 from gui.components.status_section import StatusSection
 from gui.components.log_section import LogSection
 from gui.tabs.strategy_tab import StrategyTab
 from gui.tabs.event_choice_tab import EventChoiceTab
 from gui.utils.game_window_monitor import GameWindowMonitor
+
+from core.execute import set_log_callback
+from core.race_manager import RaceManager
+from key_validator import validate_application_key
 
 
 class UmaAutoGUI:
@@ -29,11 +27,15 @@ class UmaAutoGUI:
         self.game_monitor = GameWindowMonitor(self)
         self.race_manager = RaceManager()  # Initialize race_manager early
 
+        # Initialize components
+        self.window_manager = WindowManager(self)
+        self.bot_controller = BotController(self)
+
         # Initialize variables
         self.init_variables()
 
         # Load settings first to get window position
-        self.load_initial_settings()
+        self.window_manager.load_initial_settings()
 
         # Setup GUI components
         self.setup_gui()
@@ -53,35 +55,13 @@ class UmaAutoGUI:
         self.key_valid = False
         self.initial_key_validation_done = False
 
-        # Default window settings
-        self.window_settings = {
-            'width': 700,
-            'height': 900,
-            'x': 100,
-            'y': 20
-        }
-
         # All settings will be handled by tab modules
         self.all_settings = {}
-
-    def load_initial_settings(self):
-        """Load initial settings including window position before GUI setup"""
-        try:
-            if os.path.exists('bot_settings.json'):
-                with open('bot_settings.json', 'r') as f:
-                    settings = json.load(f)
-
-                # Load window settings if they exist
-                if 'window' in settings:
-                    self.window_settings.update(settings['window'])
-
-        except Exception as e:
-            print(f"Warning: Could not load initial settings: {e}")
 
     def setup_gui(self):
         """Setup the main GUI interface"""
         # Setup window from loaded settings
-        self.setup_window()
+        self.window_manager.setup_window()
 
         # Create main container with scrollable area
         main_container = ttk.Frame(self.root)
@@ -91,69 +71,7 @@ class UmaAutoGUI:
         self.create_scrollable_content(main_container)
 
         # Load tab settings after GUI is created
-        self.load_tab_settings()
-
-    def load_tab_settings(self):
-        """Load tab settings after tabs are created"""
-        try:
-            if not os.path.exists('bot_settings.json'):
-                return
-
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
-
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
-
-            # Update race manager filters - now safely initialized
-            race_filters = {
-                'track': settings.get('track', {}),
-                'distance': settings.get('distance', {}),
-                'grade': settings.get('grade', {})
-            }
-            self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not load tab settings: {e}")
-
-    def setup_window(self):
-        """Setup window with loaded settings"""
-        settings = self.window_settings
-
-        width = max(650, settings.get('width', 700))
-        height = max(850, settings.get('height', 900))
-
-        # Get saved position or use default
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-
-        # Use saved position if available, otherwise use default
-        if 'x' in settings and 'y' in settings:
-            x = settings['x']
-            y = settings['y']
-        else:
-            # Default position: right half of screen + 20px, y = 20
-            default_x = max(20, screen_width // 2) + 20
-            default_y = 20
-            x = default_x
-            y = default_y
-
-        # Ensure window fits on screen
-        if x + width > screen_width:
-            x = max(0, screen_width - width)
-        if y + height > screen_height:
-            y = max(0, screen_height - height)
-
-        # Ensure minimum position values
-        x = max(0, x)
-        y = max(0, y)
-
-        # Set window properties
-        self.root.minsize(650, 850)
-        self.root.geometry(f"{width}x{height}+{x}+{y}")
-        self.root.resizable(True, True)
-        self.root.attributes('-topmost', True)
+        self.window_manager.load_tab_settings()
 
     def create_scrollable_content(self, parent):
         """Create scrollable content area with all sections"""
@@ -273,16 +191,7 @@ class UmaAutoGUI:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Keyboard shortcuts
-        self.setup_keyboard_shortcuts()
-
-    def setup_keyboard_shortcuts(self):
-        """Setup global keyboard shortcuts"""
-        try:
-            keyboard.add_hotkey('f1', self.start_bot)
-            keyboard.add_hotkey('f3', self.enhanced_stop_bot)
-            keyboard.add_hotkey('f5', self.force_exit_program)
-        except Exception as e:
-            self.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
+        self.bot_controller.setup_keyboard_shortcuts()
 
     def start_monitoring(self):
         """Start background monitoring"""
@@ -315,117 +224,6 @@ class UmaAutoGUI:
             self.log_message(f"Error opening region settings: {e}")
             messagebox.showerror("Error", f"Failed to open region settings: {e}")
 
-    # Bot control methods
-    def start_bot(self):
-        """Start the bot and save support card counts from current preset"""
-        if self.is_running:
-            return
-
-        if not self.initial_key_validation_done:
-            self.log_message("Waiting for key validation to complete...")
-            return
-
-        if not self.key_valid:
-            messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
-            self.log_message("Bot start failed: Invalid key")
-            return
-
-        if not self.game_monitor.focus_game_window():
-            self.log_message("Cannot start bot: Game window not found or cannot be focused")
-            return
-
-        # Save support card counts from current preset to state
-        self.save_support_card_state()
-
-        set_stop_flag(False)
-        self.is_running = True
-
-        # Update UI
-        self.set_running_state(True)
-        self.status_section.set_bot_status("Running", "green")
-
-        # Start bot thread
-        self.bot_thread = threading.Thread(target=self.bot_loop, daemon=True)
-        self.bot_thread.start()
-
-        self.log_message("Bot started successfully!")
-
-    def save_support_card_state(self):
-        """Save support card counts from current preset when F1 is pressed"""
-        try:
-            # Get current support cards from event choice tab
-            current_settings = self.get_event_choice_settings()
-            support_cards = current_settings.get('support_cards', [])
-
-            # Count each support card type
-            support_card_counts = {
-                'spd': 0,
-                'sta': 0,
-                'pwr': 0,
-                'guts': 0,
-                'wit': 0,
-                'friend': 0
-            }
-
-            for card in support_cards:
-                if card == "None" or not card:
-                    continue
-
-                # Extract card type from card name (format: "type: Card Name" or "type/Card Name")
-                card_lower = card.lower()
-                if 'spd' in card_lower or 'speed' in card_lower:
-                    support_card_counts['spd'] += 1
-                elif 'sta' in card_lower or 'stamina' in card_lower:
-                    support_card_counts['sta'] += 1
-                elif 'pow' in card_lower or 'power' in card_lower:
-                    support_card_counts['pwr'] += 1
-                elif 'gut' in card_lower:
-                    support_card_counts['guts'] += 1
-                elif 'wit' in card_lower or 'wisdom' in card_lower:
-                    support_card_counts['wit'] += 1
-                elif 'frd' in card_lower or 'friend' in card_lower:
-                    support_card_counts['friend'] += 1
-
-            # Save to global state for use in training calculations
-            from core.state import set_support_card_state
-            set_support_card_state(support_card_counts)
-
-            # Log the saved counts
-            self.log_message(f"Support cards: {support_card_counts}")
-
-        except Exception as e:
-            self.log_message(f"Error saving support card state: {e}")
-
-    def stop_bot(self):
-        """Stop the bot"""
-        if not self.is_running:
-            return
-
-        set_stop_flag(True)
-        self.is_running = False
-
-        # Update UI
-        self.set_running_state(False)
-        self.status_section.set_bot_status("Stopped", "red")
-
-        self.log_message("Bot stopped")
-
-    def enhanced_stop_bot(self):
-        """Enhanced F3 stop functionality"""
-        set_stop_flag(True)
-        self.stop_bot()
-
-    def force_exit_program(self):
-        """Force exit program - F5 key handler"""
-        self.log_message("F5 pressed - Force exiting program...")
-        self.stop_bot()
-        try:
-            keyboard.unhook_all()
-        except:
-            pass
-        import os
-        os._exit(0)
-
     def set_running_state(self, is_running):
         """Update button states based on running status"""
         if is_running:
@@ -434,15 +232,6 @@ class UmaAutoGUI:
         else:
             self.start_button.config(state="normal")
             self.stop_button.config(state="disabled")
-
-    def bot_loop(self):
-        """Main bot loop running in separate thread"""
-        try:
-            career_lobby(self)
-        except Exception as e:
-            self.log_message(f"Bot error: {e}")
-        finally:
-            self.root.after(0, self.stop_bot)
 
     # Settings methods
     def get_event_choice_settings(self):
@@ -462,74 +251,11 @@ class UmaAutoGUI:
 
     def save_settings(self):
         """Save all settings to file"""
-        try:
-            # Collect settings from all tabs
-            strategy_settings = self.strategy_tab.get_settings()
-            event_choice_settings = self.event_choice_tab.get_settings()
-
-            # Save current window settings
-            try:
-                self.root.update_idletasks()
-                self.window_settings = {
-                    'width': self.root.winfo_width(),
-                    'height': self.root.winfo_height(),
-                    'x': self.root.winfo_x(),
-                    'y': self.root.winfo_y()
-                }
-            except:
-                pass
-
-            # Combine all settings
-            all_settings = {
-                **strategy_settings,
-                'event_choice': event_choice_settings,
-                'window': self.window_settings
-            }
-
-            # Save to file
-            with open('bot_settings.json', 'w') as f:
-                json.dump(all_settings, f, indent=2)
-
-            # Update race manager filters - race_manager is now safely initialized
-            if hasattr(self, 'race_manager') and self.race_manager:
-                race_filters = {
-                    'track': strategy_settings.get('track', {}),
-                    'distance': strategy_settings.get('distance', {}),
-                    'grade': strategy_settings.get('grade', {})
-                }
-                self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not save settings: {e}")
+        self.window_manager.save_settings()
 
     def load_settings(self):
         """Load settings from file"""
-        try:
-            if not os.path.exists('bot_settings.json'):
-                return
-
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
-
-            # Load window settings if they exist
-            if 'window' in settings:
-                self.window_settings = settings['window']
-
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
-
-            # Update race manager filters - race_manager is now safely initialized
-            if hasattr(self, 'race_manager') and self.race_manager:
-                race_filters = {
-                    'track': settings.get('track', {}),
-                    'distance': settings.get('distance', {}),
-                    'grade': settings.get('grade', {})
-                }
-                self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not load settings: {e}")
+        self.window_manager.load_settings()
 
     # Status update methods
     def log_message(self, message):
@@ -550,6 +276,23 @@ class UmaAutoGUI:
         """Update game status display"""
         self.status_section.update_game_status(status, color)
 
+    # Bot control delegation methods
+    def start_bot(self):
+        """Delegate to bot controller"""
+        self.bot_controller.start_bot()
+
+    def stop_bot(self):
+        """Delegate to bot controller"""
+        self.bot_controller.stop_bot()
+
+    def enhanced_stop_bot(self):
+        """Delegate to bot controller"""
+        self.bot_controller.enhanced_stop_bot()
+
+    def force_exit_program(self):
+        """Delegate to bot controller"""
+        self.bot_controller.force_exit_program()
+
     # Cleanup methods
     def on_closing(self):
         """Handle window close event"""
@@ -557,6 +300,7 @@ class UmaAutoGUI:
         self.stop_bot()
 
         try:
+            import keyboard
             keyboard.unhook_all()
         except:
             pass
@@ -568,97 +312,7 @@ class UmaAutoGUI:
         Check all stop conditions and return True if any condition is met
         This function should be added to the main GUI window class
         """
-        try:
-            # Get current settings
-            settings = self.get_current_settings()
-
-            # Return False if stop conditions are disabled
-            if not settings.get('enable_stop_conditions', False):
-                return False
-
-            current_date = game_state.get('current_date', {})
-            absolute_day = current_date.get('absolute_day', 0)
-
-            # Most conditions only apply after day 24
-            day_24_passed = absolute_day > 24
-
-            # 1. Stop when race day (works immediately, no day restriction)
-            if (settings.get('stop_on_race_day', False) and
-                    game_state.get('turn') == "Race Day" and
-                    game_state.get('year') != "Finale Season"):
-                self.log_message("Stop condition triggered: Race Day detected")
-                return True
-
-            # Skip other conditions if before day 24
-            if not day_24_passed:
-                return False
-
-            # 2. Stop when infirmary needed (check debuff status)
-            if settings.get('stop_on_infirmary', False):
-                debuff_status = game_state.get('debuff_status', {})
-                has_serious_debuff = any([
-                    debuff_status.get('headache', False),
-                    debuff_status.get('stomach_ache', False),
-                    debuff_status.get('cold', False),
-                    debuff_status.get('overweight', False),
-                    debuff_status.get('injury', False)
-                ])
-                if has_serious_debuff:
-                    self.log_message("Stop condition triggered: Infirmary needed (serious debuff detected)")
-                    return True
-
-            # 3. Stop when need rest (check energy level)
-            if settings.get('stop_on_need_rest', False):
-                energy_percentage = game_state.get('energy_percentage', 100)
-                # Consider need rest when energy is very low (below 30%)
-                if energy_percentage < 42:
-                    self.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
-                    return True
-
-            # 4. Stop when mood below threshold
-            if settings.get('stop_on_low_mood', False):
-                current_mood = game_state.get('mood', 'NORMAL')
-                threshold_mood = settings.get('stop_mood_threshold', 'BAD')
-
-                mood_levels = ['AWFUL', 'BAD', 'NORMAL', 'GOOD', 'GREAT']
-                current_mood_index = mood_levels.index(current_mood) if current_mood in mood_levels else 2
-                threshold_mood_index = mood_levels.index(threshold_mood) if threshold_mood in mood_levels else 1
-                if not current_mood == "UNKNOWN":
-                    if current_mood_index < threshold_mood_index:
-                        self.log_message(f"Stop condition triggered: Mood ({current_mood}) below threshold ({threshold_mood})")
-                        return True
-
-            # 5. Stop before summer (June - month 6)
-            if settings.get('stop_before_summer', False):
-                month_num = current_date.get('month_num', 0)
-                if month_num == 6:  # June
-                    self.log_message("Stop condition triggered: Summer period reached (June)")
-                    return True
-
-            # 6. Stop at specific month
-            if settings.get('stop_at_month', False):
-                target_month = settings.get('target_month', 'June')
-                current_month = current_date.get('month', '')
-
-                # Convert month names to compare
-                month_mapping = {
-                    'January': 1, 'February': 2, 'March': 3, 'April': 4,
-                    'May': 5, 'June': 6, 'July': 7, 'August': 8,
-                    'September': 9, 'October': 10, 'November': 11, 'December': 12
-                }
-
-                target_month_num = month_mapping.get(target_month, 0)
-                current_month_num = current_date.get('month_num', 0)
-
-                if current_month_num == target_month_num:
-                    self.log_message(f"Stop condition triggered: Target month reached ({target_month})")
-                    return True
-
-            return False
-
-        except Exception as e:
-            self.log_message(f"Error checking stop conditions: {e}")
-            return False
+        return self.bot_controller.should_stop_for_conditions(game_state)
 
     def update_strategy_filters(self, uma_data):
         """Update Strategy Tab filters based on Uma Musume data

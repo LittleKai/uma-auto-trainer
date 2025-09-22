@@ -20,11 +20,11 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": true,
+  "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "June",
   "event_choice": {
@@ -109,11 +109,6 @@
         ]
       }
     }
-  },
-  "team_trials": {
-    "opponent_type": "Opponent 1",
-    "use_parfait_gift_pvp": false,
-    "stop_on_shop": true
   },
   "window": {
     "width": 826,

@@ -154,7 +154,7 @@ NPC_SCORE_VALUE = 0.5   # Each NPC support card (grouped)
 RAINBOW_MULTIPLIER = 2  # Rainbow cards in rainbow stage
 
 # UI Click Constants
-DEFAULT_CLICK_CONFIDENCE = 0.8
+DEFAULT_CLICK_CONFIDENCE = 0.7
 DEFAULT_SEARCH_TIME = 2.0
 RANDOM_CLICK_PADDING_RATIO = 0.1  # 10% padding for random clicks
 

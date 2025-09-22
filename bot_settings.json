@@ -111,14 +111,14 @@
     }
   },
   "team_trials": {
-    "opponent_type": "Opponent 3",
-    "use_parfait_gift_pvp": true,
-    "stop_on_shop": false
+    "opponent_type": "Opponent 1",
+    "use_parfait_gift_pvp": false,
+    "stop_on_shop": true
   },
   "window": {
-    "width": 823,
-    "height": 991,
-    "x": 985,
+    "width": 826,
+    "height": 957,
+    "x": 1069,
     "y": 0
   }
 }

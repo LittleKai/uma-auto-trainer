@@ -15,6 +15,7 @@ from gui.components.status_section import StatusSection
 from gui.components.log_section import LogSection
 from gui.tabs.strategy_tab import StrategyTab
 from gui.tabs.event_choice_tab import EventChoiceTab
+from gui.tabs.team_trials_tab import TeamTrialsTab
 from gui.utils.game_window_monitor import GameWindowMonitor
 
 
@@ -93,65 +94,11 @@ class UmaAutoGUI:
         # Load tab settings after GUI is created
         self.load_tab_settings()
 
-    def load_tab_settings(self):
-        """Load tab settings after tabs are created"""
-        try:
-            if not os.path.exists('bot_settings.json'):
-                return
-
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
-
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
-
-            # Update race manager filters - now safely initialized
-            race_filters = {
-                'track': settings.get('track', {}),
-                'distance': settings.get('distance', {}),
-                'grade': settings.get('grade', {})
-            }
-            self.race_manager.update_filters(race_filters)
-
-        except Exception as e:
-            self.log_message(f"Warning: Could not load tab settings: {e}")
-
     def setup_window(self):
-        """Setup window with loaded settings"""
-        settings = self.window_settings
-
-        width = max(650, settings.get('width', 700))
-        height = max(850, settings.get('height', 900))
-
-        # Get saved position or use default
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-
-        # Use saved position if available, otherwise use default
-        if 'x' in settings and 'y' in settings:
-            x = settings['x']
-            y = settings['y']
-        else:
-            # Default position: right half of screen + 20px, y = 20
-            default_x = max(20, screen_width // 2) + 20
-            default_y = 20
-            x = default_x
-            y = default_y
-
-        # Ensure window fits on screen
-        if x + width > screen_width:
-            x = max(0, screen_width - width)
-        if y + height > screen_height:
-            y = max(0, screen_height - height)
-
-        # Ensure minimum position values
-        x = max(0, x)
-        y = max(0, y)
-
+        """Setup main window properties and position"""
         # Set window properties
-        self.root.minsize(650, 850)
-        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        self.root.geometry(f"{self.window_settings['width']}x{self.window_settings['height']}+"
+                           f"{self.window_settings['x']}+{self.window_settings['y']}")
         self.root.resizable(True, True)
         self.root.attributes('-topmost', True)
 
@@ -214,7 +161,7 @@ class UmaAutoGUI:
                    command=self.open_region_settings).pack()
 
     def create_tabbed_section(self, parent, row):
-        """Create tabbed section with Strategy and Event Choice tabs"""
+        """Create tabbed section with Strategy, Event Choice, and Team Trials tabs"""
         notebook = ttk.Notebook(parent)
         notebook.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
 
@@ -227,6 +174,11 @@ class UmaAutoGUI:
         event_choice_frame = ttk.Frame(notebook)
         notebook.add(event_choice_frame, text="Event Choice")
         self.event_choice_tab = EventChoiceTab(event_choice_frame, self)
+
+        # Team Trials tab
+        team_trials_frame = ttk.Frame(notebook)
+        notebook.add(team_trials_frame, text="Team Trials")
+        self.team_trials_tab = TeamTrialsTab(team_trials_frame, self)
 
     def create_control_section(self, parent, row):
         """Create bot control buttons section"""
@@ -327,80 +279,34 @@ class UmaAutoGUI:
 
         if not self.key_valid:
             messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
-            self.log_message("Bot start failed: Invalid key")
             return
 
-        if not self.game_monitor.focus_game_window():
-            self.log_message("Cannot start bot: Game window not found or cannot be focused")
-            return
-
-        # Save support card counts from current preset to state
+        # Save current support card state
         self.save_support_card_state()
 
-        set_stop_flag(False)
+        # Save settings before starting
+        self.save_settings()
+
+        # Set bot state
         self.is_running = True
+        set_stop_flag(False)
 
         # Update UI
         self.set_running_state(True)
         self.status_section.set_bot_status("Running", "green")
 
-        # Start bot thread
+        # Start bot in separate thread
         self.bot_thread = threading.Thread(target=self.bot_loop, daemon=True)
         self.bot_thread.start()
 
-        self.log_message("Bot started successfully!")
-
-    def save_support_card_state(self):
-        """Save support card counts from current preset when F1 is pressed"""
-        try:
-            # Get current support cards from event choice tab
-            current_settings = self.get_event_choice_settings()
-            support_cards = current_settings.get('support_cards', [])
-
-            # Count each support card type
-            support_card_counts = {
-                'spd': 0,
-                'sta': 0,
-                'pwr': 0,
-                'guts': 0,
-                'wit': 0,
-                'friend': 0
-            }
-
-            for card in support_cards:
-                if card == "None" or not card:
-                    continue
-
-                # Extract card type from card name (format: "type: Card Name" or "type/Card Name")
-                card_lower = card.lower()
-                if 'spd' in card_lower or 'speed' in card_lower:
-                    support_card_counts['spd'] += 1
-                elif 'sta' in card_lower or 'stamina' in card_lower:
-                    support_card_counts['sta'] += 1
-                elif 'pow' in card_lower or 'power' in card_lower:
-                    support_card_counts['pwr'] += 1
-                elif 'gut' in card_lower:
-                    support_card_counts['guts'] += 1
-                elif 'wit' in card_lower or 'wisdom' in card_lower:
-                    support_card_counts['wit'] += 1
-                elif 'frd' in card_lower or 'friend' in card_lower:
-                    support_card_counts['friend'] += 1
-
-            # Save to global state for use in training calculations
-            from core.state import set_support_card_state
-            set_support_card_state(support_card_counts)
-
-            # Log the saved counts
-            self.log_message(f"Support cards: {support_card_counts}")
-
-        except Exception as e:
-            self.log_message(f"Error saving support card state: {e}")
+        self.log_message("Bot started")
 
     def stop_bot(self):
         """Stop the bot"""
         if not self.is_running:
             return
 
+        # Set stop flag and state
         set_stop_flag(True)
         self.is_running = False
 
@@ -453,11 +359,13 @@ class UmaAutoGUI:
         """Get current strategy settings for bot logic"""
         strategy_settings = self.strategy_tab.get_settings()
         event_choice_settings = self.event_choice_tab.get_settings()
+        team_trials_settings = self.team_trials_tab.get_settings()
 
         # Combine settings for bot logic
         return {
             **strategy_settings,
-            'event_choice': event_choice_settings
+            'event_choice': event_choice_settings,
+            'team_trials': team_trials_settings
         }
 
     def save_settings(self):
@@ -466,61 +374,54 @@ class UmaAutoGUI:
             # Collect settings from all tabs
             strategy_settings = self.strategy_tab.get_settings()
             event_choice_settings = self.event_choice_tab.get_settings()
+            team_trials_settings = self.team_trials_tab.get_settings()
 
-            # Save current window settings
-            try:
-                self.root.update_idletasks()
-                self.window_settings = {
-                    'width': self.root.winfo_width(),
-                    'height': self.root.winfo_height(),
-                    'x': self.root.winfo_x(),
-                    'y': self.root.winfo_y()
-                }
-            except:
-                pass
+            # Save current window position and size
+            window_settings = {
+                'width': self.root.winfo_width(),
+                'height': self.root.winfo_height(),
+                'x': self.root.winfo_x(),
+                'y': self.root.winfo_y()
+            }
 
             # Combine all settings
             all_settings = {
                 **strategy_settings,
                 'event_choice': event_choice_settings,
-                'window': self.window_settings
+                'team_trials': team_trials_settings,
+                'window': window_settings
             }
 
             # Save to file
             with open('bot_settings.json', 'w') as f:
                 json.dump(all_settings, f, indent=2)
 
-            # Update race manager filters - race_manager is now safely initialized
-            if hasattr(self, 'race_manager') and self.race_manager:
-                race_filters = {
-                    'track': strategy_settings.get('track', {}),
-                    'distance': strategy_settings.get('distance', {}),
-                    'grade': strategy_settings.get('grade', {})
-                }
-                self.race_manager.update_filters(race_filters)
+            self.all_settings = all_settings
 
         except Exception as e:
-            self.log_message(f"Warning: Could not save settings: {e}")
+            print(f"Warning: Could not save settings: {e}")
 
-    def load_settings(self):
-        """Load settings from file"""
+    def load_tab_settings(self):
+        """Load settings from file into all tabs"""
         try:
-            if not os.path.exists('bot_settings.json'):
-                return
+            if os.path.exists('bot_settings.json'):
+                with open('bot_settings.json', 'r') as f:
+                    settings = json.load(f)
 
-            with open('bot_settings.json', 'r') as f:
-                settings = json.load(f)
+                # Load strategy settings
+                self.strategy_tab.load_settings(settings)
 
-            # Load window settings if they exist
-            if 'window' in settings:
-                self.window_settings = settings['window']
+                # Load event choice settings
+                if 'event_choice' in settings:
+                    self.event_choice_tab.load_settings(settings['event_choice'])
 
-            # Load tab settings
-            self.strategy_tab.load_settings(settings)
-            self.event_choice_tab.load_settings(settings.get('event_choice', {}))
+                # Load team trials settings
+                if 'team_trials' in settings:
+                    self.team_trials_tab.load_settings(settings['team_trials'])
 
-            # Update race manager filters - race_manager is now safely initialized
-            if hasattr(self, 'race_manager') and self.race_manager:
+                self.all_settings = settings
+
+                # Update race manager with filters
                 race_filters = {
                     'track': settings.get('track', {}),
                     'distance': settings.get('distance', {}),
@@ -530,6 +431,38 @@ class UmaAutoGUI:
 
         except Exception as e:
             self.log_message(f"Warning: Could not load settings: {e}")
+
+    def save_support_card_state(self):
+        """Save support card count state from current preset"""
+        try:
+            # Get current event choice settings
+            event_settings = self.event_choice_tab.get_settings()
+            current_set = event_settings.get('current_set', 1)
+
+            # Get support cards from current preset
+            if 'preset_sets' in event_settings and str(current_set) in event_settings['preset_sets']:
+                support_cards = event_settings['preset_sets'][str(current_set)]['support_cards']
+
+                # Count support card types
+                support_counts = {
+                    'spd': 0, 'sta': 0, 'pow': 0, 'gut': 0, 'wit': 0, 'frd': 0
+                }
+
+                for card in support_cards:
+                    if card != "None":
+                        # Extract type from card string (format: "type: card_name")
+                        card_type = card.split(':')[0].strip().lower()
+                        if card_type in support_counts:
+                            support_counts[card_type] += 1
+
+                # Log the support card configuration
+                self.log_message(f"Support cards for set {current_set}: SPD={support_counts['spd']}, "
+                                 f"STA={support_counts['sta']}, POW={support_counts['pow']}, "
+                                 f"GUT={support_counts['gut']}, WIT={support_counts['wit']}, "
+                                 f"FRD={support_counts['frd']}")
+
+        except Exception as e:
+            self.log_message(f"Warning: Could not save support card state: {e}")
 
     # Status update methods
     def log_message(self, message):
@@ -549,6 +482,27 @@ class UmaAutoGUI:
     def update_game_status(self, status, color):
         """Update game status display"""
         self.status_section.update_game_status(status, color)
+
+    def update_mood_status(self, mood):
+        """Update mood status display"""
+        self.status_section.update_mood(mood)
+
+    def update_turn_status(self, turn):
+        """Update turn status display"""
+        self.status_section.update_turn(turn)
+
+    def update_year_status(self, year):
+        """Update year status display"""
+        self.status_section.update_year(year)
+
+    def update_energy_status(self, energy_percentage):
+        """Update energy status display"""
+        self.status_section.update_energy(energy_percentage)
+
+    def focus_game_window(self):
+        """Focus game window"""
+        if hasattr(self.game_monitor, 'focus_game_window'):
+            self.game_monitor.focus_game_window()
 
     # Cleanup methods
     def on_closing(self):
@@ -593,65 +547,42 @@ class UmaAutoGUI:
             if not day_24_passed:
                 return False
 
-            # 2. Stop when infirmary needed (check debuff status)
-            if settings.get('stop_on_infirmary', False):
-                debuff_status = game_state.get('debuff_status', {})
-                has_serious_debuff = any([
-                    debuff_status.get('headache', False),
-                    debuff_status.get('stomach_ache', False),
-                    debuff_status.get('cold', False),
-                    debuff_status.get('overweight', False),
-                    debuff_status.get('injury', False)
-                ])
-                if has_serious_debuff:
-                    self.log_message("Stop condition triggered: Infirmary needed (serious debuff detected)")
-                    return True
+            # 2. Stop on infirmary
+            if (settings.get('stop_on_infirmary', False) and
+                    game_state.get('turn') == "Infirmary"):
+                self.log_message("Stop condition triggered: Infirmary detected")
+                return True
 
-            # 3. Stop when need rest (check energy level)
-            if settings.get('stop_on_need_rest', False):
-                energy_percentage = game_state.get('energy_percentage', 100)
-                # Consider need rest when energy is very low (below 30%)
-                if energy_percentage < 42:
-                    self.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
-                    return True
+            # 3. Stop on need rest
+            if (settings.get('stop_on_need_rest', False) and
+                    game_state.get('turn') == "Need Rest"):
+                self.log_message("Stop condition triggered: Need Rest detected")
+                return True
 
-            # 4. Stop when mood below threshold
+            # 4. Stop on low mood
             if settings.get('stop_on_low_mood', False):
-                current_mood = game_state.get('mood', 'NORMAL')
-                threshold_mood = settings.get('stop_mood_threshold', 'BAD')
+                current_mood = game_state.get('mood', 'Unknown')
+                threshold = settings.get('stop_mood_threshold', 'BAD')
+                mood_values = {"AWFUL": 0, "BAD": 1, "NORMAL": 2, "GOOD": 3, "GREAT": 4}
 
-                mood_levels = ['AWFUL', 'BAD', 'NORMAL', 'GOOD', 'GREAT']
-                current_mood_index = mood_levels.index(current_mood) if current_mood in mood_levels else 2
-                threshold_mood_index = mood_levels.index(threshold_mood) if threshold_mood in mood_levels else 1
-                if not current_mood == "UNKNOWN":
-                    if current_mood_index < threshold_mood_index:
-                        self.log_message(f"Stop condition triggered: Mood ({current_mood}) below threshold ({threshold_mood})")
-                        return True
-
-            # 5. Stop before summer (June - month 6)
-            if settings.get('stop_before_summer', False):
-                month_num = current_date.get('month_num', 0)
-                if month_num == 6:  # June
-                    self.log_message("Stop condition triggered: Summer period reached (June)")
+                if (current_mood in mood_values and threshold in mood_values and
+                        mood_values[current_mood] < mood_values[threshold]):
+                    self.log_message(f"Stop condition triggered: Low mood detected ({current_mood})")
                     return True
+
+            # 5. Stop before summer (July)
+            if (settings.get('stop_before_summer', False) and
+                    current_date.get('month') == 'July' and
+                    game_state.get('year') in ['1st Year', '2nd Year', '3rd Year']):
+                self.log_message("Stop condition triggered: Summer season (July) reached")
+                return True
 
             # 6. Stop at specific month
             if settings.get('stop_at_month', False):
                 target_month = settings.get('target_month', 'June')
-                current_month = current_date.get('month', '')
-
-                # Convert month names to compare
-                month_mapping = {
-                    'January': 1, 'February': 2, 'March': 3, 'April': 4,
-                    'May': 5, 'June': 6, 'July': 7, 'August': 8,
-                    'September': 9, 'October': 10, 'November': 11, 'December': 12
-                }
-
-                target_month_num = month_mapping.get(target_month, 0)
-                current_month_num = current_date.get('month_num', 0)
-
-                if current_month_num == target_month_num:
-                    self.log_message(f"Stop condition triggered: Target month reached ({target_month})")
+                if (current_date.get('month') == target_month and
+                        game_state.get('year') in ['1st Year', '2nd Year', '3rd Year']):
+                    self.log_message(f"Stop condition triggered: Target month ({target_month}) reached")
                     return True
 
             return False
@@ -660,74 +591,9 @@ class UmaAutoGUI:
             self.log_message(f"Error checking stop conditions: {e}")
             return False
 
-    def update_strategy_filters(self, uma_data):
-        """Update Strategy Tab filters based on Uma Musume data
-
-        Args:
-            uma_data (dict): Dictionary containing track and distance preferences
-                            Format: {'turf': bool, 'dirt': bool, 'sprint': bool,
-                                    'mile': bool, 'medium': bool, 'long': bool}
-        """
-        try:
-            # Get strategy tab reference
-            strategy_tab = getattr(self, 'strategy_tab', None)
-            if strategy_tab:
-                # Update track filters
-                strategy_tab.track_filters['turf'].set(uma_data.get('turf', False))
-                strategy_tab.track_filters['dirt'].set(uma_data.get('dirt', False))
-
-                # Update distance filters
-                strategy_tab.distance_filters['sprint'].set(uma_data.get('sprint', False))
-                strategy_tab.distance_filters['mile'].set(uma_data.get('mile', False))
-                strategy_tab.distance_filters['medium'].set(uma_data.get('medium', False))
-                strategy_tab.distance_filters['long'].set(uma_data.get('long', False))
-
-                # Trigger auto-save for strategy tab
-                self.save_settings()
-
-        except Exception as e:
-            print(f"Warning: Could not update strategy filters: {e}")
-
-    # Alternative method if you want to call strategy tab directly
-    def update_strategy_filters_direct(self, uma_data):
-        """Direct update of Strategy Tab filters without going through main window
-
-        Args:
-            uma_data (dict): Dictionary containing track and distance preferences
-        """
-        try:
-            # Access strategy tab through tabs collection
-            if hasattr(self, 'tabs') and 'Strategy' in self.tabs:
-                strategy_tab = self.tabs['Strategy']
-            elif hasattr(self, 'strategy_tab'):
-                strategy_tab = self.strategy_tab
-            else:
-                return
-
-            # Update track filters
-            if hasattr(strategy_tab, 'track_filters'):
-                strategy_tab.track_filters['turf'].set(uma_data.get('turf', False))
-                strategy_tab.track_filters['dirt'].set(uma_data.get('dirt', False))
-
-            # Update distance filters
-            if hasattr(strategy_tab, 'distance_filters'):
-                strategy_tab.distance_filters['sprint'].set(uma_data.get('sprint', False))
-                strategy_tab.distance_filters['mile'].set(uma_data.get('mile', False))
-                strategy_tab.distance_filters['medium'].set(uma_data.get('medium', False))
-                strategy_tab.distance_filters['long'].set(uma_data.get('long', False))
-
-            # Save settings
-            self.save_settings()
-
-        except Exception as e:
-            print(f"Warning: Could not update strategy filters: {e}")
-
     def run(self):
-        """Start the GUI application"""
-        self.log_message("Configure strategy settings and race filters before starting.")
-        self.log_message("Priority Strategies:")
-        self.log_message("• G1/G2 (no training): Prioritize racing, skip training")
-        self.log_message("• Train Score 2.5+/3+/3.5+/4+: Train only if score meets threshold")
-        self.log_message("Use F1 to start, F3 to stop, F5 to force exit program.")
-
-        self.root.mainloop()
+        """Start the main application loop"""
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            self.on_closing()

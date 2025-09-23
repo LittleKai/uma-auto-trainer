@@ -1,0 +1,56 @@
+{
+  "events": [
+    {
+      "name": "Cuteness ☆ Research",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Polished ☆ Diamond",
+      "choice": 1
+    },
+    {
+      "name": "Umadol ☆ Friendship!",
+      "choice": 2
+    },
+    {
+      "name": "Energetic ☆ Children",
+      "choice": 2
+    },
+    {
+      "name": "Studying Umadols?",
+      "choice": 1
+    },
+    {
+      "name": "Heart-Pounding ☆ Situation",
+      "choice": 1
+    },
+    {
+      "name": "Umadol Spirit ☆ Ignited",
+      "choice": 1
+    },
+    {
+      "name": "Test Recovery ☆",
+      "choice": 2
+    },
+    {
+      "name": "A Thank-You Gift for You ♪",
+      "choice": 1
+    },
+    {
+      "name": "Memory ☆ Lane",
+      "choice": 3
+    },
+    {
+      "name": "Sharing ☆ Memories",
+      "choice": 1
+    },
+    {
+      "name": "Location ☆ Scouting",
+      "choice": 2
+    }
+  ]
+}

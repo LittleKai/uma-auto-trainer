@@ -15,7 +15,7 @@ class BotController:
         """Setup global keyboard shortcuts"""
         try:
             keyboard.add_hotkey('f1', self.main_window.start_bot)
-            keyboard.add_hotkey('f3', self.main_window.enhanced_stop_bot)
+            keyboard.add_hotkey('f3', self.enhanced_stop_bot)
             keyboard.add_hotkey('f5', self.main_window.force_exit_program)
         except Exception as e:
             self.main_window.log_message(f"Warning: Could not setup keyboard shortcuts: {e}")
@@ -38,6 +38,18 @@ class BotController:
             self.main_window.log_message("Cannot start bot: Game window not found or cannot be focused")
             return
 
+        # Check if Team Trials tab is active
+        if hasattr(self.main_window, 'team_trials_tab') and self.main_window.team_trials_tab.is_active_tab():
+            # Start Team Trials
+            if self.main_window.team_trials_tab.start_team_trials():
+                self.main_window.is_running = True
+                self.main_window.set_running_state(True)
+                return
+            else:
+                self.main_window.log_message("Failed to start Team Trials")
+                return
+
+        # Start normal bot
         # Save support card counts from current preset to state
         self.save_support_card_state()
 
@@ -105,6 +117,11 @@ class BotController:
         if not self.main_window.is_running:
             return
 
+        # Stop team trials if running
+        if hasattr(self.main_window, 'team_trials_tab') and self.main_window.team_trials_tab.is_team_trials_running:
+            self.main_window.team_trials_tab.stop_team_trials()
+
+        # Stop main bot
         set_stop_flag(True)
         self.main_window.is_running = False
 
@@ -115,14 +132,27 @@ class BotController:
         self.main_window.log_message("Bot stopped")
 
     def enhanced_stop_bot(self):
-        """Enhanced F3 stop functionality"""
+        """Enhanced F3 stop functionality - handles both main bot and team trials"""
         set_stop_flag(True)
         self.stop_bot()
+
+        # Also stop team trials if running
+        if hasattr(self.main_window, 'team_trials_tab'):
+            team_trials_tab = self.main_window.team_trials_tab
+            if hasattr(team_trials_tab, 'is_team_trials_running') and team_trials_tab.is_team_trials_running:
+                team_trials_tab.stop_team_trials()
 
     def force_exit_program(self):
         """Force exit program - F5 key handler"""
         self.main_window.log_message("F5 pressed - Force exiting program...")
         self.stop_bot()
+
+        # Also stop team trials if running
+        if hasattr(self.main_window, 'team_trials_tab'):
+            team_trials_tab = self.main_window.team_trials_tab
+            if hasattr(team_trials_tab, 'is_team_trials_running') and team_trials_tab.is_team_trials_running:
+                team_trials_tab.stop_team_trials()
+
         try:
             keyboard.unhook_all()
         except:

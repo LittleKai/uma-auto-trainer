@@ -245,3 +245,85 @@ def find_template_position(template_path, region=None, threshold=0.85, return_ce
   except Exception as e:
     print(f"[ERROR] Unexpected error in find_template_position: {e}")
     return None
+
+# Add these functions to your existing core/recognizer.py file
+
+import pyautogui
+import time
+import cv2
+import numpy as np
+
+def click_position(x, y):
+  """Click at specific coordinates"""
+  try:
+    pyautogui.click(x, y)
+    return True
+  except Exception as e:
+    print(f"Error clicking position ({x}, {y}): {e}")
+    return False
+
+def recognize_image(image_path, region=None, confidence=0.7):
+  """
+  Check if image exists in screen or specified region
+
+  Args:
+      image_path (str): Path to the image file
+      region (tuple): Region to search in (x, y, width, height) or None for full screen
+      confidence (float): Matching confidence threshold
+
+  Returns:
+      bool: True if image is found, False otherwise
+  """
+  try:
+    if region:
+      # Convert region format from (x1, y1, x2, y2) to (x, y, width, height)
+      if len(region) == 4:
+        x1, y1, x2, y2 = region
+        if x2 > x1 and y2 > y1:  # (x1, y1, x2, y2) format
+          region = (x1, y1, x2 - x1, y2 - y1)
+
+    location = pyautogui.locateOnScreen(image_path, region=region, confidence=confidence)
+    return location is not None
+  except Exception as e:
+    print(f"Error recognizing image {image_path}: {e}")
+    return False
+
+def click_image_if_found(image_path, region=None, confidence=0.7):
+  """
+  Click on image if found in screen or specified region
+
+  Args:
+      image_path (str): Path to the image file
+      region (tuple): Region to search in (x, y, width, height) or None for full screen
+      confidence (float): Matching confidence threshold
+
+  Returns:
+      bool: True if image was found and clicked, False otherwise
+  """
+  try:
+    if region:
+      # Convert region format from (x1, y1, x2, y2) to (x, y, width, height)
+      if len(region) == 4:
+        x1, y1, x2, y2 = region
+        if x2 > x1 and y2 > y1:  # (x1, y1, x2, y2) format
+          region = (x1, y1, x2 - x1, y2 - y1)
+
+    location = pyautogui.locateOnScreen(image_path, region=region, confidence=confidence)
+    if location:
+      center = pyautogui.center(location)
+      pyautogui.click(center)
+      return True
+    else:
+      return False
+  except Exception as e:
+    print(f"Error clicking image {image_path}: {e}")
+    return False
+
+def get_left_half_screen_region():
+  """Get the left half of the screen region"""
+  try:
+    screen_width, screen_height = pyautogui.size()
+    return (0, 0, screen_width // 2, screen_height)
+  except Exception as e:
+    print(f"Error getting screen region: {e}")
+    return None

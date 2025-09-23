@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
+from .team_trials_logic import TeamTrialsLogic
 
 
 class TeamTrialsTab:
-    """Team Trials configuration tab"""
+    """Team Trials configuration tab - UI only"""
 
     def __init__(self, parent, main_window):
         self.parent = parent
@@ -17,6 +18,9 @@ class TeamTrialsTab:
 
         # Bind variable changes to auto-save
         self.bind_variable_changes()
+
+        # Initialize logic handler
+        self.logic = TeamTrialsLogic(self.main_window, self)
 
     def init_variables(self):
         """Initialize tab variables"""
@@ -89,24 +93,43 @@ class TeamTrialsTab:
         shop_check.grid(row=0, column=1, sticky=tk.W, pady=5)
 
     def create_control_section(self, parent, row):
-        """Create control section with start button"""
-        control_frame = ttk.Frame(parent)
-        control_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
-
-        # Start button
-        self.start_button = ttk.Button(
-            control_frame,
-            text="Start",
-            command=self.start_team_trials
-        )
-        self.start_button.pack(pady=10, ipadx=20, ipady=5)
+        """Create control section - removed start button, using main GUI start button"""
+        # No control section needed, using main GUI start button
+        pass
 
     def start_team_trials(self):
-        """Start team trials functionality"""
-        self.main_window.log_message("Team Trials started with settings:")
-        self.main_window.log_message(f"Opponent Type: {self.opponent_type.get()}")
-        self.main_window.log_message(f"Use parfait for gift PvP: {self.use_parfait_gift_pvp.get()}")
-        self.main_window.log_message(f"Stop if shop: {self.stop_if_shop.get()}")
+        """Start team trials functionality - delegates to logic handler"""
+        return self.logic.start_team_trials()
+
+    def stop_team_trials(self):
+        """Stop team trials - delegates to logic handler"""
+        self.logic.stop_team_trials()
+
+    def is_active_tab(self):
+        """Check if team trials tab is currently active"""
+        try:
+            # Get the parent notebook widget
+            parent = self.parent
+            while parent and not isinstance(parent.master, ttk.Notebook):
+                parent = parent.master
+
+            if parent and isinstance(parent.master, ttk.Notebook):
+                notebook = parent.master
+                current_tab = notebook.select()
+                current_tab_text = notebook.tab(current_tab, "text")
+                return current_tab_text == "Team Trials"
+            return False
+        except:
+            return False
+
+    def is_running(self):
+        """Check if team trials is currently running - delegates to logic handler"""
+        return self.logic.is_team_trials_running if hasattr(self, 'logic') else False
+
+    @property
+    def is_team_trials_running(self):
+        """Property for backward compatibility"""
+        return self.is_running()
 
     def get_settings(self):
         """Get current tab settings"""

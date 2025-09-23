@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "name": "Bakushin?! Class?!",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "",
+      "choice_1_if_energy_shortage_gte": 19,
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Bakushin for Love!",
+      "choice": 1
+    },
+    {
+      "name": "A Day Without a Class Rep",
+      "choice": 2
+    },
+    {
+      "name": "Bakushin in Signature Racewear!",
+      "choice": 1
+    },
+    {
+      "name": "The Bakushin Book!",
+      "choice": 2
+    },
+    {
+      "name": "The Voices of the Students",
+      "choice": 2
+    },
+    {
+      "name": "Solving Riddles, Bakushin Style!",
+      "choice": 1
+    },
+    {
+      "name": "Bakushin-ing with a Classmate!",
+      "choice": 2
+    },
+    {
+      "name": "The Best Bakushin!",
+      "choice": 2
+    },
+    {
+      "name": "Bakushin, Now and Forever!",
+      "choice": 3
+    },
+    {
+      "name": "Together with Someone Important!",
+      "choice": 2
+    },
+    {
+      "name": "The Speed King",
+      "choice": 2
+    }
+  ]
+}

@@ -230,14 +230,6 @@ class UmaAutoGUI:
             self.log_message(f"Error opening region settings: {e}")
             messagebox.showerror("Error", f"Failed to open region settings: {e}")
 
-    def set_running_state(self, is_running):
-        """Update button states based on running status"""
-        if is_running:
-            self.start_button.config(state="disabled")
-            self.stop_button.config(state="normal")
-        else:
-            self.start_button.config(state="normal")
-            self.stop_button.config(state="disabled")
 
     # Settings methods
     def get_event_choice_settings(self):
@@ -293,18 +285,6 @@ class UmaAutoGUI:
         """Delegate to bot controller"""
         self.bot_controller.start_bot()
 
-    def stop_bot(self):
-        """Delegate to bot controller"""
-        self.bot_controller.stop_bot()
-
-    def enhanced_stop_bot(self):
-        """Delegate to bot controller"""
-        self.bot_controller.enhanced_stop_bot()
-
-    def force_exit_program(self):
-        """Delegate to bot controller"""
-        self.bot_controller.force_exit_program()
-
     # Cleanup methods
     def on_closing(self):
         """Handle window close event"""
@@ -318,6 +298,43 @@ class UmaAutoGUI:
             pass
 
         self.root.destroy()
+
+    def set_running_state(self, is_running):
+        """Update button states based on running status"""
+        if is_running:
+            self.start_button.config(state="disabled")
+            self.stop_button.config(state="normal")
+        else:
+            self.start_button.config(state="normal")
+            self.stop_button.config(state="disabled")
+
+    def set_team_trials_running_state(self, is_running):
+        """Update button states when team trials is running"""
+        if is_running:
+            self.start_button.config(state="disabled")
+            self.stop_button.config(state="normal")
+        else:
+            self.start_button.config(state="normal")
+            self.stop_button.config(state="disabled")
+
+    def stop_bot(self):
+        """Delegate to bot controller and handle team trials"""
+        # Stop main bot
+        self.bot_controller.stop_bot()
+
+        # Also stop team trials if running
+        if hasattr(self, 'team_trials_tab'):
+            team_trials_tab = self.team_trials_tab
+            if hasattr(team_trials_tab, 'is_team_trials_running') and team_trials_tab.is_team_trials_running:
+                team_trials_tab.stop_team_trials()
+
+    def enhanced_stop_bot(self):
+        """Delegate to bot controller"""
+        self.bot_controller.enhanced_stop_bot()
+
+    def force_exit_program(self):
+        """Delegate to bot controller"""
+        self.bot_controller.force_exit_program()
 
     def should_stop_for_conditions(self, game_state):
         """

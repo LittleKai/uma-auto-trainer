@@ -398,6 +398,10 @@
       "choice": 1
     },
     {
+      "name": "A Friendly Daytime Discussion",
+      "choice": 1
+    },
+    {
       "name": "Watch Where You're Going",
       "choice": 2
     },
@@ -564,6 +568,18 @@
     },
     {
       "name": "Tons of Trouble!",
+      "choice": 1
+    },
+    {
+      "name": "Sudden Murder Mystery! Part 1",
+      "choice_2_if_energy_shortage_gte": 8
+    },
+    {
+      "name": "A Captivating Invitation",
+      "choice": 1
+    },
+    {
+      "name": "Raising the Uma Lord's Castle",
       "choice": 1
     }
   ]

@@ -288,25 +288,62 @@ def find_best_training_by_score(results, current_date, min_score_threshold):
   return best_key
 
 def score_based_training_selection(results, current_date):
-  """Score-based training selection for all stages including Pre-Debut"""
+  """Score-based training selection for all stages including Pre-Debut - prioritize absolute highest score"""
+  print(f"[DEBUG] === score_based_training_selection CALLED ===")
+
   if not results:
+    print(f"[DEBUG] No results provided")
     return None
 
   # Calculate score for each training with WIT bonus applied
   training_list = []
+  print(f"[DEBUG] Processing {len(results)} training options:")
+
   for key, data in results.items():
     score = data.get("total_score", 0)
     adjusted_score = apply_early_stage_wit_bonus(key, score, current_date)
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, adjusted_score, priority_index))
+    print(f"[DEBUG] {key.upper()}: base_score={score:.2f}, adjusted_score={adjusted_score:.2f}, priority={priority_index}")
 
-  # Sort by adjusted score (descending), then by priority (ascending - lower index = higher priority)
-  training_list.sort(key=lambda x: (-x[2], x[3]))
+  # Sort by adjusted score (descending) with epsilon for tie-breaking, then by priority only for exact ties
+  # Use epsilon to handle floating point precision issues
+  EPSILON = 1e-6
+
+  def sort_key(item):
+    key, data, adjusted_score, priority_index = item
+    # Round score to avoid floating point precision issues
+    rounded_score = round(adjusted_score, 6)
+    return (-rounded_score, priority_index)
+
+  training_list.sort(key=sort_key)
+
+  print(f"[DEBUG] After sorting:")
+  for i, (key, data, score, priority) in enumerate(training_list):
+    print(f"[DEBUG] {i+1}. {key.upper()}: score={score:.6f}, priority={priority}")
+
+  # Check if there are multiple trainings with the same highest score (within epsilon)
+  if len(training_list) > 1:
+    highest_score = training_list[0][2]
+    # Find all trainings with scores within epsilon of the highest score
+    tied_trainings = [item for item in training_list if abs(item[2] - highest_score) < EPSILON]
+
+    if len(tied_trainings) > 1:
+      # Multiple trainings have essentially the same score, use priority to break tie
+      print(f"[DEBUG] Score tie detected - highest score: {highest_score:.6f}")
+      for key, data, score, priority in tied_trainings:
+        print(f"[DEBUG] TIED: {key.upper()}: score={score:.6f}, priority={priority}")
+      print(f"[DEBUG] Selected {tied_trainings[0][0].upper()} based on priority")
+    else:
+      # Clear winner based on score
+      print(f"[DEBUG] Clear winner: {training_list[0][0].upper()} with score {highest_score:.6f}")
 
   best_key, best_data, best_score, best_priority = training_list[0]
+  print(f"[DEBUG] FINAL SELECTION: {best_key.upper()} with score {best_score:.6f}")
 
   # Return None if no valid training found
   if best_score <= 0:
+    print(f"[DEBUG] Best score <= 0, returning None")
     return None
 
   score_info = format_score_info(best_key, best_data, current_date)
@@ -314,10 +351,15 @@ def score_based_training_selection(results, current_date):
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """Enhanced training decision with unified scoring system and WIT early stage bonus"""
+  print(f"[DEBUG] === training_decision CALLED ===")
+  print(f"[DEBUG] Energy: {energy_percentage}%, Strategy: {strategy_settings.get('priority_strategy', 'Unknown')}")
+
   if not results_training:
+    print(f"[DEBUG] No training results provided")
     return None
 
   stage_info = get_career_stage_info(current_date)
+  print(f"[DEBUG] Stage info: {stage_info}")
 
   # Get current stats for caps filtering
   current_stats = stat_state()
@@ -325,14 +367,17 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   # Filter by stat caps
   filtered_results = filter_by_stat_caps(results_training, current_stats)
   if not filtered_results:
+    print(f"[DEBUG] All training filtered out by stat caps")
     return None
 
   # Check energy level for critical energy (no training allowed)
   if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Critical energy ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training allowed")
     return None
 
   # Check energy level for medium energy logic (between critical and minimum)
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
+    print(f"[DEBUG] Medium energy ({energy_percentage}%), checking WIT only")
     return medium_energy_wit_training(filtered_results, current_date)
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
@@ -351,30 +396,39 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
         best_score = total_score
 
     if best_score <= max_score_threshold:
+      print(f"[DEBUG] Best score {best_score} <= threshold {max_score_threshold}, NO_TRAINING")
       return "NO_TRAINING"
 
   # Get strategy
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3.5+')
   score_threshold = extract_score_threshold(priority_strategy)
+  print(f"[DEBUG] Priority strategy: {priority_strategy}, Score threshold: {score_threshold}")
 
   if score_threshold is None:
     # G1 or G2 strategy - prioritize racing, no training
+    print(f"[DEBUG] G1/G2 strategy, no training")
     return None
   else:
     # Score-based training strategy for all stages
     if stage_info['is_pre_debut']:
       # Pre-Debut
+      print(f"[DEBUG] Pre-Debut stage, using score_based_training_selection")
       result = score_based_training_selection(filtered_results, current_date)
       if result:
+        print(f"[DEBUG] Pre-Debut result: {result[0]}")
         return result[0]  # Return only the training key
+      print(f"[DEBUG] Pre-Debut result: None")
       return None
     else:
       # Post Pre-Debut
+      print(f"[DEBUG] Post Pre-Debut stage, using find_best_training_by_score with threshold {score_threshold}")
       result = find_best_training_by_score(filtered_results, current_date, score_threshold)
 
       if result:
+        print(f"[DEBUG] Post Pre-Debut result: {result}")
         return result
       else:
+        print(f"[DEBUG] Post Pre-Debut result: STRATEGY_NOT_MET")
         return "STRATEGY_NOT_MET"
 
 def medium_energy_wit_training(results, current_date):

@@ -4,9 +4,9 @@
     "dirt": false
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
-    "medium": true,
+    "medium": false,
     "long": false
   },
   "grade": {
@@ -18,29 +18,29 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
-  "stop_at_month": false,
-  "target_month": "June",
+  "stop_at_month": true,
+  "target_month": "September",
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Vodka",
+    "uma_musume": "Sakura Bakushin O",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "frd: Tazuna Hayakawa (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
-      "pow: Winning Ticket (SSR)",
+      "spd: Silence Suzuka (SSR)",
+      "pow: Mihono Bourbon (SR)",
       "pow: Oguri Cap (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 5,
+    "current_set": 3,
     "preset_sets": {
       "1": {
         "uma_musume": "Gold Ship",
@@ -65,12 +65,12 @@
         ]
       },
       "3": {
-        "uma_musume": "Silence Suzuka",
+        "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
           "pow: Oguri Cap (SSR)"
         ]
@@ -79,7 +79,7 @@
         "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
+          "spd: Special Week (SSR)",
           "pow: Vodka (SSR)",
           "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",

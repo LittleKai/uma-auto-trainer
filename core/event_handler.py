@@ -99,7 +99,7 @@ class EventChoiceHandler:
             support_folder = "assets/event_map/support_card"
             if os.path.exists(support_folder):
                 # Define the order of support card types to match GUI
-                card_types = ["spd", "sta", "pow", "gut", "wit", "frd"]
+                card_types = ["spd", "sta", "pwr", "gut", "wit", "frd"]
 
                 for card_type in card_types:
                     type_folder = os.path.join(support_folder, card_type)
@@ -252,13 +252,52 @@ class EventChoiceHandler:
                 "other_special_events": []
             }
 
+    def normalize_text_for_matching(self, text: str) -> str:
+        """Normalize text for better matching by handling OCR errors"""
+        if not text:
+            return ""
+
+        # Normalize unicode
+        text = unicodedata.normalize('NFKC', text.lower().strip())
+
+        # Create character mapping for common OCR errors
+        ocr_char_map = {
+            '?': ['2', '7', '/', '\\', 'l', 'i', '1'],
+            '!': ['l', 'i', '1', '|', 'j'],
+            '2': ['?', 'z'],
+            '7': ['?', '/'],
+            '0': ['o', 'O'],
+            '1': ['l', 'I', '!', '|'],
+            '5': ['s', 'S'],
+            '8': ['B'],
+            'g': ['9'],
+            'q': ['9'],
+        }
+
+        # Generate variations of the text based on OCR error patterns
+        variations = [text]
+
+        # Replace special characters and numbers that might be OCR errors
+        temp_text = text
+        for original, replacements in ocr_char_map.items():
+            for replacement in replacements:
+                if replacement in temp_text:
+                    variations.append(temp_text.replace(replacement, original))
+
+        # Also try removing all non-alphanumeric characters except spaces
+        alphanumeric_only = re.sub(r'[^\w\s]', '', text)
+        if alphanumeric_only != text:
+            variations.append(alphanumeric_only)
+
+        return variations
+
     def find_similar_text(self, target_text: str, ref_text_list: List[str], threshold: float = 0.75) -> str:
-        """Find similar text from reference list using enhanced matching algorithms with adaptive threshold"""
+        """Find similar text from reference list using enhanced matching algorithms with OCR error handling"""
         if not target_text or not ref_text_list:
             return ""
 
         def preprocess(text: str) -> str:
-            """Normalize text for better matching"""
+            """Basic text preprocessing"""
             text = unicodedata.normalize('NFKC', text.lower().strip())
             return re.sub(r'[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', '', text)
 
@@ -273,27 +312,40 @@ class EventChoiceHandler:
             words2 = set(text2.split())
             return len(words1 & words2)
 
-        def calculate_similarity(text1: str, text2: str) -> float:
-            """Calculate combined similarity score with detailed logging"""
-            # Sequence similarity
-            seq_score = SequenceMatcher(None, text1, text2).ratio()
+        def calculate_similarity_with_ocr_variations(target: str, reference: str) -> float:
+            """Calculate similarity considering OCR variations"""
+            # Get normalized variations of target text
+            target_variations = self.normalize_text_for_matching(target)
+            processed_ref = preprocess(reference)
 
-            # Word-based similarity
-            words1, words2 = set(text1.split()), set(text2.split())
-            word_score = len(words1 & words2) / len(words1 | words2) if words1 | words2 else 0
+            best_score = 0.0
 
-            # Character-based similarity
-            chars1, chars2 = set(text1), set(text2)
-            char_score = len(chars1 & chars2) / len(chars1 | chars2) if chars1 | chars2 else 0
+            # Test each variation against the reference
+            for variation in target_variations:
+                processed_var = preprocess(variation)
 
-            # Exact word match bonus
-            exact_matches = sum(1 for w in words1 if w in words2 and len(w) > 2)
-            word_bonus = (exact_matches / max(len(words1), len(words2))) * 0.15 if words1 and words2 else 0
+                # Sequence similarity
+                seq_score = SequenceMatcher(None, processed_var, processed_ref).ratio()
 
-            # Calculate final score
-            final_score = min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + word_bonus)
+                # Word-based similarity
+                words1, words2 = set(processed_var.split()), set(processed_ref.split())
+                word_score = len(words1 & words2) / len(words1 | words2) if words1 | words2 else 0
 
-            return final_score
+                # Character-based similarity
+                chars1, chars2 = set(processed_var), set(processed_ref)
+                char_score = len(chars1 & chars2) / len(chars1 | chars2) if chars1 | chars2 else 0
+
+                # Exact word match bonus
+                exact_matches = sum(1 for w in words1 if w in words2 and len(w) > 2)
+                word_bonus = (exact_matches / max(len(words1), len(words2))) * 0.15 if words1 and words2 else 0
+
+                # Calculate final score for this variation
+                final_score = min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + word_bonus)
+
+                if final_score > best_score:
+                    best_score = final_score
+
+            return best_score
 
         def get_adaptive_threshold(target: str, reference: str) -> float:
             """Calculate adaptive threshold based on text characteristics"""
@@ -305,7 +357,11 @@ class EventChoiceHandler:
 
             # Lower threshold if either text has special characters
             if target_has_special or ref_has_special:
-                base_threshold = max(0.6, threshold - 0.15)
+                base_threshold = max(0.55, threshold - 0.2)
+
+            # Check for numbers in target (potential OCR errors)
+            if any(char.isdigit() for char in target):
+                base_threshold = max(0.5, threshold - 0.25)
 
             # Check exact word matches
             exact_word_matches = count_exact_word_matches(target.lower(), reference.lower())
@@ -315,8 +371,8 @@ class EventChoiceHandler:
             # If we have significant exact word matches, lower threshold
             if exact_word_matches > 0 and target_words > 0:
                 word_match_ratio = exact_word_matches / max(target_words, ref_words)
-                if word_match_ratio >= 0.5:  # 50% or more words match exactly
-                    base_threshold = max(0.5, threshold - 0.2)
+                if word_match_ratio >= 0.4:  # 40% or more words match exactly
+                    base_threshold = max(0.45, threshold - 0.3)
 
             # Check text length similarity
             len_diff = abs(len(target) - len(reference))
@@ -324,7 +380,7 @@ class EventChoiceHandler:
             if max_len > 0:
                 len_ratio = len_diff / max_len
                 if len_ratio > 0.3:  # Significant length difference
-                    base_threshold = max(0.55, threshold - 0.1)
+                    base_threshold = max(0.5, threshold - 0.15)
 
             return base_threshold
 
@@ -333,13 +389,11 @@ class EventChoiceHandler:
         best_score = 0.0
 
         for ref_text in ref_text_list:
-            processed_ref = preprocess(ref_text)
-
             # Calculate adaptive threshold for this specific pair
             adaptive_threshold = get_adaptive_threshold(target_text, ref_text)
 
-            # Calculate similarity with detailed breakdown
-            score = calculate_similarity(processed_target, processed_ref)
+            # Calculate similarity with OCR variations
+            score = calculate_similarity_with_ocr_variations(target_text, ref_text)
 
             if score > adaptive_threshold and score > best_score:
                 best_match = ref_text
@@ -583,7 +637,7 @@ class EventChoiceHandler:
             # Get list of event names for similarity matching
             event_names = [event.get("name", "") for event in other_events]
 
-            # Use find_similar_text for consistent matching logic
+            # Use find_similar_text for consistent matching logic with improved OCR handling
             matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
 
             if not matched_name:
@@ -691,7 +745,6 @@ class EventChoiceHandler:
 
                 # Check energy shortage greater than or equal condition
                 energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
-
 
                 if energy_shortage_gte_key in event_config:
                     threshold_shortage = event_config[energy_shortage_gte_key]

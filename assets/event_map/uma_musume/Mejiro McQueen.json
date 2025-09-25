@@ -1,0 +1,62 @@
+{
+  "events": [
+    {
+      "name": "Attack of the Chestnut Feast!",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "Cooking Up Memories",
+      "choice_1_if_energy_shortage_gte": 5,
+      "defailt_choice": 2
+    },
+    {
+      "name": "The Allure of Racecourse Food",
+      "choice_1_if_energy_shortage_gte": 19,
+      "defailt_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Resolve and Duty",
+      "choice": 2
+    },
+    {
+      "name": "Late-Night Fanservice Training",
+      "choice": 2
+    },
+    {
+      "name": "Elegance",
+      "choice": 1
+    },
+    {
+      "name": "Queen of the Island",
+      "choice": 1
+    },
+    {
+      "name": "It's Called a Sea Pineapple!",
+      "choice": 1
+    },
+    {
+      "name": "Two Tickets for the Silver Screen",
+      "choice": 2
+    },
+    {
+      "name": "An Excited Young Lady",
+      "choice": 2
+    },
+    {
+      "name": "Endless Kingdom",
+      "choice": 3
+    },
+    {
+      "name": "Bargain Find",
+      "choice": 1
+    },
+    {
+      "name": "Three Ramen Bowls' Worth of Temptation",
+      "choice": 1
+    }
+  ]
+}

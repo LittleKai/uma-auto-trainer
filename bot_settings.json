@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": true,
-    "mile": true,
-    "medium": false,
-    "long": false
+    "sprint": false,
+    "mile": false,
+    "medium": true,
+    "long": true
   },
   "grade": {
     "g1": true,
@@ -18,83 +18,83 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
-  "stop_on_low_mood": true,
+  "stop_on_low_mood": false,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
-  "stop_at_month": true,
-  "target_month": "September",
+  "stop_at_month": false,
+  "target_month": "January",
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Sakura Bakushin O",
+    "uma_musume": "Mejiro McQueen",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "frd: Tazuna Hayakawa (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Silence Suzuka (SSR)",
-      "pow: Mihono Bourbon (SR)",
-      "pow: Oguri Cap (SSR)"
+      "frd: Tazuna Hayakawa (SSR)",
+      "spd: Special Week (SSR)",
+      "sta: Mayano Top Gun (SR)",
+      "sta: Super Creek (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 3,
+    "current_set": 1,
     "preset_sets": {
       "1": {
-        "uma_musume": "Gold Ship",
+        "uma_musume": "Mejiro McQueen",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Special Week (SSR)",
-          "sta: Mejiro McQueen (SSR)",
+          "sta: Mayano Top Gun (SR)",
           "sta: Super Creek (SSR)"
         ]
       },
       "2": {
-        "uma_musume": "Gold Ship",
+        "uma_musume": "Daiwa Scarlet",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Narita Taishin (SR)",
-          "sta: Super Creek (SSR)",
-          "sta: Mejiro McQueen (SSR)"
+          "spd: Eishin Flash (SR)",
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Super Creek (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Smart Falcon",
+        "uma_musume": "Daiwa Scarlet",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "4": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "Daiwa Scarlet",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Special Week (SSR)",
-          "pow: Vodka (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
           "spd: Silence Suzuka (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Super Creek (SSR)"
         ]
       },
       "5": {
-        "uma_musume": "Vodka",
+        "uma_musume": "Air Groove (Wedding)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Eishin Flash (SR)",
           "pow: Winning Ticket (SSR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "6": {
@@ -105,7 +105,7 @@
           "spd: Silence Suzuka (SSR)",
           "sta: Mejiro McQueen (SSR)",
           "sta: Super Creek (SSR)",
-          "frd: Tazuna Hayakawa (SSR)"
+          "sta: Gold Ship (SSR)"
         ]
       }
     }
@@ -113,12 +113,12 @@
   "team_trials": {
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": false
+    "stop_if_shop": true
   },
   "window": {
     "width": 826,
     "height": 957,
-    "x": 1069,
+    "x": 1073,
     "y": 0
   }
 }

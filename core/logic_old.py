@@ -148,12 +148,12 @@ def filter_by_stat_caps(results, current_stats, current_date=None):
     absolute_day = current_date.get('absolute_day', 0)
     stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
 
-    # Never apply stat cap filtering before threshold day
-    if absolute_day < stat_cap_threshold_day:
+    # Only apply stat cap filtering after threshold day
+    if absolute_day <= stat_cap_threshold_day:
       return results  # Return all results without filtering
 
     # Print current stats when reaching threshold day for the first time
-    if absolute_day == stat_cap_threshold_day:
+    if absolute_day == stat_cap_threshold_day + 1:
       print(f"[STAT CAPS] Day {absolute_day}: Stat cap filtering now active")
       print(f"[STAT CAPS] Current stats vs caps:")
       for stat in ["spd", "sta", "pwr", "guts", "wit"]:
@@ -162,34 +162,40 @@ def filter_by_stat_caps(results, current_stats, current_date=None):
         status = "CAPPED" if current_value >= cap_value else "OK"
         print(f"[STAT CAPS]   {stat.upper()}: {current_value}/{cap_value} ({status})")
 
-    # Apply stat cap filtering for days >= threshold
-    filtered_results = {}
-    for stat, data in results.items():
-      current_value = current_stats.get(stat, 0)
-      cap_value = STAT_CAPS.get(stat, 1200)
+  # Apply stat cap filtering for days > threshold
+  filtered_results = {}
+  for stat, data in results.items():
+    current_value = current_stats.get(stat, 0)
+    cap_value = STAT_CAPS.get(stat, 1200)
 
-      if current_value < cap_value:
-        filtered_results[stat] = data
-      else:
-        print(f"[STAT CAPS] Filtered out {stat.upper()} training: {current_value}/{cap_value} (capped)")
+    if current_value < cap_value:
+      filtered_results[stat] = data
+    else:
+      print(f"[STAT CAPS] Filtered out {stat.upper()} training: {current_value}/{cap_value} (capped)")
 
-    return filtered_results
-  else:
-    # If no current_date provided, return all results without filtering
-    return results
+  return filtered_results
+
+def apply_early_stage_wit_bonus(training_key, total_score, current_date):
+  """Apply early stage bonus to WIT training score"""
+  if not current_date or training_key != "wit":
+    return total_score
+
+  absolute_day = current_date.get('absolute_day', 0)
+
+  # Apply WIT bonus for days < 24 (includes Pre-Debut period)
+  if absolute_day < EARLY_STAGE_THRESHOLD:
+    bonus = get_wit_early_stage_bonus()
+    return total_score + bonus
+
+  return total_score
 
 def calculate_training_score(training_key, training_data, current_date):
   """Calculate training score using the same unified logic as state.py"""
   # Use the total_score directly from training_data which was calculated by unified logic
-  # WIT bonus is now applied only once in calculate_unified_training_score()
   total_score = training_data.get("total_score", 0)
 
-  # Apply WIT early stage bonus if not already applied in state.py
-  if training_key == "wit" and current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
+  # Apply early stage WIT bonus if applicable
+  total_score = apply_early_stage_wit_bonus(training_key, total_score, current_date)
 
   support_counts = training_data.get("support", {})
   rainbow_count = support_counts.get(training_key, 0)
@@ -208,7 +214,7 @@ def format_score_info(training_key, training_data, current_date):
   hint_info = f" + {training_data.get('hint_count', 0)} hints ({hint_score})" if hint_score > 0 else ""
   npc_info = f" + {training_data.get('npc_count', 0)} NPCs ({npc_score})" if npc_score > 0 else ""
 
-  # Add WIT bonus info for early stage (< day 24) - this will show in logging
+  # Add WIT bonus info for early stage (< day 24)
   wit_bonus_info = ""
   if training_key == "wit" and current_date:
     absolute_day = current_date.get('absolute_day', 0)
@@ -245,72 +251,69 @@ def extract_score_threshold(priority_strategy):
     return 3.5  # Default threshold
 
 def find_best_training_by_score(results, current_date, min_score_threshold):
-  """Find best training that meets minimum score threshold using total_score with all bonuses already applied"""
+  """Find best training that meets minimum score threshold using unified scoring with WIT early stage bonus"""
   if not results:
     return None
 
   stage_info = get_career_stage_info(current_date)
 
-  # Use total_score directly from results (all bonuses already applied in state.py)
+  # Apply strategy scoring using unified total_score with WIT bonus for all stages
   valid_trainings = {}
   for key, data in results.items():
     total_score = data.get("total_score", 0)
 
+    # Apply early stage WIT bonus if applicable
+    total_score = apply_early_stage_wit_bonus(key, total_score, current_date)
+
     # Use small epsilon for floating point comparison
     if total_score >= min_score_threshold - 1e-10:
       valid_trainings[key] = data
+      valid_trainings[key]["adjusted_score"] = total_score  # Store adjusted score
 
   if not valid_trainings:
     return None
 
-  # Find best training among valid ones using total_score first, then priority
+  # Find best training among valid ones using adjusted score first, then priority
   best_training = max(
     valid_trainings.items(),
     key=lambda x: (
-      x[1].get("total_score", 0),
+      x[1].get("adjusted_score", x[1].get("total_score", 0)),
       -get_priority_by_stage(x[0], current_date)
     )
   )
   best_key, best_data = best_training
-  best_score = best_data.get("total_score", 0)
+  best_score = best_data.get("adjusted_score", best_data.get("total_score", 0))
   print(f"best_score {best_key}: {best_score}")
 
   return best_key
 
-def unified_training_selection(results, current_date, min_score_threshold=None):
-  """Unified training selection for all stages - prioritize absolute highest score with threshold check"""
-  print(f"[DEBUG] === unified_training_selection CALLED ===")
+def score_based_training_selection(results, current_date):
+  """Score-based training selection for all stages including Pre-Debut - prioritize absolute highest score"""
+  print(f"[DEBUG] === score_based_training_selection CALLED ===")
 
   if not results:
     print(f"[DEBUG] No results provided")
     return None
 
-  # Calculate score for each training using total_score with WIT bonus applied
+  # Calculate score for each training with WIT bonus applied
   training_list = []
   print(f"[DEBUG] Processing {len(results)} training options:")
 
   for key, data in results.items():
-    total_score = data.get("total_score", 0)
-
-    # Apply WIT early stage bonus if applicable
-    if key == "wit" and current_date:
-      absolute_day = current_date.get('absolute_day', 0)
-      if absolute_day < EARLY_STAGE_THRESHOLD:
-        wit_bonus = get_wit_early_stage_bonus()
-        total_score += wit_bonus
-
+    score = data.get("total_score", 0)
+    adjusted_score = apply_early_stage_wit_bonus(key, score, current_date)
     priority_index = get_priority_by_stage(key, current_date)
-    training_list.append((key, data, total_score, priority_index))
-    print(f"[DEBUG] {key.upper()}: total_score={total_score:.2f}, priority={priority_index}")
+    training_list.append((key, data, adjusted_score, priority_index))
+    print(f"[DEBUG] {key.upper()}: base_score={score:.2f}, adjusted_score={adjusted_score:.2f}, priority={priority_index}")
 
-  # Sort by total_score (descending) with epsilon for tie-breaking, then by priority only for exact ties
+  # Sort by adjusted score (descending) with epsilon for tie-breaking, then by priority only for exact ties
   # Use epsilon to handle floating point precision issues
   EPSILON = 1e-6
 
   def sort_key(item):
-    key, data, total_score, priority_index = item
+    key, data, adjusted_score, priority_index = item
     # Round score to avoid floating point precision issues
-    rounded_score = round(total_score, 6)
+    rounded_score = round(adjusted_score, 6)
     return (-rounded_score, priority_index)
 
   training_list.sort(key=sort_key)
@@ -336,12 +339,6 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
       print(f"[DEBUG] Clear winner: {training_list[0][0].upper()} with score {highest_score:.6f}")
 
   best_key, best_data, best_score, best_priority = training_list[0]
-
-  # Check minimum score threshold if provided
-  if min_score_threshold is not None and best_score < min_score_threshold - 1e-10:
-    print(f"[DEBUG] Best score {best_score:.6f} below threshold {min_score_threshold}, no training")
-    return None
-
   print(f"[DEBUG] FINAL SELECTION: {best_key.upper()} with score {best_score:.6f}")
 
   # Return None if no valid training found
@@ -353,7 +350,7 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
   return best_key, score_info
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
-  """Enhanced training decision with unified scoring system"""
+  """Enhanced training decision with unified scoring system and WIT early stage bonus"""
   print(f"[DEBUG] === training_decision CALLED ===")
   print(f"[DEBUG] Energy: {energy_percentage}%, Strategy: {strategy_settings.get('priority_strategy', 'Unknown')}")
 
@@ -368,7 +365,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   current_stats = stat_state()
 
   # Filter by stat caps
-  filtered_results = filter_by_stat_caps(results_training, current_stats, current_date)
+  filtered_results = filter_by_stat_caps(results_training, current_stats)
   if not filtered_results:
     print(f"[DEBUG] All training filtered out by stat caps")
     return None
@@ -390,16 +387,11 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   if (stage_info['stage'] in ['mid', 'late'] and
           MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit):
-    # Check if best available training score is <= threshold using total_score with WIT bonus
+    # Check if best available training score is <= threshold using unified scoring with WIT bonus
     best_score = 0
     for key, data in filtered_results.items():
       total_score = data.get('total_score', 0)
-      # Apply WIT bonus for comparison
-      if key == "wit" and current_date:
-        absolute_day = current_date.get('absolute_day', 0)
-        if absolute_day < EARLY_STAGE_THRESHOLD:
-          wit_bonus = get_wit_early_stage_bonus()
-          total_score += wit_bonus
+      total_score = apply_early_stage_wit_bonus(key, total_score, current_date)
       if total_score > best_score:
         best_score = total_score
 
@@ -417,18 +409,30 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
     print(f"[DEBUG] G1/G2 strategy, no training")
     return None
   else:
-    # Unified training strategy for all stages (Pre-Debut and Post Pre-Debut)
-    print(f"[DEBUG] Using unified training selection with threshold {score_threshold}")
-    result = unified_training_selection(filtered_results, current_date, score_threshold)
-    if result:
-      print(f"[DEBUG] Unified selection result: {result[0]}")
-      return result[0]  # Return only the training key
+    # Score-based training strategy for all stages
+    if stage_info['is_pre_debut']:
+      # Pre-Debut
+      print(f"[DEBUG] Pre-Debut stage, using score_based_training_selection")
+      result = score_based_training_selection(filtered_results, current_date)
+      if result:
+        print(f"[DEBUG] Pre-Debut result: {result[0]}")
+        return result[0]  # Return only the training key
+      print(f"[DEBUG] Pre-Debut result: None")
+      return None
     else:
-      print(f"[DEBUG] Unified selection result: STRATEGY_NOT_MET")
-      return "STRATEGY_NOT_MET"
+      # Post Pre-Debut
+      print(f"[DEBUG] Post Pre-Debut stage, using find_best_training_by_score with threshold {score_threshold}")
+      result = find_best_training_by_score(filtered_results, current_date, score_threshold)
+
+      if result:
+        print(f"[DEBUG] Post Pre-Debut result: {result}")
+        return result
+      else:
+        print(f"[DEBUG] Post Pre-Debut result: STRATEGY_NOT_MET")
+        return "STRATEGY_NOT_MET"
 
 def medium_energy_wit_training(results, current_date):
-  """Medium energy training - only WIT with configurable score requirements"""
+  """Medium energy training - only WIT with configurable score requirements and early stage bonus"""
   wit_data = results.get("wit")
   if not wit_data:
     return None
@@ -436,12 +440,8 @@ def medium_energy_wit_training(results, current_date):
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
 
-  # Apply WIT early stage bonus if applicable
-  if current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
+  # Apply early stage bonus to WIT
+  total_score = apply_early_stage_wit_bonus("wit", total_score, current_date)
 
   required_score = get_wit_score_requirement("medium_energy", stage_info['is_pre_debut'])
 
@@ -451,7 +451,7 @@ def medium_energy_wit_training(results, current_date):
   return None
 
 def low_energy_training(results, current_date=None):
-  """Enhanced low energy training logic with configurable score requirements"""
+  """Enhanced low energy training logic with configurable score requirements and early stage bonus"""
   wit_data = results.get("wit")
 
   if not wit_data:
@@ -460,12 +460,8 @@ def low_energy_training(results, current_date=None):
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
 
-  # Apply WIT early stage bonus if applicable
-  if current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
+  # Apply early stage bonus to WIT
+  total_score = apply_early_stage_wit_bonus("wit", total_score, current_date)
 
   required_score = get_wit_score_requirement("low_energy", stage_info['is_pre_debut'])
 
@@ -481,32 +477,32 @@ def fallback_training(results, current_date):
 
   stage_info = get_career_stage_info(current_date)
 
-  # Calculate best training using total_score
+  # Calculate best training using ORIGINAL scores only (no WIT bonus for fairness in fallback)
   training_list = []
   for key, data in results.items():
-    total_score = data.get("total_score", 0)
+    original_score = data.get("total_score", 0)
     priority_index = get_priority_by_stage(key, current_date)
-    training_list.append((key, data, total_score, priority_index))
+    training_list.append((key, data, original_score, priority_index))
 
-    # DEBUG: Log scores used for fallback selection
-    print(f"[DEBUG] Fallback {key.upper()}: Total Score={total_score:.2f}, Priority={priority_index}")
+    # DEBUG: Log original scores used for fallback selection
+    print(f"[DEBUG] Fallback {key.upper()}: Original Score={original_score:.2f}, Priority={priority_index}")
 
-  # Sort by total_score (descending), then by priority (ascending - lower index = higher priority)
+  # Sort by original score (descending), then by priority (ascending - lower index = higher priority)
   training_list.sort(key=lambda x: (-x[2], x[3]))
 
   # DEBUG: Show selection reasoning
-  print(f"[DEBUG] Fallback selected: {training_list[0][0].upper()} with total score {training_list[0][2]:.2f}")
+  print(f"[DEBUG] Fallback selected: {training_list[0][0].upper()} with original score {training_list[0][2]:.2f}")
 
-  best_key, best_data, total_score, best_priority = training_list[0]
+  best_key, best_data, original_score, best_priority = training_list[0]
 
-  if total_score <= 0:
+  if original_score <= 0:
     return None
 
   score_info = format_score_info(best_key, best_data, current_date)
   return best_key, score_info
 
 def do_something(results, energy_percentage=100, strategy_settings=None):
-  """Enhanced training decision with unified scoring system"""
+  """Enhanced training decision with unified scoring system and WIT early stage bonus"""
   year = check_current_year()
   current_stats = stat_state()
 
@@ -526,7 +522,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   stage_info = get_career_stage_info(current_date)
 
   # Filter by stat caps
-  filtered = filter_by_stat_caps(results, current_stats, current_date)
+  filtered = filter_by_stat_caps(results, current_stats)
 
   if not filtered:
     return None
@@ -539,7 +535,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
     return medium_energy_wit_training(filtered, current_date)
 
-  # Normal energy logic with unified strategy system
+  # Normal energy logic with unified strategy system and WIT bonus
   # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
 
@@ -547,8 +543,17 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
     # G1 or G2 strategy - prioritize racing, no training
     return None
   else:
-    # Unified training strategy for all stages
-    result = unified_training_selection(filtered, current_date, score_threshold)
-    if result:
-      return result[0]  # Return only the training key
-    return None
+    # Score-based training strategy for all stages
+    if stage_info['is_pre_debut']:
+      # Use score-based selection for Pre-Debut
+      result = score_based_training_selection(filtered, current_date)
+      if result:
+        return result[0]  # Return only the training key
+      return None
+    else:
+      result = find_best_training_by_score(filtered, current_date, score_threshold)
+
+      if result is None:
+        pass
+
+      return result

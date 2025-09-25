@@ -1,10 +1,6 @@
 {
   "events": [
-    {
-      "name": "",
-      "choice_2_if_mood_lt": "GREAT"
-    },
-    {
+     {
       "name": "Rest Day",
       "choice_2_if_energy_shortage_gte": 19
     },

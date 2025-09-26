@@ -18,7 +18,9 @@ class TeamTrialsLogic:
             return False
 
         self.is_team_trials_running = True
+
         self.main_window.status_section.set_bot_status("Team Trials Running", "green")
+        self.main_window.set_running_state(True)
 
         self.team_trials_thread = threading.Thread(target=self.team_trials_loop, daemon=True)
         self.team_trials_thread.start()
@@ -28,6 +30,7 @@ class TeamTrialsLogic:
         """Stop team trials"""
         self.is_team_trials_running = False
         self.main_window.status_section.set_bot_status("Stopped", "red")
+        self.main_window.set_running_state(False)
         self.main_window.log_message("Team Trials stopped")
 
     def find_and_click(self, image_path, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True):
@@ -56,11 +59,10 @@ class TeamTrialsLogic:
                 pass
 
             if attempt < max_attempts - 1 and log_attempts:
-                self.main_window.log_message(f"{filename} not found - attempt {attempt + 1}/{max_attempts}")
                 time.sleep(delay_between)
 
         if log_attempts and max_attempts > 1:
-            self.main_window.log_message(f"Failed to find {filename} after {max_attempts} attempts")
+            self.main_window.log_message(f"Failed to find {filename}")
         return None
 
     def team_trials_loop(self):
@@ -104,7 +106,7 @@ class TeamTrialsLogic:
 
         # Step 3: Click team race button
         if not self.find_and_click("assets/buttons/home/team_trials/team_race_btn.png",
-                                   max_attempts=5, delay_between=4):
+                                   max_attempts=6, delay_between=3):
             return False
 
         time.sleep(10)
@@ -125,7 +127,7 @@ class TeamTrialsLogic:
             return False
 
             # Step 3 final: Check for refresh button
-        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=5, delay_between=3, click=False):
+        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=6, delay_between=3, click=False):
             self.main_window.log_message("Neither refresh nor next button found")
             return False
 
@@ -154,7 +156,7 @@ class TeamTrialsLogic:
                     return False
 
         # Step 5: Handle parfait and race preparation
-        time.sleep(2)
+        # time.sleep(2)
 
         # Use parfait if PvP gift was clicked and option is enabled
         if pvp_gift_pos and self.ui_tab.use_parfait_gift_pvp.get():
@@ -170,11 +172,11 @@ class TeamTrialsLogic:
 
     def handle_race_results(self):
         """Handle race results processing"""
-        time.sleep(10)
+        time.sleep(2)
 
         # Find and click see result button
         see_result_pos = self.find_and_click("assets/buttons/home/team_trials/see_result.png",
-                                             max_attempts=5, delay_between=5)
+                                             max_attempts=8, delay_between=3)
         if not see_result_pos:
             return False
 
@@ -193,12 +195,12 @@ class TeamTrialsLogic:
 
                 for button in completion_buttons:
                     if self.find_and_click(button, click=False, log_attempts=False):
-                        self.main_window.log_message(f"Completion button found on click {i + 1}")
+                        self.main_window.log_message(f"Completion button found.")
                         return self.handle_shop_and_continue()
+            else:
+                time.sleep(0.5)
 
             pyautogui.click(see_result_pos)
-            self.main_window.log_message(f"Clicked see result position {i + 1}/40")
-            time.sleep(0.5)
 
         self.main_window.log_message("Completed 40 clicks - no completion buttons found, stopping bot")
         return False

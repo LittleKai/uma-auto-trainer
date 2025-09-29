@@ -92,7 +92,7 @@ def get_energy_restriction_config():
   scoring_config = get_scoring_config()
   energy_config = scoring_config.get("energy_restrictions", {})
   return {
-    'medium_energy_upper_limit': energy_config.get("medium_energy_upper_limit", 50),
+    'medium_energy_shortage': energy_config.get("medium_energy_shortage", 50),
     'medium_energy_max_score_threshold': energy_config.get("medium_energy_max_score_threshold", 2.5)
   }
 
@@ -352,6 +352,17 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
   score_info = format_score_info(best_key, best_data, current_date)
   return best_key, score_info
 
+# core/logic.py - Functions that need to be updated
+
+def get_energy_restriction_config():
+  """Get energy restriction configuration"""
+  scoring_config = get_scoring_config()
+  energy_config = scoring_config.get("energy_restrictions", {})
+  return {
+    'medium_energy_shortage': energy_config.get("medium_energy_shortage", 50),
+    'medium_energy_max_score_threshold': energy_config.get("medium_energy_max_score_threshold", 2.5)
+  }
+
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """Enhanced training decision with unified scoring system"""
   print(f"[DEBUG] === training_decision CALLED ===")
@@ -385,47 +396,65 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
   energy_restrictions = get_energy_restriction_config()
-  medium_upper_limit = energy_restrictions['medium_energy_upper_limit']
+  medium_energy_shortage = energy_restrictions['medium_energy_shortage']
   max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
 
-  if (stage_info['stage'] in ['mid', 'late'] and
-          MINIMUM_ENERGY_PERCENTAGE <= energy_percentage < medium_upper_limit):
-    # Check if best available training score is <= threshold using total_score with WIT bonus
-    best_score = 0
+  # Get current energy state to calculate shortage from actual max energy
+  from core.state import check_energy_percentage
+
+  try:
+    # Get both current and max energy values
+    current_energy, max_energy = check_energy_percentage(return_max_energy=True)
+    energy_shortage_absolute = max_energy - current_energy
+    print(f"[DEBUG] Energy values: current={current_energy}, max={max_energy}, shortage={energy_shortage_absolute}")
+  except Exception as e:
+    # Stop program if cannot get energy values correctly
+    print(f"[ERROR] Failed to get energy values: {e}")
+    print("[ERROR] Cannot calculate energy shortage accurately. Stopping program.")
+    raise SystemExit("Energy calculation failed - program stopped to prevent incorrect behavior")
+
+  if (stage_info['stage'] in ['mid', 'late'] and energy_shortage_absolute >= medium_energy_shortage):
+    # Check if any available training score is > threshold using total_score with WIT bonus
+    has_high_score_training = False
+    best_score_for_debug = 0
+
     for key, data in filtered_results.items():
       total_score = data.get('total_score', 0)
-      # Apply WIT bonus for comparison
+
+      # Apply WIT bonus for comparison (same logic as in actual WIT training functions)
       if key == "wit" and current_date:
         absolute_day = current_date.get('absolute_day', 0)
         if absolute_day < EARLY_STAGE_THRESHOLD:
           wit_bonus = get_wit_early_stage_bonus()
           total_score += wit_bonus
-      if total_score > best_score:
-        best_score = total_score
+          print(f"[DEBUG] WIT score with bonus: {data.get('total_score', 0)} + {wit_bonus} = {total_score}")
 
-    if best_score <= max_score_threshold:
-      print(f"[DEBUG] Best score {best_score} <= threshold {max_score_threshold}, NO_TRAINING")
-      return "NO_TRAINING"
+      if total_score > best_score_for_debug:
+        best_score_for_debug = total_score
 
-  # Get strategy
+      if total_score > max_score_threshold:
+        has_high_score_training = True
+        break
+
+    if not has_high_score_training:
+      print(f"[DEBUG] Energy shortage ({energy_shortage_absolute} >= {medium_energy_shortage}) and all scores <= {max_score_threshold} (best: {best_score_for_debug:.2f}), prioritizing race or rest")
+      return "SHOULD_REST"  # This will trigger race check first, then rest if no suitable race
+    else:
+      print(f"[DEBUG] Energy shortage detected but high score training available (best: {best_score_for_debug:.2f} > {max_score_threshold}), continuing normal logic")
+
+  # Priority strategy and training selection logic continues...
   priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3.5+')
+
+  # Check priority strategy type
   score_threshold = extract_score_threshold(priority_strategy)
-  print(f"[DEBUG] Priority strategy: {priority_strategy}, Score threshold: {score_threshold}")
 
   if score_threshold is None:
-    # G1 or G2 strategy - prioritize racing, no training
-    print(f"[DEBUG] G1/G2 strategy, no training")
     return None
   else:
-    # Unified training strategy for all stages (Pre-Debut and Post Pre-Debut)
-    print(f"[DEBUG] Using unified training selection with threshold {score_threshold}")
     result = unified_training_selection(filtered_results, current_date, score_threshold)
     if result:
-      print(f"[DEBUG] Unified selection result: {result[0]}")
-      return result[0]  # Return only the training key
-    else:
-      print(f"[DEBUG] Unified selection result: STRATEGY_NOT_MET")
-      return "STRATEGY_NOT_MET"
+      return result[0]
+    return None
 
 def medium_energy_wit_training(results, current_date):
   """Medium energy training - only WIT with configurable score requirements"""

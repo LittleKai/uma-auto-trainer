@@ -3,7 +3,7 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 60,
+  "stat_cap_threshold_day": 80,
   "stat_caps": {
     "spd": 1100,
     "sta": 1100,
@@ -53,7 +53,7 @@
       }
     },
     "energy_restrictions": {
-      "medium_energy_upper_limit": 53,
+      "medium_energy_shortage": 45,
       "medium_energy_max_score_threshold": 2.8
     }
   }

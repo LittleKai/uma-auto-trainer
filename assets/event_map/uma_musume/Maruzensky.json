@@ -1,0 +1,69 @@
+{
+  "events": [
+     {
+      "name": "Nostalgia Fever ☆",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "Let's Play ♪",
+      "choice_1_if_energy_shortage_gte": 5,
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Trendsetter",
+      "choice": 2
+    },
+    {
+      "name": "Sewing Star",
+      "choice": 2
+    },
+    {
+      "name": "My Favorite Things",
+      "choice": 1
+    },
+    {
+      "name": "Hot Rod",
+      "choice": 1
+    },
+    {
+      "name": "A Lady's Style ☆",
+      "choice": 1
+    },
+    {
+      "name": "Let's Cook!",
+      "choice": 1
+    },
+    {
+      "name": "The Road to a Rad Victory!",
+      "choice": 1
+    },
+    {
+      "name": "Down to Dance!",
+      "choice": 1
+    },
+    {
+      "name": "The Secret to Supporting Each Other",
+      "choice": 1
+    },
+    {
+      "name": "Even Role Models Get Lonely",
+      "choice": 2
+    },
+    {
+      "name": "Take the Wheel",
+      "choice": 1
+    },
+    {
+      "name": "Meeting New People Is Trendy ☆",
+      "choice": 1
+    },
+    {
+      "name": "The Fun Never Stops ♪",
+      "choice": 2
+    }
+  ]
+}

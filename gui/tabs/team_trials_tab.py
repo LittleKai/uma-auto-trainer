@@ -58,7 +58,7 @@ class TeamTrialsTab:
         opponent_frame.columnconfigure(1, weight=1)
 
         # Opponent type label and dropdown in same row
-        ttk.Label(opponent_frame, text="Opponent Type:").grid(
+        ttk.Label(opponent_frame, text="Default Opponent:").grid(
             row=0, column=0, sticky=tk.W, padx=(0, 10), pady=5)
 
         opponent_dropdown = ttk.Combobox(

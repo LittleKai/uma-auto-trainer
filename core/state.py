@@ -51,12 +51,6 @@ def get_support_base_score():
   support_config = scoring_config.get("support_score", {})
   return support_config.get("base_value", 1.0)
 
-def get_friend_multiplier():
-  """Get friend card score multiplier from configuration"""
-  scoring_config = load_scoring_config()
-  support_config = scoring_config.get("support_score", {})
-  return support_config.get("friend_multiplier", 1.0)
-
 def get_rainbow_multiplier(stage):
   """Get rainbow card multiplier based on stage from configuration"""
   scoring_config = load_scoring_config()
@@ -75,14 +69,12 @@ def get_stage_thresholds():
   })
 
 def calculate_unified_training_score(training_type, support_counts, current_date):
-  from core.logic import get_friend_multiplier
+  from core.logic import get_friend_multiplier, get_wit_early_stage_bonus, EARLY_STAGE_THRESHOLD
 
-  # Get configuration values
   base_score = get_support_base_score()
   hint_score = support_counts.get("hint_score", 0)
   npc_score = support_counts.get("npc_score", 0)
 
-  # Determine career stage
   stage_thresholds = get_stage_thresholds()
   absolute_day = current_date.get('absolute_day', 0) if current_date else 0
 
@@ -91,22 +83,18 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   is_mid_stage = stage_thresholds.get("early_stage", 24) < absolute_day <= stage_thresholds.get("mid_stage", 48)
   is_late_stage = absolute_day > stage_thresholds.get("mid_stage", 48)
 
-  # Calculate support card scores
   rainbow_count = support_counts.get(training_type, 0)
   friend_count = support_counts.get("friend", 0)
 
-  # Calculate friend score using unified function from logic.py
   friend_score = 0
   if friend_count > 0:
     friend_multiplier = get_friend_multiplier(training_type, current_date)
     friend_score = friend_count * friend_multiplier
 
-  # Calculate other support cards
   other_support = sum(count for key, count in support_counts.items()
                       if key not in [training_type, "friend", "hint", "hint_score",
                                      "total_score", "npc", "npc_count", "npc_score"])
 
-  # Calculate rainbow multiplier based on stage
   if is_pre_debut:
     rainbow_multiplier = get_rainbow_multiplier("pre_debut")
   elif is_early_stage:
@@ -116,22 +104,18 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   else:
     rainbow_multiplier = get_rainbow_multiplier("late_stage")
 
-  # Calculate base total score
   rainbow_score = rainbow_count * rainbow_multiplier * base_score
   other_score = other_support * base_score
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
 
-  # WIT early stage bonus is NOT applied here to prevent double bonus
-  # It will be applied only in logic.py functions when needed
-
-  # Add support card bonus if applicable
-  support_bonus_dict = calculate_support_card_bonus(current_date)
-  support_bonus = support_bonus_dict.get(training_type, 0)
-  if support_bonus > 0:
-    total_score += support_bonus
-    support_counts["support_card_bonus"] = support_bonus
+  # Apply WIT early stage bonus HERE - only once in the entire codebase
+  if training_type == "wit" and current_date:
+    if absolute_day < EARLY_STAGE_THRESHOLD:
+      wit_bonus = get_wit_early_stage_bonus()
+      total_score += wit_bonus
 
   return total_score
+
 
 def stat_state():
   """Get current character stats using configurable regions"""

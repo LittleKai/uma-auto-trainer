@@ -184,13 +184,6 @@ def calculate_training_score(training_key, training_data, current_date):
   # WIT bonus is now applied only once in calculate_unified_training_score()
   total_score = training_data.get("total_score", 0)
 
-  # Apply WIT early stage bonus if not already applied in state.py
-  if training_key == "wit" and current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
-
   support_counts = training_data.get("support", {})
   rainbow_count = support_counts.get(training_key, 0)
   hint_score = training_data.get("hint_score", 0)
@@ -244,39 +237,6 @@ def extract_score_threshold(priority_strategy):
   else:
     return 3.5  # Default threshold
 
-def find_best_training_by_score(results, current_date, min_score_threshold):
-  """Find best training that meets minimum score threshold using total_score with all bonuses already applied"""
-  if not results:
-    return None
-
-  stage_info = get_career_stage_info(current_date)
-
-  # Use total_score directly from results (all bonuses already applied in state.py)
-  valid_trainings = {}
-  for key, data in results.items():
-    total_score = data.get("total_score", 0)
-
-    # Use small epsilon for floating point comparison
-    if total_score >= min_score_threshold - 1e-10:
-      valid_trainings[key] = data
-
-  if not valid_trainings:
-    return None
-
-  # Find best training among valid ones using total_score first, then priority
-  best_training = max(
-    valid_trainings.items(),
-    key=lambda x: (
-      x[1].get("total_score", 0),
-      -get_priority_by_stage(x[0], current_date)
-    )
-  )
-  best_key, best_data = best_training
-  best_score = best_data.get("total_score", 0)
-  print(f"best_score {best_key}: {best_score}")
-
-  return best_key
-
 def unified_training_selection(results, current_date, min_score_threshold=None):
   """Unified training selection for all stages - prioritize absolute highest score with threshold check"""
   print(f"[DEBUG] === unified_training_selection CALLED ===")
@@ -291,13 +251,6 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
 
   for key, data in results.items():
     total_score = data.get("total_score", 0)
-
-    # Apply WIT early stage bonus if applicable
-    if key == "wit" and current_date:
-      absolute_day = current_date.get('absolute_day', 0)
-      if absolute_day < EARLY_STAGE_THRESHOLD:
-        wit_bonus = get_wit_early_stage_bonus()
-        total_score += wit_bonus
 
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, total_score, priority_index))
@@ -421,14 +374,6 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
     for key, data in filtered_results.items():
       total_score = data.get('total_score', 0)
 
-      # Apply WIT bonus for comparison (same logic as in actual WIT training functions)
-      if key == "wit" and current_date:
-        absolute_day = current_date.get('absolute_day', 0)
-        if absolute_day < EARLY_STAGE_THRESHOLD:
-          wit_bonus = get_wit_early_stage_bonus()
-          total_score += wit_bonus
-          print(f"[DEBUG] WIT score with bonus: {data.get('total_score', 0)} + {wit_bonus} = {total_score}")
-
       if total_score > best_score_for_debug:
         best_score_for_debug = total_score
 
@@ -465,13 +410,6 @@ def medium_energy_wit_training(results, current_date):
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
 
-  # Apply WIT early stage bonus if applicable
-  if current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
-
   required_score = get_wit_score_requirement("medium_energy", stage_info['is_pre_debut'])
 
   if total_score >= required_score:
@@ -488,13 +426,6 @@ def low_energy_training(results, current_date=None):
 
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
-
-  # Apply WIT early stage bonus if applicable
-  if current_date:
-    absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
-      wit_bonus = get_wit_early_stage_bonus()
-      total_score += wit_bonus
 
   required_score = get_wit_score_requirement("low_energy", stage_info['is_pre_debut'])
 

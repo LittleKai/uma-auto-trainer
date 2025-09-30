@@ -148,13 +148,8 @@ def filter_by_stat_caps(results, current_stats, current_date=None):
     absolute_day = current_date.get('absolute_day', 0)
     stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
 
-    # Never apply stat cap filtering before threshold day
-    if absolute_day < stat_cap_threshold_day:
-      return results  # Return all results without filtering
-
     # Print current stats when reaching threshold day for the first time
     if absolute_day == stat_cap_threshold_day:
-      print(f"[STAT CAPS] Day {absolute_day}: Stat cap filtering now active")
       print(f"[STAT CAPS] Current stats vs caps:")
       for stat in ["spd", "sta", "pwr", "guts", "wit"]:
         current_value = current_stats.get(stat, 0)
@@ -328,14 +323,19 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   stage_info = get_career_stage_info(current_date)
   print(f"[DEBUG] Stage info: {stage_info}")
 
-  # Get current stats for caps filtering
-  current_stats = stat_state()
+  absolute_day = current_date.get('absolute_day', 0)
+  stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
+  filtered_results = results_training
 
-  # Filter by stat caps
-  filtered_results = filter_by_stat_caps(results_training, current_stats, current_date)
-  if not filtered_results:
-    print(f"[DEBUG] All training filtered out by stat caps")
-    return None
+  # Never apply stat cap filtering before threshold day
+  if absolute_day < stat_cap_threshold_day:
+    # Get current stats for caps filtering
+    current_stats = stat_state()
+    # Filter by stat caps
+    filtered_results = filter_by_stat_caps(results_training, current_stats, current_date)
+    if not filtered_results:
+      print(f"[DEBUG] All training filtered out by stat caps")
+      return None
 
   # Check energy level for critical energy (no training allowed)
   if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:

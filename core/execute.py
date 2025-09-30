@@ -216,24 +216,42 @@ class EventHandler:
 
     def handle_ui_elements(self, gui=None) -> bool:
         """Handle various UI elements with priority order including event choice"""
-        # Priority 1: Handle event choices first (highest priority)
         if self._handle_event_choices(gui):
             return True
 
-        # Priority 2: Handle other UI elements
         if self._click("assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
             return True
 
         if self._click("assets/buttons/next_btn.png", minSearch=0.2):
             return True
 
-        if self._click("assets/buttons/cancel_btn.png", minSearch=0.2):
+        if self._handle_cancel_button(gui):
             return True
 
         if self._click("assets/buttons/next2_btn.png", minSearch=0.2):
             return True
 
         return False
+
+    def _handle_cancel_button(self, gui=None) -> bool:
+        """Handle cancel button with warning detection"""
+        if gui:
+            strategy_settings = gui.get_current_settings()
+            stop_on_warning = strategy_settings.get('stop_on_warning', False)
+
+            if stop_on_warning:
+                cancel_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
+                                                            minSearchTime=0.2)
+                if cancel_btn:
+                    race_btn = pyautogui.locateCenterOnScreen("assets/buttons/race_btn.png", confidence=0.8,
+                                                              minSearchTime=0.2)
+                    if race_btn:
+                        self.controller.log_message("⚠️ Warning detected (cancel + race buttons) - Stopping bot")
+                        if gui:
+                            gui.root.after(0, gui.stop_bot)
+                        return True
+
+        return self._click("assets/buttons/cancel_btn.png", minSearch=0.2)
 
     def _handle_event_choices(self, gui=None) -> bool:
         """Handle event choices using the improved event choice system"""
@@ -305,7 +323,6 @@ class EventHandler:
             self.controller.log_message(f"[ERROR] Event choice handling failed: {e}")
             # Fallback to choice 1
             return self.controller.event_choice_handler.click_choice(1)
-
 
     def _click(self, img, confidence=0.8, minSearch=2, click_count=1, text=""):
         """Click UI element with stop and window checks"""
@@ -393,11 +410,17 @@ class DecisionEngine:
         """Make training/racing decision based on current game state"""
 
         # Handle URA Finale
+        current_date = game_state.get('current_date', {})
+        absolute_day = current_date.get('absolute_day', 0)
+
         if game_state['year'] == "Finale Season" and game_state['turn'] == "Race Day":
-            self.controller.log_message("URA Finale")
-            if self.controller.check_should_stop():
+            stop_on_ura_final = strategy_settings.get('stop_on_ura_final', False)
+
+            if stop_on_ura_final and absolute_day >= 73:
+                self.controller.log_message("⚠️ URA Final reached - Stopping bot")
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
                 return False
-            return self.controller.race_handler.handle_ura_finale()
 
         # Handle Race Day
         if game_state['turn'] == "Race Day" and game_state['year'] != "Finale Season":
@@ -599,7 +622,8 @@ class DecisionEngine:
             should_race, available_races = race_manager.should_race_today(current_date)
 
             if should_race:
-                self.controller.log_message(f"Found {len(available_races)} matching races - Racing instead of low-score training")
+                self.controller.log_message(
+                    f"Found {len(available_races)} matching races - Racing instead of low-score training")
                 if self.controller.check_should_stop():
                     return False
                 race_found = self.controller.race_handler.start_race_flow(
@@ -783,7 +807,8 @@ class DecisionEngine:
                     if energy_percentage < MINIMUM_ENERGY_PERCENTAGE or best_training == "SHOULD_REST" \
                             or best_training == "NO_TRAINING":
                         self.controller.rest_handler.execute_rest()
-                        self.controller.log_message(f"No suitable training or low energy ({energy_percentage}%) - Resting")
+                        self.controller.log_message(
+                            f"No suitable training or low energy ({energy_percentage}%) - Resting")
                     else:
                         # Try fallback training
                         if results_training:
@@ -1177,7 +1202,7 @@ class StatusLogger:
         if game_state['current_date']:
             gui.update_current_date(game_state['current_date'])
 
-        gui.update_energy_display((game_state['energy_percentage'],game_state['energy_max']))
+        gui.update_energy_display((game_state['energy_percentage'], game_state['energy_max']))
 
 
 class MainExecutor:
@@ -1275,6 +1300,8 @@ class MainExecutor:
             'priority_strategy': 'Train Score 2.5+',
             'allow_continuous_racing': True,
             'manual_event_handling': False,
+            'stop_on_ura_final': False,
+            'stop_on_warning': False,
             'enable_stop_conditions': False,
             'stop_on_infirmary': False,
             'stop_on_need_rest': False,
@@ -1282,8 +1309,8 @@ class MainExecutor:
             'stop_on_race_day': False,
             'stop_mood_threshold': 'BAD',
             'stop_before_summer': False,  # Added missing key
-            'stop_at_month': False,       # Added missing key
-            'target_month': 'June',       # Added missing key
+            'stop_at_month': False,  # Added missing key
+            'target_month': 'June',  # Added missing key
             'event_choice': {
                 'auto_event_map': False,
                 'auto_first_choice': True,
@@ -1295,6 +1322,7 @@ class MainExecutor:
         if gui:
             return gui.get_current_settings()
         return default_settings
+
 
 # Global instances for backward compatibility
 _main_executor = None
@@ -1366,7 +1394,8 @@ def career_lobby(gui=None):
             if not check_and_focus_game_window(gui, window_check_failures, max_window_check_failures):
                 window_check_failures += 1
                 if window_check_failures >= max_window_check_failures:
-                    gui.log_message(f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
+                    gui.log_message(
+                        f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
                     _main_executor.controller.set_stop_flag(True)
                     break
                 time.sleep(2)
@@ -1402,7 +1431,8 @@ def check_and_focus_game_window(gui, current_failures, max_failures):
         if not _main_executor.controller.is_game_window_active():
             # Log the attempt to focus window
             if gui:
-                gui.log_message(f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
+                gui.log_message(
+                    f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
             else:
                 print(f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
 

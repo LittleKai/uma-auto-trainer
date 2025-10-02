@@ -305,16 +305,40 @@ class DecisionEngine:
     def _handle_no_suitable_training(self, results_training: Dict, energy_percentage: int,
                                      strategy_settings: Dict[str, Any], current_date: Dict[str, Any],
                                      race_manager, gui=None) -> bool:
-        """Handle when no suitable training found - try fallback training or rest"""
+        """Handle when no suitable training found - check race first, then fallback training or rest"""
         is_pre_debut = current_date and current_date.get('absolute_day', 0) <= 16
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+        allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
         if is_pre_debut:
             self.controller.log_message(f"Pre-Debut period: No suitable training found")
         else:
             self.controller.log_message(f"No training meets {priority_strategy} strategy requirements")
 
-        # Try fallback training if we have normal energy
+        # For "Train Score X+" strategies, check if race is available first
+        if "Train Score" in priority_strategy and not is_pre_debut:
+            should_race, available_races = race_manager.should_race_today(current_date)
+
+            if should_race and available_races:
+                self.controller.log_message(f"{priority_strategy}: No suitable training, but found {len(available_races)} matching races - Racing instead")
+
+                if self.controller.check_should_stop():
+                    return False
+
+                race_found = self.controller.race_handler.start_race_flow(
+                    allow_continuous_racing=allow_continuous_racing
+                )
+
+                if race_found:
+                    return True
+                else:
+                    # Race failed, continue to fallback training
+                    if self.controller.check_should_stop():
+                        return False
+                    self._click_back_button("Race not found in game, proceeding to fallback training")
+                    time.sleep(0.5)
+
+        # Try fallback training if we have normal energy and no race (or race failed)
         if energy_percentage >= MINIMUM_ENERGY_PERCENTAGE and results_training:
             fallback_result = fallback_training(results_training, current_date)
             if fallback_result:

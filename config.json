@@ -1,9 +1,9 @@
 {
   "priority_stat": ["spd", "pwr", "sta", "wit", "guts"],
   "maximum_failure": 15,
-  "minimum_energy_percentage": 43,
+  "minimum_energy_percentage": 42,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 80,
+  "stat_cap_threshold_day": 60,
   "stat_caps": {
     "spd": 1100,
     "sta": 1100,

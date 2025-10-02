@@ -4,7 +4,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 import time
 import numpy as np
 from utils.screenshot import capture_region, enhanced_screenshot
-from core.ocr import extract_text, extract_number, extract_text_advanced
+from core.ocr import extract_text, extract_number, extract_text_advanced, extract_stat_number
 from core.recognizer import match_template
 from core.race_manager import DateManager
 
@@ -118,20 +118,20 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
 
 def stat_state():
-  """Get current character stats using configurable regions"""
+  """Get current character stats using configurable regions with improved OCR accuracy"""
   current_regions = get_current_regions()
   stat_regions = current_regions['STAT_REGIONS']
 
-  raw_values = {}
   result = {}
 
   for stat, region in stat_regions.items():
     img = enhanced_screenshot(region)
-    raw_val = extract_number(img)
-    raw_values[stat] = raw_val
 
-    digits = ''.join(filter(str.isdigit, raw_val))
-    result[stat] = int(digits) if digits.isdigit() else 0
+    # Use improved stat number extraction
+    value = extract_stat_number(img)
+    result[stat] = value
+
+    print(f"[DEBUG] Stat {stat.upper()}: {value}")
 
   return result
 

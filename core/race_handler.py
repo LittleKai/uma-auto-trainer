@@ -409,22 +409,25 @@ class RaceHandler:
 
         return True
 
-    def handle_race_day(self) -> bool:
-        """Handle race day using original timing"""
+    def handle_race_day(self, is_ura_final: bool = False) -> bool:
+        """Handle race day or URA finale race day"""
         if self.check_stop():
             self.log("[STOP] Race day cancelled due to F3 press")
             return False
 
-        if not self.check_window():
-            return False
+        if is_ura_final:
+            race_day_btn = "assets/buttons/ura_final_race_day_btn.png"
+        else:
+            race_day_btn = "assets/buttons/race_day_btn.png"
 
         if not enhanced_click(
-                "assets/buttons/race_day_btn.png",
+                race_day_btn,
                 minSearch=10,
                 check_stop_func=self.check_stop,
                 check_window_func=self.check_window,
                 log_func=self.log
         ):
+
             return False
 
         if self.check_stop():
@@ -437,7 +440,7 @@ class RaceHandler:
             check_window_func=self.check_window,
             log_func=self.log
         )
-        time.sleep(0.5)
+        time.sleep(1)
 
         for i in range(2):
             if self.check_stop():
@@ -451,7 +454,7 @@ class RaceHandler:
                     log_func=self.log
             ):
                 break
-            time.sleep(0.5)
+            time.sleep(1)
 
         if self.check_stop():
             return False
@@ -464,38 +467,4 @@ class RaceHandler:
         if not self.handle_after_race():
             return False
 
-        return True
-
-    def handle_ura_finale(self) -> bool:
-        """Handle URA finale using original timing"""
-        if self.check_stop():
-            return False
-
-        self.log("URA Finale")
-
-        try:
-            from utils.scenario import ura
-            ura()
-        except ImportError:
-            self.log("[WARNING] URA scenario not available")
-
-        for i in range(2):
-            if self.check_stop():
-                return False
-
-            if enhanced_click(
-                    "assets/buttons/race_btn.png",
-                    minSearch=2,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=self.log
-            ):
-                time.sleep(0.5)
-
-        if self.check_stop():
-            return False
-
-        self.prepare_race()
-        time.sleep(1)
-        self.handle_after_race()
         return True

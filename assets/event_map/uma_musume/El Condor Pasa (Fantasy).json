@@ -1,0 +1,58 @@
+{
+  "events": [
+    {
+      "name": "Hot and Spicy!",
+      "choice_2_if_energy_shortage_gte": 19
+    },
+    {
+      "name": "The Academy at Night",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Flower Language",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Passion! Connection! Guidance!",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Passion-filled Outfit",
+      "choice": 2
+    },
+    {
+      "name": "A Challenge from the Past",
+      "choice": 1
+    },
+    {
+      "name": "A Personalized Mask",
+      "choice": 1
+    },
+    {
+      "name": "Salsa Roja",
+      "choice": 1
+    },
+    {
+      "name": "Go for the Extra-Large Pizza!",
+      "choice": 1
+    },
+    {
+      "name": "The Wrestler I Admire",
+      "choice": 1
+    },
+    {
+      "name": "Shocking Retirement",
+      "choice": 2
+    },
+    {
+      "name": "Renewed Resolve",
+      "choice": 3
+    }
+  ]
+}

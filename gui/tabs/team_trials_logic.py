@@ -306,6 +306,10 @@ class TeamTrialsLogic:
         if self.check_stop_condition():
             return False
 
+        # Step 7: Check Story Unlocked
+        if self.find_and_click("assets/buttons/close_btn.png", log_attempts=False):
+            time.sleep(2)
+
         # Step 7: Handle shop if present
         if self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", click=False, log_attempts=False):
             self.main_window.log_message("Shop available")

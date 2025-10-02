@@ -1,13 +1,13 @@
 {
   "track": {
     "turf": true,
-    "dirt": false
+    "dirt": true
   },
   "distance": {
     "sprint": false,
     "mile": true,
     "medium": true,
-    "long": false
+    "long": true
   },
   "grade": {
     "g1": true,
@@ -18,29 +18,31 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "January",
+  "stop_on_ura_final": false,
+  "stop_on_warning": false,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Silence Suzuka",
+    "uma_musume": "Oguri Cap",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "frd: Tazuna Hayakawa (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
-      "pow: Mihono Bourbon (SR)",
-      "pow: Vodka (SSR)"
+      "spd: Special Week (SSR)",
+      "sta: Mejiro McQueen (SSR)",
+      "sta: Super Creek (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 3,
+    "current_set": 2,
     "preset_sets": {
       "1": {
         "uma_musume": "Mejiro McQueen",
@@ -54,12 +56,12 @@
         ]
       },
       "2": {
-        "uma_musume": "Daiwa Scarlet",
+        "uma_musume": "Oguri Cap",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Special Week (SSR)",
           "sta: Mejiro McQueen (SSR)",
           "sta: Super Creek (SSR)"
         ]
@@ -87,14 +89,14 @@
         ]
       },
       "5": {
-        "uma_musume": "Vodka",
+        "uma_musume": "El Condor Pasa (Fantasy)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Eishin Flash (SR)",
           "pow: Winning Ticket (SSR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "6": {
@@ -113,7 +115,7 @@
   "team_trials": {
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": true
+    "stop_if_shop": false
   },
   "window": {
     "width": 826,

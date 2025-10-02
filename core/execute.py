@@ -147,7 +147,6 @@ class BotController:
 
         return False
 
-
 class GameStateManager:
     """Manages current game state information"""
 
@@ -348,10 +347,10 @@ class DecisionEngine:
                       race_manager, gui=None) -> bool:
         """Make training/racing decision based on current game state"""
 
-        # Handle URA Finale
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
+        # Handle URA Finale
         if game_state['year'] == "Finale Season" and game_state['turn'] == "Race Day":
             stop_on_ura_final = strategy_settings.get('stop_on_ura_final', False)
 
@@ -361,7 +360,12 @@ class DecisionEngine:
                     gui.root.after(0, gui.stop_bot)
                 return False
 
-        # Handle Race Day
+            self.controller.log_message("URA Finale detected - Starting finale race")
+            if self.controller.check_should_stop():
+                return False
+            return self.controller.race_handler.handle_race_day(is_ura_final=True)
+
+        # Handle Race Day (Normal)
         if game_state['turn'] == "Race Day" and game_state['year'] != "Finale Season":
             if (strategy_settings.get('enable_stop_conditions', False) and
                     strategy_settings.get('stop_on_race_day', False)):
@@ -373,7 +377,7 @@ class DecisionEngine:
             self.controller.log_message("Race Day.")
             if self.controller.check_should_stop():
                 return False
-            return self.controller.race_handler.handle_race_day()
+            return self.controller.race_handler.handle_race_day(is_ura_final=False)
 
         if self.controller.check_should_stop():
             return False
@@ -384,22 +388,18 @@ class DecisionEngine:
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
-        # Check mood requirements
         if not self._handle_mood_requirement(mood, strategy_settings, current_date, gui):
             return False
 
-        # Handle G1/G2 priority strategies - skip training check completely
         if "G1 (no training)" in priority_strategy or "G2 (no training)" in priority_strategy:
             return self._handle_race_priority_strategy(game_state, strategy_settings, race_manager, gui)
 
-        # Handle critical/low energy cases
         energy_action = self._handle_energy_based_action(
             energy_percentage, current_date, race_manager, allow_continuous_racing
         )
         if energy_action is not None:
             return energy_action
 
-        # Handle race priority for normal energy
         if self._should_prioritize_racing(current_date, energy_percentage, priority_strategy, race_manager):
             race_found = self.controller.race_handler.start_race_flow(allow_continuous_racing=allow_continuous_racing)
             if race_found:
@@ -411,7 +411,6 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        # Main training flow
         return self._execute_training_flow(energy_percentage, strategy_settings, current_date, race_manager, gui)
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],

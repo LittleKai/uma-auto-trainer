@@ -581,6 +581,10 @@
     {
       "name": "Raising the Uma Lord's Castle",
       "choice": 1
+    },
+    {
+      "name": "Dig Here, Windy!",
+      "choice": 2
     }
   ]
 }

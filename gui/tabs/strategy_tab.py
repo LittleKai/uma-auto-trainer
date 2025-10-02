@@ -17,7 +17,6 @@ class StrategyTab:
 
     def init_variables(self):
         """Initialize tab variables"""
-        # Race filter variables
         self.track_filters = {
             'turf': tk.BooleanVar(value=True),
             'dirt': tk.BooleanVar(value=True)
@@ -36,13 +35,11 @@ class StrategyTab:
             'g3': tk.BooleanVar(value=True)
         }
 
-        # Strategy variables
         self.minimum_mood = tk.StringVar(value="NORMAL")
         self.priority_strategy = tk.StringVar(value="Train Score 3.5+")
         self.allow_continuous_racing = tk.BooleanVar(value=True)
         self.manual_event_handling = tk.BooleanVar(value=False)
 
-        # Stop condition variables
         self.enable_stop_conditions = tk.BooleanVar(value=False)
         self.stop_on_infirmary = tk.BooleanVar(value=False)
         self.stop_on_need_rest = tk.BooleanVar(value=False)
@@ -52,8 +49,9 @@ class StrategyTab:
         self.stop_before_summer = tk.BooleanVar(value=False)
         self.stop_at_month = tk.BooleanVar(value=False)
         self.target_month = tk.StringVar(value="June")
+        self.stop_on_ura_final = tk.BooleanVar(value=False)
+        self.stop_on_warning = tk.BooleanVar(value=False)
 
-        # Bind variable changes to auto-save
         self.bind_variable_changes()
 
     def update_filters_from_uma_data(self, uma_data):
@@ -151,7 +149,6 @@ class StrategyTab:
         strategy_frame.columnconfigure(1, weight=1)
         strategy_frame.columnconfigure(3, weight=1)
 
-        # Minimum Mood
         ttk.Label(strategy_frame, text="Minimum Mood:").grid(
             row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
 
@@ -164,7 +161,6 @@ class StrategyTab:
         )
         mood_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 20), pady=5)
 
-        # Priority Strategy
         ttk.Label(strategy_frame, text="Priority Strategy:").grid(
             row=0, column=2, sticky=tk.W, padx=(0, 5), pady=5)
 
@@ -185,7 +181,6 @@ class StrategyTab:
         )
         priority_dropdown.grid(row=0, column=3, sticky=tk.W, pady=5)
 
-        # Option checkboxes
         continuous_racing_check = ttk.Checkbutton(
             strategy_frame,
             text="Allow Continuous Racing (>3 races)",
@@ -199,6 +194,20 @@ class StrategyTab:
             variable=self.manual_event_handling
         )
         manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 5))
+
+        stop_ura_final_check = ttk.Checkbutton(
+            strategy_frame,
+            text="Stop when reach Ura Final",
+            variable=self.stop_on_ura_final
+        )
+        stop_ura_final_check.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(5, 5))
+
+        stop_warning_check = ttk.Checkbutton(
+            strategy_frame,
+            text="Stop when warning detected",
+            variable=self.stop_on_warning
+        )
+        stop_warning_check.grid(row=2, column=2, columnspan=2, sticky=tk.W, pady=(5, 5))
 
     def create_race_filters_section(self, parent, row):
         """Create race filters section"""
@@ -329,7 +338,7 @@ class StrategyTab:
             print(f"Error opening stop conditions dialog: {e}")
 
     def get_settings(self):
-        """Get current tab settings with debug logging"""
+        """Get current tab settings"""
         settings = {
             'track': {k: v.get() for k, v in self.track_filters.items()},
             'distance': {k: v.get() for k, v in self.distance_filters.items()},
@@ -346,7 +355,9 @@ class StrategyTab:
             'stop_mood_threshold': self.stop_mood_threshold.get(),
             'stop_before_summer': self.stop_before_summer.get(),
             'stop_at_month': self.stop_at_month.get(),
-            'target_month': self.target_month.get()
+            'target_month': self.target_month.get(),
+            'stop_on_ura_final': self.stop_on_ura_final.get(),
+            'stop_on_warning': self.stop_on_warning.get()
         }
 
         return settings
@@ -354,22 +365,18 @@ class StrategyTab:
     def load_settings(self, settings):
         """Load settings into tab"""
         try:
-            # Load track filters
             for k, v in settings.get('track', {}).items():
                 if k in self.track_filters:
                     self.track_filters[k].set(v)
 
-            # Load distance filters
             for k, v in settings.get('distance', {}).items():
                 if k in self.distance_filters:
                     self.distance_filters[k].set(v)
 
-            # Load grade filters
             for k, v in settings.get('grade', {}).items():
                 if k in self.grade_filters:
                     self.grade_filters[k].set(v)
 
-            # Load strategy settings
             if 'minimum_mood' in settings:
                 self.minimum_mood.set(settings['minimum_mood'])
             if 'priority_strategy' in settings:
@@ -379,11 +386,11 @@ class StrategyTab:
             if 'manual_event_handling' in settings:
                 self.manual_event_handling.set(settings['manual_event_handling'])
 
-            # Load stop condition settings
             stop_condition_keys = [
                 'enable_stop_conditions', 'stop_on_infirmary', 'stop_on_need_rest',
                 'stop_on_low_mood', 'stop_on_race_day', 'stop_mood_threshold',
-                'stop_before_summer', 'stop_at_month', 'target_month'
+                'stop_before_summer', 'stop_at_month', 'target_month',
+                'stop_on_ura_final', 'stop_on_warning'
             ]
 
             for key in stop_condition_keys:

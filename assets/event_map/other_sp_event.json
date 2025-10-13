@@ -585,6 +585,22 @@
     {
       "name": "Dig Here, Windy!",
       "choice": 2
+    },
+    {
+      "name": "The Glass Girl Wants to Study",
+      "choice": 2
+    },
+    {
+      "name": "The Glass Girl Wants to Play",
+      "choice": 1
+    },
+    {
+      "name": "Special Drinks Made with Friends ♪",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Flustered Afternoon Tea!",
+      "choice": 1
     }
   ]
 }

@@ -18,20 +18,20 @@ def extract_text(pil_img: Image.Image) -> str:
     print(f"[WARNING] Tesseract text extraction failed: {e}")
     return ""
 
-def extract_number(pil_img: Image.Image) -> str:
-  """
-  Trích xuất số từ image sử dụng Tesseract
-  """
-  try:
-    # Cấu hình Tesseract chỉ cho phép số
-    custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
-    text = pytesseract.image_to_string(pil_img, config=custom_config)
-    # Lọc chỉ lấy số
-    numbers = re.findall(r'\d+', text)
-    return ''.join(numbers)
-  except Exception as e:
-    print(f"[WARNING] Tesseract number extraction failed: {e}")
-    return ""
+# def extract_number(pil_img: Image.Image) -> str:
+#   """
+#   Trích xuất số từ image sử dụng Tesseract
+#   """
+#   try:
+#     # Cấu hình Tesseract chỉ cho phép số
+#     custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
+#     text = pytesseract.image_to_string(pil_img, config=custom_config)
+#     # Lọc chỉ lấy số
+#     numbers = re.findall(r'\d+', text)
+#     return ''.join(numbers)
+#   except Exception as e:
+#     print(f"[WARNING] Tesseract number extraction failed: {e}")
+#     return ""
 
 def extract_text_advanced(pil_img: Image.Image, whitelist: str = None, psm: int = 6) -> str:
   """
@@ -56,150 +56,126 @@ def extract_text_advanced(pil_img: Image.Image, whitelist: str = None, psm: int 
     return ""
 
 def extract_stat_number(pil_img: Image.Image) -> int:
-  """
-  Extract and validate stat number from image (0-9999) with improved accuracy
-
-  Args:
-      pil_img: PIL Image object containing stat number
-
-  Returns:
-      int: Validated stat number (0-9999)
-  """
   try:
-    # Extract number with custom configuration for digits only
     custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
     raw_text = pytesseract.image_to_string(pil_img, config=custom_config)
 
-    print(f"[DEBUG OCR] Raw stat OCR output: '{raw_text}'")
-
-    # Clean the extracted value
     cleaned_val = _clean_stat_number(raw_text)
-
-    print(f"[DEBUG OCR] Cleaned stat value: {cleaned_val}")
-
     return cleaned_val
 
   except Exception as e:
     print(f"[WARNING] Stat number extraction failed: {e}")
     return 0
 
-
 def _clean_stat_number(raw_text: str) -> int:
   """
-  Clean and validate stat number from OCR output
+  Làm sạch và trích xuất số stat từ OCR text
 
-  Args:
-      raw_text: Raw OCR text output
-
-  Returns:
-      int: Validated stat number (0-9999)
+  Xử lý:
+  - OCR nhầm ký tự thành số với bảng mapping mở rộng
+  - Stat luôn có ít nhất 2 chữ số
+  - Nếu có 4 chữ số mà chữ số đầu giống chữ số thứ 2 → loại bỏ chữ số đầu
+  - Giới hạn trong khoảng [0, 2400]
   """
   if not raw_text:
-    print(f"[DEBUG OCR] Empty raw text")
     return 0
 
-  # Remove all non-digit characters and whitespace
-  digits_only = ''.join(filter(str.isdigit, raw_text.strip()))
+  # Bảng chuyển đổi các lỗi OCR phổ biến (mở rộng)
+  OCR_CORRECTIONS = {
+    # Số 0
+    'O': '0', 'o': '0',           # Chữ O
+    'D': '0',                      # Chữ D
+    'Q': '0',                      # Chữ Q (đôi khi)
 
-  print(f"[DEBUG OCR] Digits only: '{digits_only}'")
+    # Số 1
+    'I': '1', 'i': '1',           # Chữ I (hoa/thường)
+    'l': '1',                      # Chữ l (lowercase L)
+    '|': '1',                      # Ký tự pipe
+    '!': '1',                      # Dấu chấm than
+    'j': '1',                      # Chữ j (đôi khi)
+    '/': '1',                      # Dấu gạch chéo
+    '\\': '1',                     # Dấu gạch chéo ngược
 
-  # Handle empty result
+    # Số 2
+    'Z': '2', 'z': '2',           # Chữ Z
+
+    # Số 3
+
+    # Số 4
+    'A': '4',                      # Chữ A (đôi khi)
+
+    # Số 5
+    'S': '5', 's': '5',           # Chữ S
+
+    # Số 6
+    'G': '6',                      # Chữ G (có thể là 6 hoặc 9)
+    'b': '6',                      # Chữ b thường (đôi khi)
+
+    # Số 7
+    'T': '7',                      # Chữ T (đôi khi)
+
+    # Số 8
+    'B': '8',                      # Chữ B
+    '&': '8',                      # Ký tự &
+
+    # Số 9
+    'g': '9',                      # Chữ g thường
+    'q': '9',                      # Chữ q
+    'y': '9',                      # Chữ y (đôi khi)
+
+    # Ký tự đặc biệt cần loại bỏ
+    ' ': '',                       # Khoảng trắng
+    ',': '',                       # Dấu phấy
+    '.': '',                       # Dấu chấm
+    '-': '',                       # Dấu gạch ngang
+    '_': '',                       # Dấu gạch dưới
+    ':': '',                       # Dấu hai chấm
+    ';': '',                       # Dấu chấm phẩy
+    '+': '',                       # Dấu cộng
+    '=': '',                       # Dấu bằng
+    '~': '',                       # Dấu ngã
+    '`': '',                       # Dấu backtick
+    "'": '',                       # Dấu nháy đơn
+    '"': '',                       # Dấu nháy kép
+    '(': '',                       # Ngoặc mở
+    ')': '',                       # Ngoặc đóng
+    '[': '',                       # Ngoặc vuông mở
+    ']': '',                       # Ngoặc vuông đóng
+    '{': '',                       # Ngoặc nhọn mở
+    '}': '',                       # Ngoặc nhọn đóng
+    '<': '',                       # Dấu nhỏ hơn
+    '>': '',                       # Dấu lớn hơn
+    '#': '',                       # Dấu thăng
+    '$': '',                       # Dấu dollar
+    '%': '',                       # Dấu phần trăm
+    '*': '',                       # Dấu sao
+  }
+
+  # Áp dụng corrections
+  corrected_text = raw_text.strip()
+  for wrong_char, correct_char in OCR_CORRECTIONS.items():
+    corrected_text = corrected_text.replace(wrong_char, correct_char)
+
+  # Lọc chỉ lấy chữ số
+  digits_only = ''.join(filter(str.isdigit, corrected_text))
+
   if not digits_only:
-    print(f"[DEBUG OCR] No digits found after cleaning")
     return 0
 
-  # If we have more than 4 digits, likely OCR error - need to find correct sequence
+  # Xử lý trường hợp quá dài (>4 chữ số)
   if len(digits_only) > 4:
-    print(f"[DEBUG OCR] More than 4 digits ({len(digits_only)}), finding best match")
-
-    # Try to find a valid sequence (3 or 4 digits preferred)
-    best_candidate = None
-    best_score = -1
-
-    # Check for 4-digit sequences first (most common for high stats)
-    for i in range(len(digits_only) - 3):
-      candidate = digits_only[i:i+4]
-      val = int(candidate)
-
-      # Valid stat range is 0-9999
-      if val <= 9999:
-        score = 0
-
-        # Prefer 4-digit numbers in valid range (1000-9999)
-        if 1000 <= val <= 9999:
-          score += 20
-        # Also consider 3-digit equivalents (100-999)
-        elif 100 <= val <= 999:
-          score += 15
-        # Small numbers
-        elif val < 100:
-          score += 10
-
-        # Prefer sequences at the beginning
-        if i == 0:
-          score += 5
-        elif i == 1:
-          score += 3
-
-        # Avoid sequences starting with 0 (unless very small number)
-        if candidate[0] == '0' and val >= 100:
-          score -= 10
-
-        print(f"[DEBUG OCR] 4-digit candidate '{candidate}' at position {i}, value={val}, score={score}")
-
-        if score > best_score:
-          best_score = score
-          best_candidate = val
-
-    # Also check 3-digit sequences
-    for i in range(len(digits_only) - 2):
-      candidate = digits_only[i:i+3]
-      val = int(candidate)
-
-      if val <= 999:
-        score = 0
-
-        # 3-digit numbers
-        if 100 <= val <= 999:
-          score += 12
-        elif val < 100:
-          score += 8
-
-        # Position bonus
-        if i == 0:
-          score += 4
-        elif i == 1:
-          score += 2
-
-        # Avoid leading zeros
-        if candidate[0] == '0' and val >= 10:
-          score -= 5
-
-        print(f"[DEBUG OCR] 3-digit candidate '{candidate}' at position {i}, value={val}, score={score}")
-
-        if score > best_score:
-          best_score = score
-          best_candidate = val
-
-    if best_candidate is not None:
-      print(f"[DEBUG OCR] Selected best candidate: {best_candidate}")
-      return best_candidate
-
-    # Fallback: take the last 4 digits
-    print(f"[DEBUG OCR] No good candidate found, using last 4 digits")
     digits_only = digits_only[-4:]
 
-  # Convert the digits to integer
+  # Xử lý trường hợp 4 chữ số với chữ số đầu trùng chữ số thứ 2
+  # Ví dụ: 8886 → 886, 1123 → 123
+  if len(digits_only) == 4 and digits_only[0] == digits_only[1]:
+    candidate = int(digits_only[1:])
+    if candidate <= 2400:
+      return candidate
+
+  # Trường hợp bình thường
   try:
     value = int(digits_only)
-    # Clamp to valid range (0-9999)
-    result = max(0, min(9999, value))
-
-    if result != value:
-      print(f"[DEBUG OCR] Clamped value from {value} to {result}")
-
-    return result
-
+    return max(0, min(2400, value))
   except ValueError:
-    print(f"[WARNING] Could not convert '{digits_only}' to integer")
     return 0

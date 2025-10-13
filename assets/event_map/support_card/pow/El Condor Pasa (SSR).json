@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "Umame",
+      "choice": 1
+    },
+    {
+      "name": "Blazing Fire!",
+      "choice": 1
+    },
+    {
+      "name": "Secret Notebook!",
+      "choice": 1
+    }
+  ]
+}

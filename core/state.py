@@ -4,7 +4,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 import time
 import numpy as np
 from utils.screenshot import capture_region, enhanced_screenshot
-from core.ocr import extract_text, extract_number, extract_text_advanced, extract_stat_number
+from core.ocr import extract_text, extract_text_advanced, extract_stat_number
 from core.recognizer import match_template
 from core.race_manager import DateManager
 

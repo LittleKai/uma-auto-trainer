@@ -328,7 +328,7 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   filtered_results = results_training
 
   # Never apply stat cap filtering before threshold day
-  if absolute_day < stat_cap_threshold_day:
+  if absolute_day >= stat_cap_threshold_day:
     # Get current stats for caps filtering
     current_stats = stat_state()
     print(f'Stat: {current_stats}')

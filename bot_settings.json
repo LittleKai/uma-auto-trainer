@@ -4,10 +4,10 @@
     "dirt": true
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
-    "medium": true,
-    "long": true
+    "medium": false,
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -21,28 +21,28 @@
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
-  "stop_on_low_mood": true,
+  "stop_on_low_mood": false,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "January",
   "stop_on_ura_final": false,
-  "stop_on_warning": false,
+  "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Oguri Cap",
+    "uma_musume": "Taiki Shuttle",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "frd: Tazuna Hayakawa (SSR)",
       "spd: Sweep Tosho (SR)",
       "spd: Special Week (SSR)",
-      "sta: Mejiro McQueen (SSR)",
-      "sta: Super Creek (SSR)"
+      "pow: Mihono Bourbon (SR)",
+      "pow: Oguri Cap (SSR)",
+      "pow: El Condor Pasa (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 2,
+    "current_set": 4,
     "preset_sets": {
       "1": {
         "uma_musume": "Mejiro McQueen",
@@ -62,52 +62,52 @@
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)"
+          "pow: Mihono Bourbon (SR)",
+          "pow: Oguri Cap (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Silence Suzuka",
+        "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "4": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Silence Suzuka (SSR)",
+          "spd: Special Week (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Oguri Cap (SSR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "5": {
-        "uma_musume": "El Condor Pasa (Fantasy)",
+        "uma_musume": "Vodka",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Eishin Flash (SR)",
           "pow: Winning Ticket (SSR)",
-          "pow: Vodka (SSR)"
+          "pow: Oguri Cap (SSR)"
         ]
       },
       "6": {
-        "uma_musume": "Seiun Sky",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Silence Suzuka (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)",
-          "sta: Gold Ship (SSR)"
+          "spd: Eishin Flash (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Vodka (SSR)"
         ]
       }
     }
@@ -115,12 +115,12 @@
   "team_trials": {
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": false
+    "stop_if_shop": true
   },
   "window": {
-    "width": 826,
-    "height": 957,
-    "x": 1073,
-    "y": 0
+    "width": 835,
+    "height": 949,
+    "x": 984,
+    "y": 1
   }
 }

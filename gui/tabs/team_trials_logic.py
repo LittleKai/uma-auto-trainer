@@ -70,6 +70,8 @@ class TeamTrialsLogic:
                             return None
                         pyautogui.click(button)
                         self.main_window.log_message(f"Clicked {filename}")
+                        if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
+                            time.sleep(10)
                         return button
                     else:
                         return button
@@ -184,7 +186,7 @@ class TeamTrialsLogic:
             return False
 
         # Step 3 final: Check for refresh button
-        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=6, delay_between=3, click=False):
+        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=6, delay_between=5, click=False):
             self.main_window.log_message("Neither refresh nor next button found")
             return False
 
@@ -193,9 +195,9 @@ class TeamTrialsLogic:
             return False
 
         # Step 4: Check for PvP gift and opponent selection
-        pvp_region = (200, 150, 700, 720)
+        # pvp_region = (200, 150, 700, 720)
         pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png",
-                                           pvp_region, log_attempts=False)
+                                           log_attempts=False)
 
         if not pvp_gift_pos:
             # Check stop condition before opponent selection

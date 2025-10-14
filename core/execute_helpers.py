@@ -2,8 +2,6 @@ import pyautogui
 import time
 from typing import Dict, Any, Callable
 
-# This file contains helper classes for execute.py
-
 
 class EventHandler:
     """Handles UI events and manual event processing"""
@@ -14,18 +12,23 @@ class EventHandler:
     def handle_ui_elements(self, gui=None) -> bool:
         """Handle various UI elements with priority order including event choice"""
         if self._handle_event_choices(gui):
+            self.controller.reset_career_lobby_counter()
             return True
 
         if self._click("assets/buttons/inspiration_btn.png", minSearch=0.2, text="Inspiration found."):
+            self.controller.reset_career_lobby_counter()
             return True
 
         if self._click("assets/buttons/next_btn.png", minSearch=0.2):
+            self.controller.reset_career_lobby_counter()
             return True
 
         if self._handle_cancel_button(gui):
+            self.controller.reset_career_lobby_counter()
             return True
 
         if self._click("assets/buttons/next2_btn.png", minSearch=0.2):
+            self.controller.reset_career_lobby_counter()
             return True
 
         return False
@@ -52,16 +55,13 @@ class EventHandler:
 
     def _handle_event_choices(self, gui=None) -> bool:
         """Handle event choices using the improved event choice system"""
-        # Check if event choice is visible
         if not self.controller.event_choice_handler.is_event_choice_visible():
             return False
 
-        # Get event choice settings from GUI
         if gui:
             event_settings = gui.get_event_choice_settings()
             manual_event_handling = gui.get_current_settings().get('manual_event_handling', False)
         else:
-            # Default settings if no GUI
             event_settings = {
                 'auto_event_map': False,
                 'auto_first_choice': True,
@@ -71,16 +71,13 @@ class EventHandler:
             }
             manual_event_handling = False
 
-        # Check if manual event handling is enabled
         if manual_event_handling:
             self.controller.log_message("🎭 EVENT DETECTED! Manual event handling enabled.")
             self.controller.log_message("⏳ Waiting for you to select event choice manually...")
 
-            # Wait for event completion without stopping the bot
             event_handled = self._wait_for_event_completion(gui)
 
             if not event_handled:
-                # Event timeout - stop bot properly
                 self.controller.log_message("⚠️ Event timeout - Stopping bot")
                 if gui:
                     gui.root.after(0, gui.stop_bot)
@@ -88,21 +85,17 @@ class EventHandler:
 
             return True
 
-        # Try automatic event handling
         try:
-            # Handle event using improved event choice handler
             handled = self.controller.event_choice_handler.handle_event_choice(event_settings)
 
             if handled:
                 return True
             else:
-                # Check if this is because of UNKNOWN mood or unknown event requiring user input
                 unknown_action = event_settings.get('unknown_event_action', 'Auto select first choice')
 
                 if not unknown_action == "Auto select first choice":
                     self.controller.log_message("⏳ Event may not in database - waiting for manual selection...")
 
-                    # Wait for event completion like manual mode
                     event_handled = self._wait_for_event_completion(gui)
 
                     if not event_handled:
@@ -118,7 +111,6 @@ class EventHandler:
 
         except Exception as e:
             self.controller.log_message(f"[ERROR] Event choice handling failed: {e}")
-            # Fallback to choice 1
             return self.controller.event_choice_handler.click_choice(1)
 
     def _click(self, img, confidence=0.8, minSearch=2, click_count=1, text=""):
@@ -146,52 +138,30 @@ class EventHandler:
         start_time = time.time()
 
         while True:
-            # Check if bot was stopped manually
             if self.controller.check_should_stop():
                 return False
 
-            time.sleep(1)
+            if not self.controller.is_game_window_active():
+                time.sleep(1)
+                continue
 
-            # Check if event choice is still visible
-            event_still_present = self.controller.event_choice_handler.is_event_choice_visible()
+            if not self.controller.event_choice_handler.is_event_choice_visible():
+                if gui:
+                    from core.state import check_mood
+                    current_mood = check_mood()
 
-            if not event_still_present:
-                # Event is gone, check if we're back to normal game state
-                tazuna_hint = pyautogui.locateCenterOnScreen(
-                    "assets/ui/tazuna_hint.png",
-                    confidence=0.8,
-                    minSearchTime=0.2
-                )
-
-                if tazuna_hint:
-                    # Back to main menu - event completed
-                    self.controller.log_message("✅ Event completed - Resuming bot operations")
-                    return True
-                else:
-                    # Check for other game states that indicate event is progressing
-                    other_btn = (pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
-                                                                minSearchTime=0.2) or
-                                 pyautogui.locateCenterOnScreen("assets/buttons/inspiration_btn.png", confidence=0.8,
-                                                                minSearchTime=0.2) or
-                                 pyautogui.locateCenterOnScreen("assets/buttons/next_btn.png", confidence=0.8,
-                                                                minSearchTime=0.2))
-
-                    if other_btn:
-                        self.controller.log_message("✅ Event progressing - Resuming bot operations")
+                    if current_mood != "UNKNOWN":
+                        self.controller.log_message("✅ Event completed - Event progressing - Resuming bot operations")
                         return True
                     else:
-                        # Event is progressing, continue waiting
                         continue
 
-            # Timeout check (2 minutes max)
             elapsed = time.time() - start_time
             if elapsed > max_wait_time:
                 self.controller.log_message("⚠️ Event waiting timeout - Stopping bot")
-                # Set stop flag to ensure bot stops
                 self.controller.set_stop_flag(True)
                 return False
 
-            # Show waiting message every 30 seconds
             if elapsed > 10 and int(elapsed) % 30 == 0:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
 
@@ -201,7 +171,7 @@ class CareerLobbyManager:
 
     def __init__(self, controller):
         self.controller = controller
-        self.lobby_log_counter = 0  # Counter for reducing log frequency
+        self.lobby_log_counter = 0
 
     def verify_lobby_state(self, gui=None) -> bool:
         """Verify if currently in career lobby"""
@@ -212,11 +182,10 @@ class CareerLobbyManager:
         )
 
         if tazuna_hint is None:
-            # Only log message every 3 times instead of every time
             self.lobby_log_counter += 1
             if self.lobby_log_counter >= 3:
                 self.controller.log_message("Should be in career lobby.")
-                self.lobby_log_counter = 0  # Reset counter after logging
+                self.lobby_log_counter = 0
 
             if self.controller.increment_career_lobby_counter():
                 if gui:
@@ -226,13 +195,13 @@ class CareerLobbyManager:
             return False
         else:
             self.controller.reset_career_lobby_counter()
-            self.lobby_log_counter = 0  # Reset log counter when in lobby
+            self.lobby_log_counter = 0
             return True
 
     def handle_debuff_status(self, gui=None) -> bool:
         """Handle character debuff status"""
         from core.recognizer import is_infirmary_active
-        
+
         debuffed = pyautogui.locateOnScreen(
             "assets/buttons/infirmary_btn2.png",
             confidence=0.9,
@@ -241,10 +210,8 @@ class CareerLobbyManager:
 
         if debuffed:
             if is_infirmary_active((debuffed.left, debuffed.top, debuffed.width, debuffed.height)):
-                # Stop condition only applies after day 24
                 if (gui and gui.get_current_settings().get('enable_stop_conditions', False) and
                         gui.get_current_settings().get('stop_on_infirmary', False)):
-                    # Get current date info
                     from core.state import get_current_date_info
                     current_date = get_current_date_info()
                     absolute_day = current_date.get('absolute_day', 0) if current_date else 0
@@ -258,6 +225,7 @@ class CareerLobbyManager:
                     return False
                 pyautogui.click(debuffed)
                 self.controller.log_message("Character has debuff, go to infirmary instead.")
+                self.controller.reset_career_lobby_counter()
                 return True
 
         return False
@@ -281,7 +249,7 @@ class StatusLogger:
     def _log_date_and_race_info(self, current_date: Dict[str, Any], race_manager):
         """Log date and race information"""
         from core.race_manager import DateManager
-        
+
         if not current_date:
             return
 
@@ -302,6 +270,62 @@ class StatusLogger:
                 self.controller.log_message(
                     f"🏁 Today's Races: {len(all_filtered_races)} matching filters (restricted)")
                 for race in all_filtered_races[:3]:
+                    race_props = race_manager.extract_race_properties(race)
+                    self.controller.log_message(
+                        f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                if len(all_filtered_races) > 3:
+                    self.controller.log_message(f"  ... and {len(all_filtered_races) - 3} more")
+            else:
+                self.controller.log_message("🏁 Today's Races: None match current filters (restricted)")
+        else:
+            if all_filtered_races:
+                self.controller.log_message(f"🏁 Today's Races: {len(all_filtered_races)} matching filters")
+                for race in all_filtered_races[:3]:
+                    race_props = race_manager.extract_race_properties(race)
+                    self.controller.log_message(
+                        f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
+                if len(all_filtered_races) > 3:
+                    self.controller.log_message(f"  ... and {len(all_filtered_races) - 3} more")
+            else:
+                self.controller.log_message("🏁 Today's Races: None match current filters")
+
+    def log_game_state(self, game_state: Dict[str, Any], race_manager=None, gui=None):
+        """Log current game state information"""
+        if not game_state:
+            return
+
+        self.controller.log_message(f"Mood: {game_state.get('mood', 'UNKNOWN')}")
+        self.controller.log_message(f"Turn: {game_state.get('turn', 'Unknown')}")
+        self.controller.log_message(f"Year: {game_state.get('year', 'Unknown')}")
+
+        energy_percentage = game_state.get('energy_percentage', 0)
+        energy_max = game_state.get('energy_max', 0)
+        self.controller.log_message(f"Energy: {energy_percentage}% (Max: {energy_max})")
+
+        current_date = game_state.get('current_date')
+        if current_date:
+            self.controller.log_message(
+                f"Date: {current_date.get('year', 'Unknown')} - Day {current_date.get('absolute_day', 0)}"
+            )
+
+        if race_manager and game_state.get('turn') == "Race Day":
+            self._log_race_info(race_manager, game_state, gui)
+
+    def _log_race_info(self, race_manager, game_state: Dict[str, Any], gui=None):
+        """Log race information for Race Day"""
+        current_date = game_state.get('current_date')
+        if not current_date:
+            return
+
+        available_races = race_manager.get_available_races(current_date)
+
+        if gui:
+            all_filtered_races = race_manager.get_filtered_races_for_date(current_date)
+            available_races = all_filtered_races[:3]
+
+            if available_races:
+                self.controller.log_message(f"🏁 Today's Races (showing top 3):")
+                for race in available_races:
                     race_props = race_manager.extract_race_properties(race)
                     self.controller.log_message(
                         f"  - {race['name']} ({race_props['grade_type'].upper()}, {race_props['track_type']}, {race_props['distance_type']})")
@@ -330,5 +354,4 @@ class StatusLogger:
         gui.update_energy_display((game_state['energy_percentage'], game_state['energy_max']))
 
 
-# Export classes
 __all__ = ['EventHandler', 'CareerLobbyManager', 'StatusLogger']

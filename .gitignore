@@ -11,6 +11,7 @@ assets/event_map/cached_database.json
 assets/event_map/config_hash.txt
 
 # Ignore specific folders
+0.temp/
 logs/
 venv/
 __pycache__/

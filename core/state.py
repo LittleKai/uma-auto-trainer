@@ -479,6 +479,16 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   # Calculate total score using unified logic
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
+
+  # Calculate support card bonus based on training type and current date
+  support_card_bonus = 0
+  if training_type and current_date:
+    bonus_dict = calculate_support_card_bonus(current_date)
+    support_card_bonus = bonus_dict.get(training_type, 0)
+    total_score += support_card_bonus
+
+  count_result["support_card_bonus"] = support_card_bonus
+
   count_result["total_score"] = total_score
 
   return count_result

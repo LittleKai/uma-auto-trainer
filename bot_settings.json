@@ -21,7 +21,7 @@
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
-  "stop_on_low_mood": false,
+  "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
@@ -56,25 +56,25 @@
         ]
       },
       "2": {
-        "uma_musume": "Oguri Cap",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Sakura Bakushin O",
+        "uma_musume": "Maruzensky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)"
+          "pow: Oguri Cap (SSR)"
         ]
       },
       "4": {
@@ -85,18 +85,18 @@
           "spd: Special Week (SSR)",
           "pow: Mihono Bourbon (SR)",
           "pow: Oguri Cap (SSR)",
-          "pow: Vodka (SSR)"
+          "pow: El Condor Pasa (SSR)"
         ]
       },
       "5": {
-        "uma_musume": "Vodka",
+        "uma_musume": "El Condor Pasa (Fantasy)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Eishin Flash (SR)",
           "pow: Winning Ticket (SSR)",
-          "pow: Oguri Cap (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "6": {

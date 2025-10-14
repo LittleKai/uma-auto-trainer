@@ -226,9 +226,10 @@ class TeamTrialsLogic:
                 if self.check_stop_condition():
                     return False
 
-                # Click next button after opponent selection
-                if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=8, delay_between=3):
-                    return False
+
+        # Click next button after opponent selection
+        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=8, delay_between=3):
+            return False
 
         # Check stop condition before parfait handling
         if self.check_stop_condition():

@@ -6,7 +6,7 @@
     },
     {
       "name": "Awkward Honesty",
-      "choice_2_if_energy_shortage_gte": 19
+      "choice_2_if_energy_shortage_gte": 15
     },
     {
       "name": "Sugar and Spice",

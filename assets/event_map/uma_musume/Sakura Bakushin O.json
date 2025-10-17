@@ -2,12 +2,7 @@
   "events": [
     {
       "name": "Bakushin?! Class?!",
-      "choice_2_if_energy_shortage_gte": 19
-    },
-    {
-      "name": "",
-      "choice_1_if_energy_shortage_gte": 19,
-      "default_choice": 2
+      "choice_2_if_energy_shortage_gte": 15
     },
     {
       "name": "Dance Lesson",

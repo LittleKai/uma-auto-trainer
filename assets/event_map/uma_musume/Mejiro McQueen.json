@@ -2,7 +2,7 @@
   "events": [
     {
       "name": "Attack of the Chestnut Feast!",
-      "choice_2_if_energy_shortage_gte": 19
+      "choice_2_if_energy_shortage_gte": 15
     },
     {
       "name": "Cooking Up Memories",
@@ -11,7 +11,7 @@
     },
     {
       "name": "The Allure of Racecourse Food",
-      "choice_1_if_energy_shortage_gte": 19,
+      "choice_1_if_energy_shortage_gte": 15,
       "defailt_choice": 2
     },
     {

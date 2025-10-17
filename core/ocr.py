@@ -69,113 +69,62 @@ def extract_stat_number(pil_img: Image.Image) -> int:
 
 def _clean_stat_number(raw_text: str) -> int:
   """
-  Làm sạch và trích xuất số stat từ OCR text
+  Advanced stat number cleaning with intelligent OCR error correction
 
-  Xử lý:
-  - OCR nhầm ký tự thành số với bảng mapping mở rộng
-  - Stat luôn có ít nhất 2 chữ số
-  - Nếu có 4 chữ số mà chữ số đầu giống chữ số thứ 2 → loại bỏ chữ số đầu
-  - Giới hạn trong khoảng [0, 2400]
+  Limit stat values between 0 and 1200
   """
   if not raw_text:
     return 0
 
-  # Bảng chuyển đổi các lỗi OCR phổ biến (mở rộng)
+  # Mở rộng bảng ánh xạ lỗi OCR với ưu tiên chuyển đổi
   OCR_CORRECTIONS = {
-    # Số 0
-    'O': '0', 'o': '0',           # Chữ O
-    'D': '0',                      # Chữ D
-    'Q': '0',                      # Chữ Q (đôi khi)
-
-    # Số 1
-    'I': '1', 'i': '1',           # Chữ I (hoa/thường)
-    'l': '1',                      # Chữ l (lowercase L)
-    '|': '1',                      # Ký tự pipe
-    '!': '1',                      # Dấu chấm than
-    'j': '1',                      # Chữ j (đôi khi)
-    '/': '1',                      # Dấu gạch chéo
-    '\\': '1',                     # Dấu gạch chéo ngược
-
-    # Số 2
-    'Z': '2', 'z': '2',           # Chữ Z
-
-    # Số 3
-
-    # Số 4
-    'A': '4',                      # Chữ A (đôi khi)
-
-    # Số 5
-    'S': '5', 's': '5',           # Chữ S
-
-    # Số 6
-    'G': '6',                      # Chữ G (có thể là 6 hoặc 9)
-    'b': '6',                      # Chữ b thường (đôi khi)
-
-    # Số 7
-    'T': '7',                      # Chữ T (đôi khi)
-
-    # Số 8
-    'B': '8',                      # Chữ B
-    '&': '8',                      # Ký tự &
-
-    # Số 9
-    'g': '9',                      # Chữ g thường
-    'q': '9',                      # Chữ q
-    'y': '9',                      # Chữ y (đôi khi)
-
-    # Ký tự đặc biệt cần loại bỏ
-    ' ': '',                       # Khoảng trắng
-    ',': '',                       # Dấu phấy
-    '.': '',                       # Dấu chấm
-    '-': '',                       # Dấu gạch ngang
-    '_': '',                       # Dấu gạch dưới
-    ':': '',                       # Dấu hai chấm
-    ';': '',                       # Dấu chấm phẩy
-    '+': '',                       # Dấu cộng
-    '=': '',                       # Dấu bằng
-    '~': '',                       # Dấu ngã
-    '`': '',                       # Dấu backtick
-    "'": '',                       # Dấu nháy đơn
-    '"': '',                       # Dấu nháy kép
-    '(': '',                       # Ngoặc mở
-    ')': '',                       # Ngoặc đóng
-    '[': '',                       # Ngoặc vuông mở
-    ']': '',                       # Ngoặc vuông đóng
-    '{': '',                       # Ngoặc nhọn mở
-    '}': '',                       # Ngoặc nhọn đóng
-    '<': '',                       # Dấu nhỏ hơn
-    '>': '',                       # Dấu lớn hơn
-    '#': '',                       # Dấu thăng
-    '$': '',                       # Dấu dollar
-    '%': '',                       # Dấu phần trăm
-    '*': '',                       # Dấu sao
+    # Chuyển chữ cái/ký hiệu thành số
+    'O': '0', 'o': '0', 'D': '0', 'Q': '0',  # O → 0
+    'I': '1', 'i': '1', 'l': '1', '|': '1', '!': '1',
+    'j': '1', '/': '1', '\\': '1',            # I/l → 1
+    'Z': '2', 'z': '2',                       # Z → 2
+    'A': '4',                                 # A → 4
+    'S': '5', 's': '5',                       # S → 5
+    'G': '6', 'b': '6',                       # G → 6
+    'T': '7',                                 # T → 7
+    'B': '8', '&': '8',                       # B → 8
+    'g': '9', 'q': '9', 'y': '9'              # g → 9
   }
 
-  # Áp dụng corrections
-  corrected_text = raw_text.strip()
-  for wrong_char, correct_char in OCR_CORRECTIONS.items():
-    corrected_text = corrected_text.replace(wrong_char, correct_char)
+  def intelligent_conversion(text):
+    converted = []
+    for char in text:
+      converted.append(OCR_CORRECTIONS.get(char, char))
+    return ''.join(converted)
 
-  # Lọc chỉ lấy chữ số
-  digits_only = ''.join(filter(str.isdigit, corrected_text))
+  # Lọc và chuyển đổi
+  converted_text = intelligent_conversion(raw_text)
 
-  if not digits_only:
+  # Chỉ giữ lại các ký tự số
+  digits_only = ''.join(char for char in converted_text if char.isdigit())
+
+  def process_stat_number(number_str):
+    # Nếu có 3-4 chữ số
+    if len(number_str) >= 3 and len(number_str) <= 4:
+      # Ưu tiên 4 chữ số cuối
+      if len(number_str) > 4:
+        number_str = number_str[-4:]
+
+      # Chuyển sang số nguyên
+      number = int(number_str)
+
+      # Giới hạn trong khoảng 0-1200
+      return max(0, min(number, 1200))
+
     return 0
 
-  # Xử lý trường hợp quá dài (>4 chữ số)
-  if len(digits_only) > 4:
-    digits_only = digits_only[-4:]
+  # Thực hiện xử lý
+  result = process_stat_number(digits_only)
 
-  # Xử lý trường hợp 4 chữ số với chữ số đầu trùng chữ số thứ 2
-  # Ví dụ: 8886 → 886, 1123 → 123
-  if len(digits_only) == 4 and digits_only[0] == digits_only[1]:
-    candidate = int(digits_only[1:])
-    if candidate <= 2400:
-      return candidate
+  # Debug log để theo dõi quá trình chuyển đổi
+  print(f"[OCR DEBUG] Raw input: {raw_text}")
+  print(f"[OCR DEBUG] Converted: {converted_text}")
+  print(f"[OCR DEBUG] Digits only: {digits_only}")
+  print(f"[OCR DEBUG] Final result: {result}")
 
-  # Trường hợp bình thường
-  try:
-    value = int(digits_only)
-    return max(0, min(2400, value))
-  except ValueError:
-    return 0
+  return result

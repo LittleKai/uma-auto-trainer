@@ -1,0 +1,56 @@
+{
+  "events": [
+    {
+      "name": "The Final Boss... Spe!",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Sand Training!",
+      "choice_2_if_energy_shortage_gte": 5
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "The Racewear I Love!",
+      "choice": 1
+    },
+    {
+      "name": "Pair Interview!",
+      "choice": 1
+    },
+    {
+      "name": "Tug of War Tournament!",
+      "choice": 2
+    },
+    {
+      "name": "Arm-Wrestling Contest",
+      "choice": 2
+    },
+    {
+      "name": "Looking for Something Important",
+      "choice": 2
+    },
+    {
+      "name": "A Little Detour!",
+      "choice": 1
+    },
+    {
+      "name": "Parks Are Fun!",
+      "choice": 1
+    },
+    {
+      "name": "Secret Day Off Plan!",
+      "choice": 1
+    },
+    {
+      "name": "So Cool!",
+      "choice": 1
+    },
+    {
+      "name": "Forgot to Eat!",
+      "choice": 2
+    }
+  ]
+}

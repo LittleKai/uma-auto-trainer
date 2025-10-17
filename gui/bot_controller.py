@@ -190,9 +190,23 @@ class BotController:
 
             # 1. Stop when race day (works immediately, no day restriction)
             if (settings.get('stop_on_race_day', False) and
-                    game_state.get('turn') == "Race Day" and
-                    game_state.get('year') != "Finale Season"):
-                self.main_window.log_message("Stop condition triggered: Race Day detected")
+                    game_state.get('turn') == "Race Day"):
+                settings = self.main_window.get_current_settings()
+                settings['stop_on_race_day'] = False
+                strategy_tab = self.strategy_tab if hasattr(self, 'strategy_tab') else None
+
+                if strategy_tab:
+                    # Tắt checkbox Stop when race day
+                   strategy_tab.stop_on_race_day.set(False)
+
+                # Thay đổi giá trị trong settings
+                settings['stop_on_race_day'] = False
+
+                # Ghi lại settings
+                self.main_window.save_settings()
+
+                self.main_window.log_message("Stop condition triggered: Race Day detected (Stop when race day checkbox disabled)")
+                self.enhanced_stop_bot()
                 return True
 
             # Skip other conditions if before day 24
@@ -265,3 +279,4 @@ class BotController:
         except Exception as e:
             self.main_window.log_message(f"Error checking stop conditions: {e}")
             return False
+

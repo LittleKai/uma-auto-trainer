@@ -2,7 +2,7 @@
   "events": [
     {
       "name": "Meaty Heaven",
-      "choice_2_if_energy_shortage_gte": 19
+      "choice_2_if_energy_shortage_gte": 15
     },
     {
       "name": "Embracing Guidance",

@@ -136,6 +136,7 @@ class EventHandler:
     def _wait_for_event_completion(self, gui=None, max_wait_time=120):
         """Wait for manual event completion with proper timeout handling"""
         start_time = time.time()
+        last_log_time = 0
 
         while True:
             if self.controller.check_should_stop():
@@ -162,8 +163,12 @@ class EventHandler:
                 self.controller.set_stop_flag(True)
                 return False
 
-            if elapsed > 10 and int(elapsed) % 30 == 0:
+            current_time = time.time()
+            if elapsed > 10 and (current_time - last_log_time) >= 30:
                 self.controller.log_message(f"⏳ Still waiting for event completion... ({int(elapsed)}s elapsed)")
+                last_log_time = current_time
+
+            time.sleep(1)
 
 
 class CareerLobbyManager:

@@ -161,6 +161,7 @@ class GameStateManager:
             turn = check_turn()
             year = check_current_year()
             energy_percentage, energy_max = check_energy_percentage(True)
+            print(f'energy: {energy_percentage} - {energy_max}')
             current_date = get_current_date_info()
 
             if current_date is None:

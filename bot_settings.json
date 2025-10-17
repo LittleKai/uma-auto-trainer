@@ -20,7 +20,7 @@
   "manual_event_handling": false,
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
@@ -28,7 +28,7 @@
   "stop_at_month": false,
   "target_month": "January",
   "stop_on_ura_final": false,
-  "stop_on_warning": true,
+  "stop_on_warning": false,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
@@ -37,21 +37,21 @@
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
       "spd: Special Week (SSR)",
-      "pow: Mihono Bourbon (SR)",
+      "pow: Daiwa Scarlet (SSR)",
       "pow: Oguri Cap (SSR)",
-      "pow: El Condor Pasa (SSR)"
+      "pow: Yaeno Muteki (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
     "current_set": 4,
     "preset_sets": {
       "1": {
-        "uma_musume": "Mejiro McQueen",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Tazuna Hayakawa (SSR)",
-          "spd: Special Week (SSR)",
-          "sta: Mayano Top Gun (SR)",
+          "spd: Silence Suzuka (SSR)",
+          "sta: Mejiro McQueen (SSR)",
           "sta: Super Creek (SSR)"
         ]
       },
@@ -63,18 +63,18 @@
           "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)"
+          "pow: El Condor Pasa (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Oguri Cap",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Silence Suzuka (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
+          "spd: Special Week (SSR)",
+          "pow: Daiwa Scarlet (SSR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "4": {
@@ -85,7 +85,7 @@
           "spd: Special Week (SSR)",
           "pow: Mihono Bourbon (SR)",
           "pow: Oguri Cap (SSR)",
-          "pow: El Condor Pasa (SSR)"
+          "pow: Yaeno Muteki (SSR)"
         ]
       },
       "5": {
@@ -100,11 +100,11 @@
         ]
       },
       "6": {
-        "uma_musume": "Silence Suzuka",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Silence Suzuka (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "pow: Mihono Bourbon (SR)",
           "pow: Vodka (SSR)"

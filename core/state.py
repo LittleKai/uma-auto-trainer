@@ -69,6 +69,7 @@ def get_stage_thresholds():
   })
 
 def calculate_unified_training_score(training_type, support_counts, current_date):
+  """Calculate unified training score with all bonuses applied"""
   from core.logic import get_friend_multiplier, get_wit_early_stage_bonus, EARLY_STAGE_THRESHOLD
 
   base_score = get_support_base_score()
@@ -108,7 +109,6 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   other_score = other_support * base_score
   total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
 
-  # Apply WIT early stage bonus HERE - only once in the entire codebase
   if training_type == "wit" and current_date:
     if absolute_day < EARLY_STAGE_THRESHOLD:
       wit_bonus = get_wit_early_stage_bonus()
@@ -117,21 +117,106 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   return total_score
 
 
+def validate_stat_value(stat_key, value, threshold=200):
+  """Validate stat value and return warning if below threshold"""
+  if value < threshold:
+    return True, f"[VALIDATION WARNING] Stat {stat_key.upper()} is below {threshold}: {value}"
+  return False, None
+
+
+def extract_stat_number_enhanced(img):
+  """Enhanced stat number extraction with multiple OCR methods"""
+  results = []
+
+  try:
+    config_list = [
+      r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789',
+      r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789',
+      r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789',
+      r'--oem 1 --psm 8 -c tessedit_char_whitelist=0123456789',
+      r'--oem 3 --psm 13 -c tessedit_char_whitelist=0123456789'
+    ]
+
+    import pytesseract
+    from core.ocr import _clean_stat_number
+
+    for config in config_list:
+      try:
+        raw_text = pytesseract.image_to_string(img, config=config)
+        cleaned_val = _clean_stat_number(raw_text)
+
+        if cleaned_val > 0:
+          results.append(cleaned_val)
+      except:
+        continue
+
+    if results:
+      from collections import Counter
+      counter = Counter(results)
+      most_common_value = counter.most_common(1)[0][0]
+
+      return most_common_value, results
+
+    return 0, []
+
+  except Exception as e:
+    print(f"[WARNING] Enhanced stat extraction failed: {e}")
+    return 0, []
+
+
 def stat_state():
   """Get current character stats using configurable regions with improved OCR accuracy"""
   current_regions = get_current_regions()
   stat_regions = current_regions['STAT_REGIONS']
 
   result = {}
+  validation_warnings = []
+  reread_stats = []
+
+  stat_threshold = 200
 
   for stat, region in stat_regions.items():
     img = enhanced_screenshot(region)
 
-    # Use improved stat number extraction
     value = extract_stat_number(img)
     result[stat] = value
 
     print(f"[DEBUG] Stat {stat.upper()}: {value}")
+
+    is_low, warning_msg = validate_stat_value(stat, value, stat_threshold)
+    if is_low:
+      validation_warnings.append(warning_msg)
+      reread_stats.append((stat, region, img))
+
+  if reread_stats:
+    print(f"\n[OCR REREAD] Detected {len(reread_stats)} stat(s) below {stat_threshold}, performing enhanced OCR...")
+
+    for stat, region, img in reread_stats:
+      original_value = result[stat]
+
+      enhanced_value, all_results = extract_stat_number_enhanced(img)
+
+      if enhanced_value != original_value and enhanced_value > 0:
+        print(f"[OCR REREAD] {stat.upper()}: Original={original_value}, Enhanced={enhanced_value}, All results={all_results}")
+
+        if enhanced_value >= stat_threshold:
+          result[stat] = enhanced_value
+          print(f"[OCR REREAD] {stat.upper()} updated from {original_value} to {enhanced_value}")
+        else:
+          print(f"[OCR REREAD] {stat.upper()} still below threshold after reread: {enhanced_value}")
+      else:
+        print(f"[OCR REREAD] {stat.upper()}: No change from original value {original_value}")
+
+  final_validation = []
+  for stat, value in result.items():
+    is_low, warning_msg = validate_stat_value(stat, value, stat_threshold)
+    if is_low:
+      final_validation.append(warning_msg)
+
+  if final_validation:
+    print(f"\n[FINAL VALIDATION] {len(final_validation)} stat(s) below {stat_threshold} after reread:")
+    for warning in final_validation:
+      print(warning)
 
   return result
 
@@ -297,12 +382,10 @@ def extract_mood_with_dual_methods(img):
   ocr_results = []
 
   try:
-    # Method 1: Standard text extraction
     text1 = extract_text(img).upper().strip()
     if text1:
       ocr_results.append(text1)
 
-    # Method 2: Character whitelist for mood words (most effective for mood detection)
     mood_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     text2 = extract_text_advanced(img, whitelist=mood_chars, psm=8).upper().strip()
     if text2 and text2 != text1:
@@ -313,6 +396,7 @@ def extract_mood_with_dual_methods(img):
 
   return ocr_results
 
+
 def match_mood_with_priority_patterns(ocr_text):
   """Enhanced mood detection with optimized pattern matching"""
   if not ocr_text:
@@ -320,11 +404,9 @@ def match_mood_with_priority_patterns(ocr_text):
 
   ocr_text = ocr_text.upper().strip()
 
-  # Direct exact match first (fastest check)
   if ocr_text in MOOD_LIST:
     return ocr_text
 
-  # Priority handling for GOOD vs BAD confusion (most common issue)
   good_partials = ["GOD", "OOD", "GOO", "GOOP", "COOO", "G00D"]
   if ocr_text in good_partials:
     return "GOOD"
@@ -333,7 +415,6 @@ def match_mood_with_priority_patterns(ocr_text):
   if ocr_text in bad_exact:
     return "BAD"
 
-  # Pattern matching for high-confidence moods first
   high_confidence_moods = ["AWFUL", "NORMAL", "GREAT"]
   for mood in high_confidence_moods:
     if mood in MOOD_PATTERNS:
@@ -341,7 +422,6 @@ def match_mood_with_priority_patterns(ocr_text):
         if pattern == ocr_text:
           return mood
 
-  # Then check medium-confidence moods
   medium_confidence_moods = ["GOOD", "BAD"]
   for mood in medium_confidence_moods:
     if mood in MOOD_PATTERNS:
@@ -349,14 +429,12 @@ def match_mood_with_priority_patterns(ocr_text):
         if pattern == ocr_text:
           return mood
 
-  # Substring matching for longer OCR results
   for mood in MOOD_LIST:
     if len(ocr_text) >= len(mood) and mood in ocr_text:
       if mood == "BAD" and any(good_part in ocr_text for good_part in ["GOD", "OOD", "GOO"]):
         continue
       return mood
 
-  # Fuzzy matching for single character difference
   for mood in MOOD_LIST:
     if len(ocr_text) == len(mood):
       differences = sum(1 for a, b in zip(mood, ocr_text) if a != b)
@@ -367,35 +445,34 @@ def match_mood_with_priority_patterns(ocr_text):
 
   return "UNKNOWN"
 
+
 def check_mood_optimized():
   """Optimized mood check with reduced processing steps"""
   current_regions = get_current_regions()
   mood_region = current_regions['MOOD_REGION']
 
   try:
-    # Use enhanced screenshot directly (single image processing)
     enhanced_img = enhanced_screenshot(mood_region)
 
-    # Try dual OCR methods instead of multiple methods
     ocr_results = extract_mood_with_dual_methods(enhanced_img)
 
-    # Simple voting: try each result with priority patterns
     for ocr_text in ocr_results:
       if ocr_text:
         mood = match_mood_with_priority_patterns(ocr_text)
         if mood != "UNKNOWN":
           return mood
 
-    # If no valid mood found, return UNKNOWN
     return "UNKNOWN"
 
   except Exception as e:
     print(f"[ERROR] Optimized mood check failed: {e}")
     return "UNKNOWN"
 
+
 def check_mood():
   """Enhanced mood check with optimized processing"""
   return check_mood_optimized()
+
 
 def validate_region_coordinates(region):
   """Validate region coordinates to prevent PyAutoGUI errors"""
@@ -420,6 +497,7 @@ def validate_region_coordinates(region):
 
   return (left, top, width, height)
 
+
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   """Check support card in each training with unified score calculation and support card bonus"""
   current_regions = get_current_regions()
@@ -443,12 +521,10 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   time.sleep(0.3)
 
-  # Count regular support cards
   for key, icon_path in SUPPORT_ICONS.items():
     matches = match_template(icon_path, support_region, threshold)
     count_result[key] = len(matches)
 
-  # Count NPC support cards and group them as 'npc'
   total_npc_count = 0
   for npc_name, icon_path in NPC_ICONS.items():
     matches = match_template(icon_path, support_region, threshold)
@@ -457,30 +533,24 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   count_result["npc"] = total_npc_count
 
-  # Find hint cards
   hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
   hint_count = len(hint_matches)
 
-  # Calculate hint score based on configuration
   hint_score = 0
   if hint_count > 0 and current_date:
     absolute_day = current_date.get('absolute_day', 0)
     hint_score = get_hint_score_value(absolute_day)
 
-  # Calculate NPC score using configuration
   npc_score_per_unit = get_npc_score_value()
   npc_score = total_npc_count * npc_score_per_unit
 
-  # Add additional info to results
   count_result["hint"] = hint_count
   count_result["hint_score"] = hint_score
   count_result["npc_count"] = total_npc_count
   count_result["npc_score"] = npc_score
 
-  # Calculate total score using unified logic
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
 
-  # Calculate support card bonus based on training type and current date
   support_card_bonus = 0
   if training_type and current_date:
     bonus_dict = calculate_support_card_bonus(current_date)
@@ -493,6 +563,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
   return count_result
 
+
 def check_failure():
   """Get failure chance from UI region"""
   current_regions = get_current_regions()
@@ -504,7 +575,6 @@ def check_failure():
   if not failure_text.startswith("failure"):
     return -1
 
-  # Extract percentage from failure text
   match_percent = re.search(r"failure\s+(\d{1,3})%", failure_text)
   if match_percent:
     return int(match_percent.group(1))
@@ -520,6 +590,7 @@ def check_failure():
       return int(digits)
 
   return -1
+
 
 def check_turn():
   """Check current turn number or race day"""
@@ -547,6 +618,7 @@ def check_turn():
 
   return -1
 
+
 def check_current_year():
   """Enhanced year checking with date parsing"""
   global current_date_info
@@ -557,7 +629,6 @@ def check_current_year():
   year = enhanced_screenshot(year_region)
   text = extract_text(year)
 
-  # Parse the year text to extract date information
   current_date_info = DateManager.parse_year_text(text)
 
   if current_date_info is None:
@@ -566,9 +637,11 @@ def check_current_year():
 
   return text
 
+
 def get_current_date_info():
   """Get the current parsed date information"""
   return current_date_info
+
 
 def check_criteria():
   """Check criteria text from UI region"""
@@ -579,15 +652,18 @@ def check_criteria():
   text = extract_text(img)
   return text
 
+
 def set_support_card_state(support_counts):
   """Set the support card state from preset when F1 is pressed"""
   global _support_card_state
   _support_card_state = support_counts.copy()
 
+
 def get_support_card_state():
   """Get the current support card state"""
   global _support_card_state
   return _support_card_state.copy()
+
 
 def get_support_card_bonus_config():
   """Get support card bonus configuration from config file"""
@@ -610,6 +686,7 @@ def get_support_card_bonus_config():
     "threshold_day": 24,
     "max_bonus_types": 2
   })
+
 
 def calculate_support_card_bonus(current_date):
   """Calculate support card bonus based on preset counts and current date"""

@@ -6,7 +6,7 @@
     },
     {
       "name": "Leave it to Me to Help Out! ♪",
-      "choice_2_if_energy_shortage_gte": 9
+      "choice_1_if_energy_shortage_gte": 8
     }
   ]
 }

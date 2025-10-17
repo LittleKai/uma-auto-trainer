@@ -601,6 +601,15 @@
     {
       "name": "Flustered Afternoon Tea!",
       "choice": 1
+    },
+    {
+      "name": "Student Council Member!",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Lone Wolf",
+      "choice": 2
     }
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "A Reasonable Diet vs. an Explosive Diet",
+      "choice": 1
+    },
+    {
+      "name": "Firm and Plain, Yet Close to Virtue",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "The Will to Protect",
+      "choice": 1
+    }
+  ]
+}

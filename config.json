@@ -1,7 +1,7 @@
 {
   "priority_stat": ["spd", "pwr", "sta", "wit", "guts"],
   "maximum_failure": 15,
-  "minimum_energy_percentage": 42,
+  "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 60,
   "stat_caps": {
@@ -16,7 +16,7 @@
     "hint_score": {
       "early_stage": 0.75,
       "late_stage": 0.5,
-      "day_threshold": 24
+      "day_threshold": 241
     },
     "npc_score": {
       "base_value": 0.25

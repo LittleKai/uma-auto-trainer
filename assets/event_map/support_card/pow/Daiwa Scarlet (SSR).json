@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "Number One Reactions?",
+      "choice": 1
+    },
+    {
+      "name": "I'm Going to Win Tomorrow!",
+      "choice": 2
+    },
+    {
+      "name": "This Is Nothing!",
+      "choice": 2
+    }
+  ]
+}

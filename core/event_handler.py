@@ -31,12 +31,10 @@ class EventChoiceHandler:
         self.check_window = check_window_func
         self.log = log_func
 
-        # Cache paths
         self.cache_dir = "assets/event_map"
         self.cache_file = os.path.join(self.cache_dir, "cached_database.json")
         self.config_hash_file = os.path.join(self.cache_dir, "config_hash.txt")
 
-        # Load base event maps
         self.common_events = self.load_common_events()
         self.uma_musume_events = {}
         self.support_card_events = {}
@@ -45,7 +43,6 @@ class EventChoiceHandler:
         self.load_uma_musume_events()
         self.load_support_card_events()
 
-        # Current cached database
         self.cached_database = None
         self.current_config_hash = None
 
@@ -70,7 +67,6 @@ class EventChoiceHandler:
             if os.path.exists(other_sp_path):
                 with open(other_sp_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    self.log(f"[DEBUG] Loaded other special events from: {other_sp_path}")
                     return data
             else:
                 self.log(f"[WARNING] Other special events file not found: {other_sp_path}")
@@ -89,7 +85,6 @@ class EventChoiceHandler:
                     filename = os.path.basename(file_path).replace('.json', '')
                     with open(file_path, 'r', encoding='utf-8') as f:
                         self.uma_musume_events[filename] = json.load(f)
-                        self.log(f"[DEBUG] Loaded Uma Musume events for: {filename}")
         except Exception as e:
             self.log(f"[ERROR] Failed to load Uma Musume events: {e}")
 
@@ -98,8 +93,7 @@ class EventChoiceHandler:
         try:
             support_folder = "assets/event_map/support_card"
             if os.path.exists(support_folder):
-                # Define the order of support card types to match GUI
-                card_types = ["spd", "sta", "pwr", "gut", "wit", "frd"]
+                card_types = ["spd", "sta", "pow", "gut", "wit", "frd"]
 
                 for card_type in card_types:
                     type_folder = os.path.join(support_folder, card_type)
@@ -107,20 +101,16 @@ class EventChoiceHandler:
                         json_files = glob.glob(os.path.join(type_folder, "*.json"))
                         for file_path in json_files:
                             filename = os.path.basename(file_path).replace('.json', '')
-                            # Create formatted key that matches dropdown display format
                             formatted_key = f"{card_type}: {filename}"
 
                             with open(file_path, 'r', encoding='utf-8') as f:
                                 self.support_card_events[formatted_key] = json.load(f)
-                                self.log(f"[DEBUG] Loaded Support Card events for: {formatted_key}")
 
-                # Also load any JSON files directly in the support_card folder for backward compatibility
                 direct_json_files = glob.glob(os.path.join(support_folder, "*.json"))
                 for file_path in direct_json_files:
                     filename = os.path.basename(file_path).replace('.json', '')
                     with open(file_path, 'r', encoding='utf-8') as f:
                         self.support_card_events[filename] = json.load(f)
-                        self.log(f"[DEBUG] Loaded Support Card events for: {filename}")
 
         except Exception as e:
             self.log(f"[ERROR] Failed to load Support Card events: {e}")
@@ -134,11 +124,9 @@ class EventChoiceHandler:
         """Check if cached database is still valid for current configuration"""
         new_hash = self.generate_config_hash(uma_musume, support_cards)
 
-        # Check if hash matches
         if self.current_config_hash == new_hash:
             return True
 
-        # Check if hash file exists and matches
         try:
             if os.path.exists(self.config_hash_file):
                 with open(self.config_hash_file, 'r') as f:
@@ -151,8 +139,39 @@ class EventChoiceHandler:
 
         return False
 
+    def normalize_event_name_for_cache(self, event_name: str) -> str:
+        """Normalize event name for cache database by removing special characters that OCR cannot read"""
+        if not event_name:
+            return ""
+
+        special_chars_to_remove = ['☆', '★', '♪', '♡', '♥', '※', '○', '●', '△', '▲', '□', '■', '◆', '◇', '！', '？']
+        normalized = event_name
+
+        for char in special_chars_to_remove:
+            normalized = normalized.replace(char, '')
+
+        normalized = re.sub(r'[.\-_~]', '', normalized)
+        normalized = re.sub(r'\s+', ' ', normalized).strip()
+
+        return normalized
+
+    def normalize_events_in_list(self, events_list: List[Dict]) -> List[Dict]:
+        """Normalize event names in a list of event dictionaries for cache"""
+        normalized_events = []
+
+        for event in events_list:
+            normalized_event = event.copy()
+            if "name" in normalized_event:
+                original_name = normalized_event["name"]
+                normalized_name = self.normalize_event_name_for_cache(original_name)
+                normalized_event["name"] = normalized_name
+                normalized_event["original_name"] = original_name
+            normalized_events.append(normalized_event)
+
+        return normalized_events
+
     def build_and_cache_database(self, uma_musume: str, support_cards: List[str]) -> Dict[str, List[Dict]]:
-        """Build complete database and cache it for current configuration"""
+        """Build complete database and cache it for current configuration with normalized event names"""
         try:
             database = {
                 "train_event_scenario": [],
@@ -161,53 +180,42 @@ class EventChoiceHandler:
                 "other_special_events": []
             }
 
-            # Build scenario events
-            database["train_event_scenario"] = self.common_events.get("train_event_scenario", [])
+            scenario_events = self.common_events.get("train_event_scenario", [])
+            database["train_event_scenario"] = self.normalize_events_in_list(scenario_events)
 
-            # Build uma musume events
             if uma_musume != "None" and uma_musume in self.uma_musume_events:
                 uma_events = self.uma_musume_events[uma_musume].get("events", [])
-                database["train_event_uma_musume"].extend(uma_events)
+                database["train_event_uma_musume"].extend(self.normalize_events_in_list(uma_events))
 
-            # Add common uma musume events
             common_uma_events = self.common_events.get("train_event_uma_musume", [])
-            database["train_event_uma_musume"].extend(common_uma_events)
+            database["train_event_uma_musume"].extend(self.normalize_events_in_list(common_uma_events))
 
-            # Build support card events with new format support
             for support_card in support_cards:
                 if support_card != "None":
-                    # Try to find the support card events
                     card_events = None
 
-                    # First try direct key match (for formatted names like "spd: kitasan")
                     if support_card in self.support_card_events:
                         card_events = self.support_card_events[support_card].get("events", [])
                     else:
-                        # For backward compatibility, try to find by filename only
-                        # Extract filename from formatted name if it contains ":"
                         if ":" in support_card:
                             card_filename = support_card.split(":", 1)[1].strip()
-                            # Try to find by filename in any of the loaded events
                             for key, events_data in self.support_card_events.items():
                                 if key.endswith(f": {card_filename}") or key == card_filename:
                                     card_events = events_data.get("events", [])
                                     break
 
                     if card_events:
-                        database["train_event_support_card"].extend(card_events)
+                        database["train_event_support_card"].extend(self.normalize_events_in_list(card_events))
                         self.log(f"[DEBUG] Added events for support card: {support_card}")
 
-            # Add other special events
             other_events = self.other_special_events.get("events", [])
-            database["other_special_events"].extend(other_events)
+            database["other_special_events"].extend(self.normalize_events_in_list(other_events))
 
-            # Save cache
             os.makedirs(self.cache_dir, exist_ok=True)
 
             with open(self.cache_file, 'w', encoding='utf-8') as f:
                 json.dump(database, f, indent=2, ensure_ascii=False)
 
-            # Save config hash
             config_hash = self.generate_config_hash(uma_musume, support_cards)
             with open(self.config_hash_file, 'w') as f:
                 f.write(config_hash)
@@ -229,9 +237,7 @@ class EventChoiceHandler:
     def get_database(self, uma_musume: str, support_cards: List[str]) -> Dict[str, List[Dict]]:
         """Get database for current configuration, using cache if valid"""
         try:
-            # Check if cache is valid
             if self.is_cache_valid(uma_musume, support_cards):
-                # Load from cache if not already loaded
                 if self.cached_database is None:
                     if os.path.exists(self.cache_file):
                         with open(self.cache_file, 'r', encoding='utf-8') as f:
@@ -240,7 +246,6 @@ class EventChoiceHandler:
                 if self.cached_database:
                     return self.cached_database
 
-            # Cache is invalid, rebuild
             return self.build_and_cache_database(uma_musume, support_cards)
 
         except Exception as e:
@@ -257,10 +262,8 @@ class EventChoiceHandler:
         if not text:
             return ""
 
-        # Normalize unicode
         text = unicodedata.normalize('NFKC', text.lower().strip())
 
-        # Create character mapping for common OCR errors
         ocr_char_map = {
             '?': ['2', '7', '/', '\\', 'l', 'i', '1'],
             '!': ['l', 'i', '1', '|', 'j'],
@@ -274,17 +277,14 @@ class EventChoiceHandler:
             'q': ['9'],
         }
 
-        # Generate variations of the text based on OCR error patterns
         variations = [text]
 
-        # Replace special characters and numbers that might be OCR errors
         temp_text = text
         for original, replacements in ocr_char_map.items():
             for replacement in replacements:
                 if replacement in temp_text:
                     variations.append(temp_text.replace(replacement, original))
 
-        # Also try removing all non-alphanumeric characters except spaces
         alphanumeric_only = re.sub(r'[^\w\s]', '', text)
         if alphanumeric_only != text:
             variations.append(alphanumeric_only)
@@ -314,32 +314,25 @@ class EventChoiceHandler:
 
         def calculate_similarity_with_ocr_variations(target: str, reference: str) -> float:
             """Calculate similarity considering OCR variations"""
-            # Get normalized variations of target text
             target_variations = self.normalize_text_for_matching(target)
             processed_ref = preprocess(reference)
 
             best_score = 0.0
 
-            # Test each variation against the reference
             for variation in target_variations:
                 processed_var = preprocess(variation)
 
-                # Sequence similarity
                 seq_score = SequenceMatcher(None, processed_var, processed_ref).ratio()
 
-                # Word-based similarity
                 words1, words2 = set(processed_var.split()), set(processed_ref.split())
                 word_score = len(words1 & words2) / len(words1 | words2) if words1 | words2 else 0
 
-                # Character-based similarity
                 chars1, chars2 = set(processed_var), set(processed_ref)
                 char_score = len(chars1 & chars2) / len(chars1 | chars2) if chars1 | chars2 else 0
 
-                # Exact word match bonus
                 exact_matches = sum(1 for w in words1 if w in words2 and len(w) > 2)
                 word_bonus = (exact_matches / max(len(words1), len(words2))) * 0.15 if words1 and words2 else 0
 
-                # Calculate final score for this variation
                 final_score = min(1.0, seq_score * 0.4 + word_score * 0.4 + char_score * 0.2 + word_bonus)
 
                 if final_score > best_score:
@@ -351,35 +344,29 @@ class EventChoiceHandler:
             """Calculate adaptive threshold based on text characteristics"""
             base_threshold = threshold
 
-            # Check for special characters in either text
             target_has_special = has_special_characters(target)
             ref_has_special = has_special_characters(reference)
 
-            # Lower threshold if either text has special characters
             if target_has_special or ref_has_special:
                 base_threshold = max(0.55, threshold - 0.2)
 
-            # Check for numbers in target (potential OCR errors)
             if any(char.isdigit() for char in target):
                 base_threshold = max(0.5, threshold - 0.25)
 
-            # Check exact word matches
             exact_word_matches = count_exact_word_matches(target.lower(), reference.lower())
             target_words = len(target.split())
             ref_words = len(reference.split())
 
-            # If we have significant exact word matches, lower threshold
             if exact_word_matches > 0 and target_words > 0:
                 word_match_ratio = exact_word_matches / max(target_words, ref_words)
-                if word_match_ratio >= 0.4:  # 40% or more words match exactly
+                if word_match_ratio >= 0.4:
                     base_threshold = max(0.45, threshold - 0.3)
 
-            # Check text length similarity
             len_diff = abs(len(target) - len(reference))
             max_len = max(len(target), len(reference))
             if max_len > 0:
                 len_ratio = len_diff / max_len
-                if len_ratio > 0.3:  # Significant length difference
+                if len_ratio > 0.3:
                     base_threshold = max(0.5, threshold - 0.15)
 
             return base_threshold
@@ -389,10 +376,8 @@ class EventChoiceHandler:
         best_score = 0.0
 
         for ref_text in ref_text_list:
-            # Calculate adaptive threshold for this specific pair
             adaptive_threshold = get_adaptive_threshold(target_text, ref_text)
 
-            # Calculate similarity with OCR variations
             score = calculate_similarity_with_ocr_variations(target_text, ref_text)
 
             if score > adaptive_threshold and score > best_score:
@@ -410,10 +395,8 @@ class EventChoiceHandler:
 
             if not event_region:
                 self.log("[WARNING] EVENT_REGION not configured, using fallback")
-                # Return generic event type as fallback
                 return "train_event"
 
-            # Check for event type icons using OpenCV template matching
             event_types = [
                 ("assets/icons/train_event_scenario.png", "train_event_scenario"),
                 ("assets/icons/train_event_uma_musume.png", "train_event_uma_musume"),
@@ -452,17 +435,14 @@ class EventChoiceHandler:
 
             if not event_name_region:
                 self.log("[WARNING] EVENT_NAME_REGION not configured, using fallback region")
-                # Use a fallback region based on EVENT_CHOICE_REGION
                 event_name_region = (EVENT_CHOICE_REGION[0], EVENT_CHOICE_REGION[1] - 100,
                                      EVENT_CHOICE_REGION[2], 80)
 
-            # Capture the event name region as PIL Image
             event_name_img = enhanced_screenshot(event_name_region)
             if event_name_img is None:
                 self.log("[DEBUG] Failed to capture event name region")
                 return None
 
-            # Extract text using OCR (single parameter)
             event_name_text = extract_text(event_name_img)
 
             if event_name_text:
@@ -537,32 +517,28 @@ class EventChoiceHandler:
     def find_event_choice(self, event_type: str, event_name: str, uma_musume: str, support_cards: List[str]) -> Optional[int]:
         """Find appropriate event choice based on event type and configuration"""
         try:
-            # Get database for current configuration (cached)
             database = self.get_database(uma_musume, support_cards)
 
-            # Search through all event categories
             search_categories = ["train_event_scenario", "train_event_uma_musume", "train_event_support_card"]
 
-            # If event_type is generic, search all categories
             if event_type == "train_event":
                 categories_to_search = search_categories
             else:
-                # Try specific category first, then fallback to all
                 categories_to_search = [event_type] + [cat for cat in search_categories if cat != event_type]
+
+            normalized_event_name = self.normalize_event_name_for_cache(event_name)
 
             for category in categories_to_search:
                 events = database.get(category, [])
                 if not events:
                     continue
 
-                # Find matching event by name
                 event_names = [event.get("name", "") for event in events]
-                matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
+                matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.7)
 
                 if not matched_name:
                     continue
 
-                # Find the event configuration
                 matched_event = None
                 for event in events:
                     if event.get("name") == matched_name:
@@ -572,15 +548,14 @@ class EventChoiceHandler:
                 if not matched_event:
                     continue
 
-                self.log(f"[INFO] Found event: '{matched_name}' in {category}")
+                display_name = matched_event.get("original_name", matched_name)
+                self.log(f"[INFO] Found event: '{display_name}' in {category}")
 
-                # Check if event has simple choice first
                 if "choice" in matched_event:
                     choice = matched_event["choice"]
                     if isinstance(choice, int) and 1 <= choice <= 5:
                         return choice
 
-                # Check if event needs mood/energy checks
                 current_mood = None
                 current_energy = None
                 current_date = None
@@ -589,7 +564,6 @@ class EventChoiceHandler:
                     current_mood = self.get_current_mood()
                     if current_mood == "UNKNOWN":
                         self.log("[WARNING] Event requires mood check but mood is UNKNOWN")
-                        # Continue to try other events or fallback
 
                 if self.requires_energy_check(matched_event):
                     current_energy = self.get_current_energy()
@@ -603,11 +577,9 @@ class EventChoiceHandler:
                     except Exception as e:
                         self.log(f"[WARNING] Failed to get date for event check: {e}")
 
-                # Evaluate conditions to determine choice
                 choice = self.evaluate_event_conditions(matched_event, current_energy, current_mood, uma_musume)
 
                 if choice:
-                    # Build condition info string
                     condition_parts = []
                     if current_energy is not None:
                         condition_parts.append(f"Energy: {current_energy}%")
@@ -615,10 +587,10 @@ class EventChoiceHandler:
                         condition_parts.append(f"Mood: {current_mood}")
 
                     condition_info = f" ({', '.join(condition_parts)})" if condition_parts else ""
-                    self.log(f"[INFO] Selected choice {choice} for event '{matched_name}'{condition_info}")
+                    self.log(f"[INFO] Selected choice {choice} for event '{display_name}'{condition_info}")
                     return choice
 
-                self.log(f"[WARNING] No valid choice found for event '{matched_name}'")
+                self.log(f"[WARNING] No valid choice found for event '{display_name}'")
 
             return None
 
@@ -629,25 +601,28 @@ class EventChoiceHandler:
     def find_event_in_other_special_events(self, event_name: str) -> Optional[int]:
         """Find event in other special events database with improved choice selection"""
         try:
-            other_events = self.other_special_events.get("events", [])
+            database = self.cached_database
+            if not database:
+                self.log("[DEBUG] No cached database available")
+                return None
+
+            other_events = database.get("other_special_events", [])
             if not other_events:
                 self.log("[DEBUG] No events in other special events database")
                 return None
 
-            # Get list of event names for similarity matching
+            normalized_event_name = self.normalize_event_name_for_cache(event_name)
+
             event_names = [event.get("name", "") for event in other_events]
 
-            # Use find_similar_text for consistent matching logic with improved OCR handling
-            matched_name = self.find_similar_text(event_name, event_names, threshold=0.7)
+            matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.7)
 
             if not matched_name:
                 self.log(f"[DEBUG] No matching event found in other special events for: '{event_name}'")
                 return None
 
-            # Find the matching event configuration
             for event in other_events:
                 if event.get("name") == matched_name:
-                    # Check for 'choice' field first (standard format)
                     if "choice" in event:
                         choice = event["choice"]
                         if isinstance(choice, int) and 1 <= choice <= 5:
@@ -656,7 +631,6 @@ class EventChoiceHandler:
                         else:
                             self.log(f"[WARNING] Invalid choice value in 'choice' field: {choice}, using default")
 
-                    # Check for 'default_choice' field as fallback
                     if "default_choice" in event:
                         default_choice = event["default_choice"]
                         if isinstance(default_choice, int) and 1 <= default_choice <= 5:
@@ -665,7 +639,6 @@ class EventChoiceHandler:
                         else:
                             self.log(f"[WARNING] Invalid default_choice value: {default_choice}, using fallback")
 
-                    # Check for conditional choices based on current game state
                     current_mood = self.get_current_mood()
                     current_energy = self.get_current_energy()
 
@@ -673,7 +646,6 @@ class EventChoiceHandler:
                     if conditional_choice:
                         return conditional_choice
 
-                    # Final fallback
                     self.log(f"[DEBUG] No valid choice found for event '{matched_name}', using default choice 1")
                     return 1
 
@@ -689,11 +661,9 @@ class EventChoiceHandler:
             if not extracted_name or not event_name:
                 return False
 
-            # Exact match
             if extracted_name.lower() == event_name.lower():
                 return True
 
-            # Similarity match
             similarity = SequenceMatcher(None, extracted_name.lower(), event_name.lower()).ratio()
             return similarity >= threshold
 
@@ -705,17 +675,14 @@ class EventChoiceHandler:
                                   current_mood: Optional[str], uma_musume: str) -> int:
         """Evaluate event conditions and return appropriate choice number"""
         try:
-            # Mood priority mapping
             mood_priority = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]
             current_mood_index = None
             if current_mood and current_mood in mood_priority:
                 current_mood_index = mood_priority.index(current_mood)
 
-            # Get energy data for shortage calculation
             current_energy_val, max_energy_val = self.get_current_energy_with_max()
             energy_shortage = max_energy_val - current_energy_val
 
-            # Get current date information for day conditions
             current_date = None
             try:
                 from core.state import get_current_date_info
@@ -723,9 +690,7 @@ class EventChoiceHandler:
             except Exception as e:
                 self.log(f"[WARNING] Failed to get current date: {e}")
 
-            # Check conditions for each choice (priority order 1-5)
             for i in range(1, 6):
-                # Check day less than condition
                 day_lt_key = f"choice_{i}_if_day_lt"
                 if day_lt_key in event_config and current_date is not None:
                     threshold_day = event_config[day_lt_key]
@@ -734,7 +699,6 @@ class EventChoiceHandler:
                         self.log(f"[DEBUG] Choice {i} selected: day {current_day} < {threshold_day}")
                         return i
 
-                # Check day greater than or equal condition
                 day_gte_key = f"choice_{i}_if_day_gte"
                 if day_gte_key in event_config and current_date is not None:
                     threshold_day = event_config[day_gte_key]
@@ -743,7 +707,6 @@ class EventChoiceHandler:
                         self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
                         return i
 
-                # Check energy shortage greater than or equal condition
                 energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
 
                 if energy_shortage_gte_key in event_config:
@@ -752,7 +715,6 @@ class EventChoiceHandler:
                         self.log(f"[DEBUG] Choice {i} selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
                         return i
 
-                # Check mood less than condition
                 mood_lt_key = f"choice_{i}_if_mood_lt"
                 if mood_lt_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_lt_key]
@@ -762,7 +724,6 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} < {threshold_mood}")
                             return i
 
-                # Check mood greater than or equal condition
                 mood_gte_key = f"choice_{i}_if_mood_gte"
                 if mood_gte_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_gte_key]
@@ -772,11 +733,9 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} >= {threshold_mood}")
                             return i
 
-                # Check Uma Musume specific condition (supports multiple uma musume)
                 uma_key = f"choice_{i}_if_uma"
                 if uma_key in event_config:
                     uma_condition = event_config[uma_key]
-                    # Support both string and list of strings
                     if isinstance(uma_condition, str):
                         if uma_musume == uma_condition:
                             self.log(f"[DEBUG] Choice {i} selected: uma musume matches {uma_musume}")
@@ -786,14 +745,12 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: uma musume {uma_musume} in {uma_condition}")
                             return i
 
-            # Check for custom default choice
             if "default_choice" in event_config:
                 default_choice = event_config["default_choice"]
                 if isinstance(default_choice, int) and 1 <= default_choice <= 5:
                     self.log(f"[DEBUG] No conditions met, using custom default choice {default_choice}")
                     return default_choice
 
-            # Default fallback
             self.log("[DEBUG] No conditions met, using default choice 1")
             return 1
 
@@ -810,45 +767,37 @@ class EventChoiceHandler:
             if not self.check_window():
                 return False
 
-            # Check if auto first choice is enabled
             if event_settings.get('auto_first_choice', False):
                 self.log("[DEBUG] Auto first choice enabled - selecting choice 1")
                 return self.click_choice(1)
 
-            # Check if auto event map is enabled
             if not event_settings.get('auto_event_map', False):
                 self.log("[DEBUG] Auto event map disabled")
                 return False
 
-            # Detect event type
             event_type = self.detect_event_type()
             if not event_type:
                 self.log("[DEBUG] Could not detect event type")
                 return False
 
-            # Extract event name
             event_name = self.extract_event_name()
             if not event_name:
                 self.log("[DEBUG] Could not extract event name")
                 return False
 
-            # Get configuration
             uma_musume = event_settings.get('uma_musume', 'None')
             support_cards = event_settings.get('support_cards', ['None'] * 6)
 
-            # Find appropriate choice
             choice = self.find_event_choice(event_type, event_name, uma_musume, support_cards)
 
             if choice:
                 return self.click_choice(choice)
             else:
-                # Check unknown event action setting
                 unknown_action = event_settings.get('unknown_event_action', 'Auto select first choice')
                 if unknown_action == "Wait for user selection":
                     self.log(f"[INFO] Unknown event '{event_name}' - waiting for user selection as configured")
                     return False
                 elif unknown_action == "Search in other special events":
-                    # Try to find in other special events
                     choice = self.find_event_in_other_special_events(event_name)
                     if choice:
                         self.log(f"[INFO] Found event '{event_name}' in other special events")
@@ -882,7 +831,6 @@ class EventChoiceHandler:
 
             for attempt in range(max_retries):
                 try:
-                    # Use OpenCV template matching first
                     position = find_template_position(
                         template_path=choice_icon,
                         region=EVENT_CHOICE_REGION,
@@ -898,13 +846,12 @@ class EventChoiceHandler:
                         pyautogui.moveTo(position, duration=0.2)
                         pyautogui.click()
                         self.log(f"[INFO] Selected event choice {choice_number}")
-                        time.sleep(0.5)  # Brief pause after click
+                        time.sleep(0.5)
                         return True
                     else:
                         if attempt == max_retries - 1:
                             self.log(f"[WARNING] Choice {choice_number} button not found after {max_retries} attempts")
 
-                        # If not the last attempt, wait a moment and try again
                         if attempt < max_retries - 1:
                             time.sleep(0.5)
 
@@ -913,7 +860,6 @@ class EventChoiceHandler:
                     if attempt < max_retries - 1:
                         time.sleep(0.5)
 
-            # All attempts failed
             self.log(f"[ERROR] Failed to click choice {choice_number} after {max_retries} attempts")
             return False
 
@@ -924,7 +870,6 @@ class EventChoiceHandler:
     def is_event_choice_visible(self) -> bool:
         """Check if event choice buttons are visible on screen"""
         try:
-            # Check for first two choice buttons using OpenCV in event choice region
             choice_1_icon = "assets/icons/event_choice_1.png"
             choice_2_icon = "assets/icons/event_choice_2.png"
 
@@ -946,7 +891,6 @@ class EventChoiceHandler:
                     )
                     return (position_1 is not None and position_2 is not None)
                 except Exception:
-                    # Fallback to pyautogui with region
                     left, top, width, height = EVENT_CHOICE_REGION
                     region_ltrb = (left, top, left + width, top + height)
                     choice_1_btn = pyautogui.locateOnScreen(choice_1_icon, confidence=0.8,

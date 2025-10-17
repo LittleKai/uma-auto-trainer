@@ -54,6 +54,15 @@
     {
       "name": "At Summer Camp Year 2",
       "choice": 1
+    },
+    {
+      "name": "Fickle Genius Magical Girl Sweepy ☆",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Number One Reactions?",
+      "choice_2_if_energy_shortage_gte": 7
     }
   ]
 }

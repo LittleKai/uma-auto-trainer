@@ -234,22 +234,18 @@ def extract_score_threshold(priority_strategy):
 
 def unified_training_selection(results, current_date, min_score_threshold=None):
   """Unified training selection for all stages - prioritize absolute highest score with threshold check"""
-  print(f"[DEBUG] === unified_training_selection CALLED ===")
 
   if not results:
-    print(f"[DEBUG] No results provided")
     return None
 
   # Calculate score for each training using total_score with WIT bonus applied
   training_list = []
-  print(f"[DEBUG] Processing {len(results)} training options:")
 
   for key, data in results.items():
     total_score = data.get("total_score", 0)
 
     priority_index = get_priority_by_stage(key, current_date)
     training_list.append((key, data, total_score, priority_index))
-    print(f"[DEBUG] {key.upper()}: total_score={total_score:.2f}, priority={priority_index}")
 
   # Sort by total_score (descending) with epsilon for tie-breaking, then by priority only for exact ties
   # Use epsilon to handle floating point precision issues
@@ -263,53 +259,18 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
 
   training_list.sort(key=sort_key)
 
-  print(f"[DEBUG] After sorting:")
-  for i, (key, data, score, priority) in enumerate(training_list):
-    print(f"[DEBUG] {i+1}. {key.upper()}: score={score:.6f}, priority={priority}")
-
-  # Check if there are multiple trainings with the same highest score (within epsilon)
-  if len(training_list) > 1:
-    highest_score = training_list[0][2]
-    # Find all trainings with scores within epsilon of the highest score
-    tied_trainings = [item for item in training_list if abs(item[2] - highest_score) < EPSILON]
-
-    if len(tied_trainings) > 1:
-      # Multiple trainings have essentially the same score, use priority to break tie
-      print(f"[DEBUG] Score tie detected - highest score: {highest_score:.6f}")
-      for key, data, score, priority in tied_trainings:
-        print(f"[DEBUG] TIED: {key.upper()}: score={score:.6f}, priority={priority}")
-      print(f"[DEBUG] Selected {tied_trainings[0][0].upper()} based on priority")
-    else:
-      # Clear winner based on score
-      print(f"[DEBUG] Clear winner: {training_list[0][0].upper()} with score {highest_score:.6f}")
-
   best_key, best_data, best_score, best_priority = training_list[0]
 
   # Check minimum score threshold if provided
   if min_score_threshold is not None and best_score < min_score_threshold - 1e-10:
-    print(f"[DEBUG] Best score {best_score:.6f} below threshold {min_score_threshold}, no training")
     return None
-
-  print(f"[DEBUG] FINAL SELECTION: {best_key.upper()} with score {best_score:.6f}")
 
   # Return None if no valid training found
   if best_score <= 0:
-    print(f"[DEBUG] Best score <= 0, returning None")
     return None
 
   score_info = format_score_info(best_key, best_data, current_date)
   return best_key, score_info
-
-# core/logic.py - Functions that need to be updated
-
-def get_energy_restriction_config():
-  """Get energy restriction configuration"""
-  scoring_config = get_scoring_config()
-  energy_config = scoring_config.get("energy_restrictions", {})
-  return {
-    'medium_energy_shortage': energy_config.get("medium_energy_shortage", 50),
-    'medium_energy_max_score_threshold': energy_config.get("medium_energy_max_score_threshold", 2.5)
-  }
 
 def training_decision(results_training, energy_percentage, strategy_settings, current_date):
   """Enhanced training decision with unified scoring system"""
@@ -360,11 +321,8 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
     # Get both current and max energy values
     current_energy, max_energy = check_energy_percentage(return_max_energy=True)
     energy_shortage_absolute = max_energy - current_energy
-    print(f"[DEBUG] Energy values: current={current_energy}, max={max_energy}, shortage={energy_shortage_absolute}")
   except Exception as e:
     # Stop program if cannot get energy values correctly
-    print(f"[ERROR] Failed to get energy values: {e}")
-    print("[ERROR] Cannot calculate energy shortage accurately. Stopping program.")
     raise SystemExit("Energy calculation failed - program stopped to prevent incorrect behavior")
 
   if (stage_info['stage'] in ['mid', 'late'] and energy_shortage_absolute >= medium_energy_shortage):

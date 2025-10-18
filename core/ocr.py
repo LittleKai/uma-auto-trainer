@@ -1,6 +1,7 @@
+import cv2
+import numpy as np
 import pytesseract
 from PIL import Image
-import re
 
 # Cấu hình đường dẫn Tesseract (uncomment và điều chỉnh nếu cần)
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -17,21 +18,6 @@ def extract_text(pil_img: Image.Image) -> str:
   except Exception as e:
     print(f"[WARNING] Tesseract text extraction failed: {e}")
     return ""
-
-# def extract_number(pil_img: Image.Image) -> str:
-#   """
-#   Trích xuất số từ image sử dụng Tesseract
-#   """
-#   try:
-#     # Cấu hình Tesseract chỉ cho phép số
-#     custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
-#     text = pytesseract.image_to_string(pil_img, config=custom_config)
-#     # Lọc chỉ lấy số
-#     numbers = re.findall(r'\d+', text)
-#     return ''.join(numbers)
-#   except Exception as e:
-#     print(f"[WARNING] Tesseract number extraction failed: {e}")
-#     return ""
 
 def extract_text_advanced(pil_img: Image.Image, whitelist: str = None, psm: int = 6) -> str:
   """
@@ -55,76 +41,130 @@ def extract_text_advanced(pil_img: Image.Image, whitelist: str = None, psm: int 
     print(f"[WARNING] Tesseract advanced extraction failed: {e}")
     return ""
 
-def extract_stat_number(pil_img: Image.Image) -> int:
-  try:
-    custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
-    raw_text = pytesseract.image_to_string(pil_img, config=custom_config)
+def enhance_ocr_image(image, aggressive=False):
+  """
+  Cường hóa ảnh với nhiều kỹ thuật xử lý
 
-    cleaned_val = _clean_stat_number(raw_text)
-    return cleaned_val
+  Args:
+      image: Ảnh đầu vào
+      aggressive: Bật chế độ xử lý mạnh mẽ hơn
+  """
+  # Kiểm tra và chuyển đổi ảnh sang numpy array
+  if not isinstance(image, np.ndarray):
+    image = np.array(image)
 
-  except Exception as e:
-    print(f"[WARNING] Stat number extraction failed: {e}")
-    return 0
+  # Đảm bảo ảnh là grayscale
+  if len(image.shape) > 2:
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+  # Khử nhiễu
+  denoised = cv2.fastNlMeansDenoising(image, None, 3, 7, 21)
+
+  # Nếu ở chế độ mạnh, thực hiện thêm các bước xử lý
+  if aggressive:
+    # Tăng độ tương phản
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    denoised = clahe.apply(denoised)
+
+    # Làm mờ nhẹ để loại bỏ nhiễu nhỏ
+    denoised = cv2.GaussianBlur(denoised, (3, 3), 0)
+
+  # Nhị phân hóa Otsu
+  _, binary = cv2.threshold(denoised, 0, 255,
+                            cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+  return binary
 
 def _clean_stat_number(raw_text: str) -> int:
   """
-  Advanced stat number cleaning with intelligent OCR error correction
-
-  Limit stat values between 0 and 1200
+  Trích xuất và làm sạch số stat với nhiều chiến lược
   """
   if not raw_text:
     return 0
 
-  # Mở rộng bảng ánh xạ lỗi OCR với ưu tiên chuyển đổi
+  # Bảng chuyển đổi mở rộng
   OCR_CORRECTIONS = {
-    # Chuyển chữ cái/ký hiệu thành số
-    'O': '0', 'o': '0', 'D': '0', 'Q': '0',  # O → 0
-    'I': '1', 'i': '1', 'l': '1', '|': '1', '!': '1',
-    'j': '1', '/': '1', '\\': '1',            # I/l → 1
-    'Z': '2', 'z': '2',                       # Z → 2
-    'A': '4',                                 # A → 4
-    'S': '5', 's': '5',                       # S → 5
-    'G': '6', 'b': '6',                       # G → 6
-    'T': '7',                                 # T → 7
-    'B': '8', '&': '8',                       # B → 8
-    'g': '9', 'q': '9', 'y': '9'              # g → 9
+    'O': '0', 'o': '0', 'D': '0', 'Q': '0',
+    'I': '1', 'i': '1', 'l': '1', '|': '1',
+    '!': '1', 'j': '1', '/': '1', '\\': '1',
+    'Z': '2', 'z': '2',
+    'A': '4',
+    'S': '5', 's': '5',
+    'G': '6', 'b': '6',
+    'T': '7',
+    'B': '8',
+    'g': '9', 'q': '9'
   }
 
-  def intelligent_conversion(text):
-    converted = []
-    for char in text:
-      converted.append(OCR_CORRECTIONS.get(char, char))
-    return ''.join(converted)
+  # Chuyển đổi và lọc
+  digits_only = ''.join(
+    OCR_CORRECTIONS.get(char, char)
+    for char in raw_text
+    if char.isdigit() or char in OCR_CORRECTIONS
+  )
 
-  # Lọc và chuyển đổi
-  converted_text = intelligent_conversion(raw_text)
+  # Xử lý số với nhiều chiến lược
+  if 3 <= len(digits_only) <= 4:
+    # Ưu tiên các cách đọc
+    candidates = []
 
-  # Chỉ giữ lại các ký tự số
-  digits_only = ''.join(char for char in converted_text if char.isdigit())
+    # 4 chữ số: thử 2 số cuối và 2 số đầu
+    if len(digits_only) == 4:
+      candidates.extend([
+        int(digits_only[-2:]),   # 2 số cuối
+        int(digits_only[:2]),    # 2 số đầu
+        int(digits_only)         # cả 4 số
+      ])
+    else:
+      # 3 chữ số: thử đọc trực tiếp
+      candidates.append(int(digits_only))
 
-  def process_stat_number(number_str):
-    # Nếu có 3-4 chữ số
-    if len(number_str) >= 3 and len(number_str) <= 4:
-      # Ưu tiên 4 chữ số cuối
-      if len(number_str) > 4:
-        number_str = number_str[-4:]
+    # Lọc và chọn giá trị phù hợp
+    valid_candidates = [c for c in candidates if 0 < c <= 1200]
+    return max(valid_candidates) if valid_candidates else 0
 
-      # Chuyển sang số nguyên
-      number = int(number_str)
+  return 0
 
-      # Giới hạn trong khoảng 0-1200
-      return max(0, min(number, 1200))
+def extract_stat_number(pil_img):
+  """
+  Trích xuất số stat với nhiều phương pháp
+  """
+  # Danh sách các cấu hình OCR
+  ocr_configs = [
+    # Cấu hình cơ bản
+    r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789',
+    # Cấu hình cho từng ký tự
+    r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789',
+    # Cấu hình linh hoạt
+    r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789'
+  ]
 
-    return 0
+  # Thử các phương pháp cường hóa ảnh
+  enhancing_methods = [
+    lambda img: enhance_ocr_image(img, aggressive=False),
+    lambda img: enhance_ocr_image(img, aggressive=True)
+  ]
 
-  # Thực hiện xử lý
-  result = process_stat_number(digits_only)
+  # Thử nhiều phương pháp
+  for enhance_method in enhancing_methods:
+    try:
+      # Cường hóa ảnh
+      enhanced_img = enhance_method(pil_img)
 
-  # Debug log để theo dõi quá trình chuyển đổi
-  print(f"[OCR DEBUG] Raw input: {raw_text}")
-  print(f"[OCR DEBUG] Converted: {converted_text}")
-  print(f"[OCR DEBUG] Digits only: {digits_only}")
-  print(f"[OCR DEBUG] Final result: {result}")
+      # Thử các cấu hình OCR
+      for config in ocr_configs:
+        # Thực hiện OCR
+        raw_text = pytesseract.image_to_string(enhanced_img, config=config)
 
-  return result
+        # Làm sạch và trích xuất số
+        result = _clean_stat_number(raw_text)
+
+        # Nếu kết quả hợp lệ, trả về
+        if result > 0:
+          return result
+
+    except Exception as e:
+      print(f"[WARNING] Stat OCR attempt failed: {e}")
+
+  # Nếu không đọc được
+  return 0

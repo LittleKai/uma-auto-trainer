@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "name": "Raising the Uma Lord's Castle",
+      "choice": 1
+    },
+    {
+      "name": "Assembling the Uma Lord's Minions",
+      "choice": 1
+    },
+    {
+      "name": "Adventurer Gold Ship",
+      "choice": 1
+    },
+    {
+      "name": "Revive the Brand! Golshi's Yakisoba",
+      "choice": 1
+    }
+  ]
+}

@@ -191,19 +191,15 @@ class BotController:
             # 1. Stop when race day (works immediately, no day restriction)
             if (settings.get('stop_on_race_day', False) and
                     game_state.get('turn') == "Race Day"):
-                settings = self.main_window.get_current_settings()
-                settings['stop_on_race_day'] = False
-                strategy_tab = self.strategy_tab if hasattr(self, 'strategy_tab') else None
+                # Lấy strategy tab
+                strategy_tab = getattr(self.main_window, 'strategy_tab', None)
 
                 if strategy_tab:
-                    # Tắt checkbox Stop when race day
-                   strategy_tab.stop_on_race_day.set(False)
+                    # Vô hiệu hóa stop on race day
+                    strategy_tab.stop_on_race_day.set(False)
 
-                # Thay đổi giá trị trong settings
-                settings['stop_on_race_day'] = False
-
-                # Ghi lại settings
-                self.main_window.save_settings()
+                    # Lưu cài đặt
+                    self.main_window.save_settings()
 
                 self.main_window.log_message("Stop condition triggered: Race Day detected (Stop when race day checkbox disabled)")
                 self.enhanced_stop_bot()

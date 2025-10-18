@@ -1,12 +1,12 @@
 {
   "track": {
-    "turf": false,
-    "dirt": true
+    "turf": true,
+    "dirt": false
   },
   "distance": {
     "sprint": true,
     "mile": true,
-    "medium": false,
+    "medium": true,
     "long": false
   },
   "grade": {
@@ -18,31 +18,31 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
-  "stop_on_low_mood": true,
-  "stop_on_race_day": true,
+  "stop_on_need_rest": true,
+  "stop_on_low_mood": false,
+  "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "January",
   "stop_on_ura_final": false,
-  "stop_on_warning": true,
+  "stop_on_warning": false,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Haru Urara",
+    "uma_musume": "Maruzensky",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "frd: Tazuna Hayakawa (SSR)",
-      "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
-      "pow: Winning Ticket (SSR)",
-      "pow: Oguri Cap (SSR)"
+      "spd: Gold Ship (SSR)",
+      "spd: Silence Suzuka (SSR)",
+      "pow: Oguri Cap (SSR)",
+      "gut: Air Groove (SR)",
+      "pow: Yaeno Muteki (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 5,
+    "current_set": 6,
     "preset_sets": {
       "1": {
         "uma_musume": "Seiun Sky",
@@ -56,14 +56,14 @@
         ]
       },
       "2": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Special Week (SSR)",
+          "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: El Condor Pasa (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "3": {
@@ -89,7 +89,7 @@
         ]
       },
       "5": {
-        "uma_musume": "El Condor Pasa (Fantasy)",
+        "uma_musume": "Haru Urara",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",

@@ -5,11 +5,11 @@
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 60,
   "stat_caps": {
-    "spd": 1130,
+    "spd": 1140,
     "sta": 1100,
     "pwr": 1100,
     "guts": 1100,
-    "wit": 1130
+    "wit": 1140
   },
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
@@ -31,7 +31,7 @@
       "rainbow_multiplier": {
         "pre_debut": 1.0,
         "early_stage": 1.0,
-        "mid_stage": 1.75,
+        "mid_stage": 2.0,
         "late_stage": 2.0
       }
     },

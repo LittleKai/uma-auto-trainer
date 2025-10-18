@@ -1,6 +1,10 @@
 {
   "events": [
     {
+      "name": "A Reasonable Diet vs. an Explosive Diet",
+      "choice": 2
+    },
+    {
       "name": "You May Socialize With Me",
       "choice": 1
     },

@@ -149,6 +149,7 @@ class TeamTrialsLogic:
                                    max_attempts=6, delay_between=3):
             return False
 
+
         # Check stop condition before team race button
         if self.check_stop_condition():
             return False
@@ -156,6 +157,9 @@ class TeamTrialsLogic:
         # Step 3: Click team race button
         if not self.find_and_click("assets/buttons/home/team_trials/team_race_btn.png",
                                    max_attempts=6, delay_between=3):
+            return False
+        elif self.find_and_click("assets/buttons/restore_btn.png", click=False, log_attempts=False):
+            self.main_window.log_message("No more turns available - stopping bot")
             return False
 
         time.sleep(10)
@@ -225,7 +229,6 @@ class TeamTrialsLogic:
                 # Check stop condition before next button
                 if self.check_stop_condition():
                     return False
-
 
         # Click next button after opponent selection
         if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=8, delay_between=3):

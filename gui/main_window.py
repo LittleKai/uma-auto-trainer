@@ -149,7 +149,7 @@ class UmaAutoGUI:
 
         # Team Trials tab
         team_trials_frame = ttk.Frame(notebook)
-        notebook.add(team_trials_frame, text="Team Trials")
+        notebook.add(team_trials_frame, text="Daily Activities")
         self.team_trials_tab = TeamTrialsTab(team_trials_frame, self)
 
     def create_control_section(self, parent, row):

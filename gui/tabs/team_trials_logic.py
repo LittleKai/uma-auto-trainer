@@ -160,7 +160,7 @@ class TeamTrialsLogic:
             return False
 
         # Confirm button
-        if not self.find_and_click("assets/buttons/confirm_btn.png", max_attempts=5, delay_between=5):
+        if not self.find_and_click("assets/buttons/confirm_btn.png", max_attempts=5, delay_between=3):
             return False
 
         return True
@@ -179,12 +179,11 @@ class TeamTrialsLogic:
         if not self.process_daily_race_results():
             return False
 
-
-
-        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=5, delay_between=3):
+        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=3, delay_between=5):
             return False
-        # Handle shop option
+        time.sleep(1)
 
+        # Handle shop option
         if self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", click=False):
             if self.ui_tab.daily_race_stop_if_shop.get():
                 self.find_and_click("assets/buttons/home/team_trials/shop_btn.png")
@@ -320,12 +319,12 @@ class TeamTrialsLogic:
             return False
 
         # Step 3 final: Check for refresh button
-        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=6, delay_between=5, click=False):
+        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=8, delay_between=3, click=False, log_attempts=False):
             self.main_window.log_message("Neither refresh nor next button found")
             return False
 
         # Check PvP gift
-        pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png", click=False, log_attempts=False)
+        pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png", log_attempts="Found Pvp gift")
 
         # Select opponent if no PvP gift
         if not pvp_gift_pos:

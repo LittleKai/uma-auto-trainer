@@ -4,99 +4,99 @@
     "dirt": false
   },
   "distance": {
-    "sprint": true,
-    "mile": true,
+    "sprint": false,
+    "mile": false,
     "medium": true,
-    "long": false
+    "long": true
   },
   "grade": {
     "g1": true,
     "g2": false,
     "g3": false
   },
-  "minimum_mood": "NORMAL",
+  "minimum_mood": "GOOD",
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
-  "stop_on_low_mood": true,
+  "stop_on_need_rest": true,
+  "stop_on_low_mood": false,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
-  "target_month": "January",
+  "target_month": "August",
   "stop_on_ura_final": false,
-  "stop_on_warning": false,
+  "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Maruzensky",
+    "uma_musume": "Agnes Tachyon",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Gold Ship (SSR)",
-      "spd: Silence Suzuka (SSR)",
-      "pow: Oguri Cap (SSR)",
-      "gut: Air Groove (SR)",
+      "spd: Sweep Tosho (SR)",
+      "spd: Special Week (SSR)",
+      "frd: Tazuna Hayakawa (SSR)",
+      "pow: Daiwa Scarlet (SSR)",
       "pow: Vodka (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 6,
+    "current_set": 4,
     "preset_sets": {
       "1": {
-        "uma_musume": "Seiun Sky",
+        "uma_musume": "Mihono Bourbon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Silence Suzuka (SSR)",
-          "sta: Mejiro McQueen (SSR)",
+          "spd: Eishin Flash (SR)",
           "sta: Super Creek (SSR)"
         ]
       },
       "2": {
-        "uma_musume": "Maruzensky (Summer)",
+        "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Silence Suzuka (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)"
+          "pow: Oguri Cap (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Oguri Cap",
+        "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Special Week (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
+          "spd: Silence Suzuka (SSR)",
+          "spd: Narita Taishin (SR)",
           "pow: Vodka (SSR)"
         ]
       },
       "4": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "Agnes Tachyon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
           "pow: Daiwa Scarlet (SSR)",
-          "pow: Oguri Cap (SSR)",
-          "pow: Yaeno Muteki (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "5": {
-        "uma_musume": "Haru Urara",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
-          "pow: Winning Ticket (SSR)",
-          "pow: Vodka (SSR)"
+          "spd: Silence Suzuka (SSR)",
+          "sta: Gold Ship (SSR)",
+          "gut: Air Groove (SR)",
+          "pow: Oguri Cap (SSR)",
+          "sta: Super Creek (SSR)"
         ]
       },
       "6": {
@@ -116,14 +116,14 @@
     "daily_activity_type": "Team Trial",
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": true,
+    "stop_if_shop": false,
     "default_race": "Moonlight Sho",
-    "daily_race_stop_if_shop": true,
+    "daily_race_stop_if_shop": false,
     "legend_race_use_parfait": false
   },
   "window": {
     "width": 835,
-    "height": 949,
+    "height": 948,
     "x": 984,
     "y": 1
   }

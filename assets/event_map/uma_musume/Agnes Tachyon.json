@@ -1,0 +1,56 @@
+{
+  "events": [
+    {
+      "name": "Hamburger Helper!",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Expression of Conviction",
+      "choice": 1
+    },
+    {
+      "name": "Obtain Data!",
+      "choice": 2
+    },
+    {
+      "name": "Tachyon the Spoiled Child",
+      "choice": 1
+    },
+    {
+      "name": "At Tachyon's Pace",
+      "choice": 2
+    },
+    {
+      "name": "The Strongest Collaborator?!",
+      "choice": 2
+    },
+    {
+      "name": "The Pressure of Justice?",
+      "choice": 1
+    },
+    {
+      "name": "Medicine That Makes You Faster?",
+      "choice": 2
+    },
+    {
+      "name": "The Significance of Research",
+      "choice": 2
+    },
+    {
+      "name": "No Shortcuts",
+      "choice": 3
+    },
+    {
+      "name": "A Gift From the Dark Sky",
+      "choice": 1
+    },
+    {
+      "name": "Body Modification!",
+      "choice": 2
+    }
+  ]
+}

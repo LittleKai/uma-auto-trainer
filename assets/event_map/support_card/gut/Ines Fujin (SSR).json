@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Ten Minutes Left!",
+      "choice": 2
+    },
+    {
+      "name": "It's a Game of Tag!",
+      "choice": 1
+    }
+  ]
+}

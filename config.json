@@ -5,11 +5,11 @@
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 60,
   "stat_caps": {
-    "spd": 1140,
+    "spd": 1130,
     "sta": 1100,
     "pwr": 1100,
     "guts": 1100,
-    "wit": 1140
+    "wit": 1130
   },
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
@@ -41,8 +41,8 @@
       "mid_stage": 48
     },
     "support_card_bonus": {
-      "score_bonus": 0.5,
-      "threshold_day": 24,
+      "score_bonus": 0.75,
+      "threshold_day": 28,
       "max_bonus_types": 2
     },
     "wit_training": {

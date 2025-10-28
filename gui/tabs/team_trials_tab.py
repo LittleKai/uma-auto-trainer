@@ -67,7 +67,7 @@ class TeamTrialsTab:
         daily_activity_frame.columnconfigure(1, weight=1)
 
         ttk.Label(daily_activity_frame, text="Activity:").grid(
-            row=0, column=0, sticky=tk.W, padx=(0, 10), pady=5)
+            row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
 
         daily_activity_dropdown = ttk.Combobox(
             daily_activity_frame,
@@ -83,6 +83,7 @@ class TeamTrialsTab:
         self.options_frame = ttk.LabelFrame(content_frame, text="Options", padding="10")
         self.options_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
         self.options_frame.columnconfigure(0, weight=1)
+        self.options_frame.columnconfigure(1, weight=1)
 
         # Initial options setup
         self.update_options_section()
@@ -106,7 +107,7 @@ class TeamTrialsTab:
         """Create options for Team Trial"""
         # Opponent type dropdown
         ttk.Label(self.options_frame, text="Default Opponent:").grid(
-            row=0, column=0, sticky=tk.W, padx=(0, 10), pady=5)
+            row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
 
         opponent_dropdown = ttk.Combobox(
             self.options_frame,
@@ -136,7 +137,7 @@ class TeamTrialsTab:
         """Create options for Daily Races"""
         # Race dropdown
         ttk.Label(self.options_frame, text="Default Race:").grid(
-            row=0, column=0, sticky=tk.W, padx=(0, 10), pady=5)
+            row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
 
         race_dropdown = ttk.Combobox(
             self.options_frame,

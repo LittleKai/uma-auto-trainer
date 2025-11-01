@@ -147,6 +147,7 @@ class BotController:
 
         return False
 
+
 class GameStateManager:
     """Manages current game state information"""
 
@@ -218,6 +219,7 @@ class DecisionEngine:
 
     def __init__(self, controller: BotController):
         self.controller = controller
+        self.date_turn = {}
 
     def _execute_training_flow(self, energy_percentage: int, strategy_settings: Dict[str, Any],
                                current_date: Dict[str, Any], race_manager, gui=None) -> bool:
@@ -280,10 +282,11 @@ class DecisionEngine:
     def _handle_rest_case(self, energy_percentage: int, strategy_settings: Dict[str, Any],
                           current_date: Dict[str, Any], gui=None) -> bool:
         """Handle the case when bot should rest"""
+
         # Stop condition only applies after day 24
         if (strategy_settings.get('enable_stop_conditions', False) and
-                strategy_settings.get('stop_on_need_rest', False) and
-                current_date and current_date.get('absolute_day', 0) > 24):
+            strategy_settings.get('stop_on_need_rest', False) and
+            current_date and current_date.get('absolute_day', 0) > 24) and self.date_turn != "Race Day":
             self.controller.log_message("Stop condition: Need rest detected - Stopping bot")
             self._click_back_button("")
             if gui:
@@ -321,7 +324,8 @@ class DecisionEngine:
             should_race, available_races = race_manager.should_race_today(current_date)
 
             if should_race and available_races:
-                self.controller.log_message(f"{priority_strategy}: No suitable training, but found {len(available_races)} matching races - Racing instead")
+                self.controller.log_message(
+                    f"{priority_strategy}: No suitable training, but found {len(available_races)} matching races - Racing instead")
 
                 if self.controller.check_should_stop():
                     return False
@@ -371,24 +375,24 @@ class DecisionEngine:
     def make_decision(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any],
                       race_manager, gui=None) -> bool:
         """Make training/racing decision based on current game state"""
-
+        self.date_turn = game_state['turn']
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
         # Handle URA Finale
-        if game_state['year'] == "Finale Season" and game_state['turn'] == "Race Day":
+        if game_state['year'] == "Finale Season":
             stop_on_ura_final = strategy_settings.get('stop_on_ura_final', False)
 
-            if stop_on_ura_final and absolute_day >= 73:
+            if game_state['turn'] == "Race Day":
+                self.controller.log_message("URA Finale detected - Starting finale race")
+                if self.controller.check_should_stop():
+                    return False
+                return self.controller.race_handler.handle_race_day(is_ura_final=True)
+            elif stop_on_ura_final:
                 self.controller.log_message("⚠️ URA Final reached - Stopping bot")
                 if gui:
                     gui.root.after(0, gui.stop_bot)
                 return False
-
-            self.controller.log_message("URA Finale detected - Starting finale race")
-            if self.controller.check_should_stop():
-                return False
-            return self.controller.race_handler.handle_race_day(is_ura_final=True)
 
         # Handle Race Day (Normal)
         if game_state['turn'] == "Race Day" and game_state['year'] != "Finale Season":
@@ -447,8 +451,8 @@ class DecisionEngine:
         if mood_index < minimum_mood_index:
             # Stop condition using separate stop_mood_threshold and only applies after day 24
             if (strategy_settings.get('enable_stop_conditions', False) and
-                    strategy_settings.get('stop_on_low_mood', False) and
-                    current_date and current_date.get('absolute_day', 0) > 24):
+                strategy_settings.get('stop_on_low_mood', False) and
+                current_date and current_date.get('absolute_day', 0) > 24) and self.date_turn != "Race Day":
 
                 stop_mood_threshold = strategy_settings.get('stop_mood_threshold', 'BAD')
                 stop_mood_index = MOOD_LIST.index(stop_mood_threshold) if stop_mood_threshold in MOOD_LIST else 1

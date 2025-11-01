@@ -74,13 +74,19 @@ def get_rainbow_multiplier(stage):
 
   return rainbow_config.get(stage, 1.0)
 
-def get_wit_score_requirement(energy_type, is_pre_debut):
+def get_wit_score_requirement(energy_type, training_day):
   """Get WIT training score requirement"""
   wit_config = SCORING_CONFIG.get("wit_training", {})
-  requirement_type = wit_config.get(f"{energy_type}_score_requirement", {})
+  requirement_stages = wit_config.get(f"{energy_type}_score_requirement", {}).get("stages", [])
 
-  stage = "pre_debut" if is_pre_debut else "post_debut"
-  return requirement_type.get(stage, 2.0)
+  # Find the appropriate score based on training day
+  for stage in requirement_stages:
+    if stage["end_day"] is None or training_day <= stage["end_day"]:
+      score =  stage["score"]
+      print(f"wit score: {score}")
+      return stage["score"]
+  # Fallback to default score if no matching stage found
+  return 2.0
 
 def get_wit_early_stage_bonus():
   """Get WIT early stage bonus value from configuration"""
@@ -365,33 +371,34 @@ def medium_energy_wit_training(results, current_date):
   wit_data = results.get("wit")
   if not wit_data:
     return None
-
   stage_info = get_career_stage_info(current_date)
   total_score = wit_data.get("total_score", 0)
 
-  required_score = get_wit_score_requirement("medium_energy", stage_info['is_pre_debut'])
+  absolute_day = current_date.get('absolute_day', 0)
+  required_score = get_wit_score_requirement("medium_energy", absolute_day)
 
   if total_score >= required_score:
     return "wit"
 
   return None
 
-def low_energy_training(results, current_date=None):
-  """Enhanced low energy training logic with configurable score requirements"""
-  wit_data = results.get("wit")
-
-  if not wit_data:
-    return None
-
-  stage_info = get_career_stage_info(current_date)
-  total_score = wit_data.get("total_score", 0)
-
-  required_score = get_wit_score_requirement("low_energy", stage_info['is_pre_debut'])
-
-  if total_score >= required_score:
-    return "wit"
-
-  return None
+# def low_energy_training(results, current_date=None):
+#   """Enhanced low energy training logic with configurable score requirements"""
+#   wit_data = results.get("wit")
+#
+#   if not wit_data:
+#     return None
+#
+#   stage_info = get_career_stage_info(current_date)
+#   total_score = wit_data.get("total_score", 0)
+#   absolute_day = current_date.get('absolute_day', 0)
+#
+#   required_score = get_wit_score_requirement("low_energy", absolute_day)
+#
+#   if total_score >= required_score:
+#     return "wit"
+#
+#   return None
 
 def fallback_training(results, current_date):
   """Enhanced fallback training using original scores without artificial bonuses"""
@@ -436,7 +443,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
       'priority_strategy': 'Train Score 3.5+'
     }
 
-  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3.5+')
+  priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 3+')
 
   # Get current date info to check stage
   from core.state import get_current_date_info

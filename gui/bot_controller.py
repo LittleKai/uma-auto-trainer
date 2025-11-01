@@ -210,7 +210,7 @@ class BotController:
                 return False
 
             # 2. Stop when infirmary needed (check debuff status)
-            if settings.get('stop_on_infirmary', False):
+            if settings.get('stop_on_infirmary', False) and game_state.get('turn') != "Race Day":
                 debuff_status = game_state.get('debuff_status', {})
                 has_serious_debuff = any([
                     debuff_status.get('headache', False),
@@ -224,7 +224,7 @@ class BotController:
                     return True
 
             # 3. Stop when need rest (check energy level)
-            if settings.get('stop_on_need_rest', False):
+            if settings.get('stop_on_need_rest', False) and game_state.get('turn') != "Race Day":
                 energy_percentage = game_state.get('energy_percentage', 100)
                 # Consider need rest when energy is very low (below 30%)
                 if energy_percentage < 42:
@@ -232,7 +232,7 @@ class BotController:
                     return True
 
             # 4. Stop when mood below threshold
-            if settings.get('stop_on_low_mood', False):
+            if settings.get('stop_on_low_mood', False) and game_state.get('turn') != "Race Day":
                 current_mood = game_state.get('mood', 'NORMAL')
                 threshold_mood = settings.get('stop_mood_threshold', 'BAD')
 
@@ -245,14 +245,14 @@ class BotController:
                         return True
 
             # 5. Stop before summer (June - month 6)
-            if settings.get('stop_before_summer', False):
+            if settings.get('stop_before_summer', False) and game_state.get('turn') != "Race Day":
                 month_num = current_date.get('month_num', 0)
                 if month_num == 6:  # June
                     self.main_window.log_message("Stop condition triggered: Summer period reached (June)")
                     return True
 
             # 6. Stop at specific month
-            if settings.get('stop_at_month', False):
+            if settings.get('stop_at_month', False) and game_state.get('turn') != "Race Day":
                 target_month = settings.get('target_month', 'June')
                 current_month = current_date.get('month', '')
 

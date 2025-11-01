@@ -1,0 +1,53 @@
+{
+  "events": [
+    {
+      "name": "Not My Style",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "A Little Can't Hurt",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Nature and Her Tired Trainer",
+      "choice": 2
+    },
+    {
+      "name": "Festive Colors",
+      "choice": 2
+    },
+    {
+      "name": "Rainy-Day Fun",
+      "choice": 1
+    },
+    {
+      "name": "Whirlwind Advice",
+      "choice": 2
+    },
+    {
+      "name": "A Phone Call from Mom",
+      "choice": 1
+    },
+    {
+      "name": "Once in a While",
+      "choice": 2
+    },
+    {
+      "name": "Bittersweet Twilight",
+      "choice": 1
+    },
+    {
+      "name": "Snapshot of Emotions",
+      "choice": 1
+    },
+    {
+      "name": "Let's Watch the Fish",
+      "choice": 2
+    }
+  ]
+}

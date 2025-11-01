@@ -75,9 +75,13 @@ def enhance_ocr_image(image, aggressive=False):
 
   return binary
 
-def _clean_stat_number(raw_text: str) -> int:
+def _clean_stat_number(raw_text: str, max_stat: int = 1200) -> int:
   """
   Trích xuất và làm sạch số stat với nhiều chiến lược
+
+  Args:
+      raw_text: Văn bản đầu vào từ OCR
+      max_stat: Giá trị stat tối đa (mặc định là 1200)
   """
   if not raw_text:
     return 0
@@ -95,6 +99,22 @@ def _clean_stat_number(raw_text: str) -> int:
     'B': '8',
     'g': '9', 'q': '9'
   }
+
+  # Kiểm tra nếu là MAX hoặc biến thể, với nhiều biến thể hơn
+  max_variants = [
+    'MAX', 'max', 'Max',  # Uppercase, lowercase, title case
+    'MA', 'ma',           # Chữ hoa và chữ thường
+    'MX', 'mx',           # Chữ hoa và chữ thường
+    'AX', 'ax'            # Thêm biến thể AX
+  ]
+
+  # Tìm kiếm MAX với điều kiện chặt chẽ
+  max_match = None
+  for variant in max_variants:
+    if variant in raw_text:
+      max_match = variant
+      print(f"[LOG] MAX variant detected: '{max_match}' in text '{raw_text}'")
+      return max_stat
 
   # Chuyển đổi và lọc
   digits_only = ''.join(
@@ -120,23 +140,27 @@ def _clean_stat_number(raw_text: str) -> int:
       candidates.append(int(digits_only))
 
     # Lọc và chọn giá trị phù hợp
-    valid_candidates = [c for c in candidates if 0 < c <= 1200]
+    valid_candidates = [c for c in candidates if 0 < c <= max_stat]
     return max(valid_candidates) if valid_candidates else 0
 
   return 0
 
-def extract_stat_number(pil_img):
+def extract_stat_number(pil_img, max_stat: int = 1200):
   """
   Trích xuất số stat với nhiều phương pháp
+
+  Args:
+      pil_img: Ảnh đầu vào
+      max_stat: Giá trị stat tối đa (mặc định là 1200)
   """
   # Danh sách các cấu hình OCR
   ocr_configs = [
     # Cấu hình cơ bản
-    r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789',
+    r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789MAXmax',
     # Cấu hình cho từng ký tự
-    r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789',
+    r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789MAXmax',
     # Cấu hình linh hoạt
-    r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789'
+    r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789MAXmax'
   ]
 
   # Thử các phương pháp cường hóa ảnh
@@ -157,7 +181,7 @@ def extract_stat_number(pil_img):
         raw_text = pytesseract.image_to_string(enhanced_img, config=config)
 
         # Làm sạch và trích xuất số
-        result = _clean_stat_number(raw_text)
+        result = _clean_stat_number(raw_text, max_stat)
 
         # Nếu kết quả hợp lệ, trả về
         if result > 0:

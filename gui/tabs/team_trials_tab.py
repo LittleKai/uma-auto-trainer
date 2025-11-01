@@ -38,6 +38,8 @@ class TeamTrialsTab:
 
         # Legend Race variables
         self.legend_race_use_parfait = tk.BooleanVar(value=False)
+        self.legend_race_stop_if_shop = tk.BooleanVar(value=False)
+
 
     def bind_variable_changes(self):
         """Bind variable change events to auto-save"""
@@ -161,10 +163,18 @@ class TeamTrialsTab:
         # Use parfait if gift PvP
         parfait_check = ttk.Checkbutton(
             self.options_frame,
-            text="Use parfait if gift PvP",
+            text="Use parfait",
             variable=self.legend_race_use_parfait
         )
         parfait_check.grid(row=0, column=0, sticky=tk.W, pady=5)
+
+        # Add the new Stop if shop checkbox
+        shop_check = ttk.Checkbutton(
+            self.options_frame,
+            text="Stop if shop available",
+            variable=self.legend_race_stop_if_shop
+        )
+        shop_check.grid(row=0, column=1, sticky=tk.W, pady=5)
 
     def start_team_trials(self):
         """Start functionality based on selected daily activity type"""
@@ -193,7 +203,7 @@ class TeamTrialsTab:
                 notebook = parent.master
                 current_tab = notebook.select()
                 current_tab_text = notebook.tab(current_tab, "text")
-                return current_tab_text == "Team Trials"
+                return current_tab_text == "Daily Activities"
             return False
         except:
             return False
@@ -216,7 +226,8 @@ class TeamTrialsTab:
             'stop_if_shop': self.stop_if_shop.get(),
             'default_race': self.default_race.get(),
             'daily_race_stop_if_shop': self.daily_race_stop_if_shop.get(),
-            'legend_race_use_parfait': self.legend_race_use_parfait.get()
+            'legend_race_use_parfait': self.legend_race_use_parfait.get(),
+            'legend_race_stop_if_shop': self.legend_race_stop_if_shop.get()
         }
         return settings
 
@@ -239,5 +250,7 @@ class TeamTrialsTab:
                 self.daily_race_stop_if_shop.set(settings['daily_race_stop_if_shop'])
             if 'legend_race_use_parfait' in settings:
                 self.legend_race_use_parfait.set(settings['legend_race_use_parfait'])
+            if 'legend_race_stop_if_shop' in settings:
+                self.legend_race_stop_if_shop.set(settings['legend_race_stop_if_shop'])
         except Exception as e:
             print(f"Warning: Could not load team trials tab settings: {e}")

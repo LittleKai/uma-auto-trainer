@@ -655,7 +655,7 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to search in other special events: {e}")
             return None
 
-    def is_event_match(self, extracted_name: str, event_name: str, threshold: float = 0.8) -> bool:
+    def is_event_match(self, extracted_name: str, event_name: str, threshold: float = 0.7) -> bool:
         """Check if extracted event name matches the event in database"""
         try:
             if not extracted_name or not event_name:

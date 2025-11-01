@@ -14,14 +14,14 @@
     "g2": false,
     "g3": false
   },
-  "minimum_mood": "GOOD",
+  "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
   "stop_on_need_rest": true,
-  "stop_on_low_mood": false,
+  "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
@@ -45,13 +45,13 @@
     "current_set": 4,
     "preset_sets": {
       "1": {
-        "uma_musume": "Mihono Bourbon",
+        "uma_musume": "Tokai Teio",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Tazuna Hayakawa (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Special Week (SSR)",
+          "sta: Mejiro McQueen (SSR)",
           "sta: Super Creek (SSR)"
         ]
       },
@@ -73,7 +73,7 @@
           "frd: Tazuna Hayakawa (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Silence Suzuka (SSR)",
-          "spd: Narita Taishin (SR)",
+          "spd: Eishin Flash (SR)",
           "pow: Vodka (SSR)"
         ]
       },
@@ -116,15 +116,16 @@
     "daily_activity_type": "Team Trial",
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": false,
+    "stop_if_shop": true,
     "default_race": "Moonlight Sho",
-    "daily_race_stop_if_shop": false,
-    "legend_race_use_parfait": false
+    "daily_race_stop_if_shop": true,
+    "legend_race_use_parfait": false,
+    "legend_race_stop_if_shop": true
   },
   "window": {
     "width": 835,
     "height": 948,
-    "x": 984,
-    "y": 1
+    "x": 1024,
+    "y": 7
   }
 }

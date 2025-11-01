@@ -435,6 +435,10 @@
       "choice": 1
     },
     {
+      "name": "Full-Power Thinking!",
+      "choice_2_if_uma": ["Hishi Amazon", "Narita Taishin","Gold Ship"]
+    },
+    {
       "name": "Eat Up",
       "choice_2_if_energy_shortage_gte": 7
     },

@@ -16,15 +16,6 @@ def load_scoring_config():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
-def get_wit_score_requirement(energy_type, is_pre_debut):
-    """Get WIT training score requirement from configuration"""
-    scoring_config = load_scoring_config()
-    wit_config = scoring_config.get("wit_training", {})
-    requirement_type = wit_config.get(f"{energy_type}_score_requirement", {})
-
-    stage = "pre_debut" if is_pre_debut else "post_debut"
-    return requirement_type.get(stage, 2.0)
-
 class TrainingHandler:
     """Handles all training-related operations with unified score calculation"""
 
@@ -292,30 +283,3 @@ class TrainingHandler:
             self.log(f"[ERROR] Could not find {training_type.upper()} training button")
             return False
 
-    def get_training_energy_requirements(self, training_type: str, current_date: Optional[Dict] = None) -> Dict[str, float]:
-        """Get energy requirements for different training scenarios with configurable definitions"""
-        stage_thresholds = get_stage_thresholds()
-        absolute_day = current_date.get('absolute_day', 0) if current_date else 0
-        is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
-
-        if training_type == "wit" and current_date:
-            # WIT requirements using configuration
-            medium_score_required = get_wit_score_requirement("medium_energy", is_early_stage)
-            low_score_required = get_wit_score_requirement("low_energy", is_early_stage)
-
-            return {
-                'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
-                'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
-                'medium_score_required': medium_score_required,
-                'low_score_required': low_score_required,
-                'normal_score_required': 2.5
-            }
-
-        # Default requirements for other training types
-        return {
-            'critical_threshold': CRITICAL_ENERGY_PERCENTAGE,
-            'medium_threshold': MINIMUM_ENERGY_PERCENTAGE,
-            'medium_score_required': 0,  # Not available in medium energy
-            'low_score_required': 0,    # Not available in low energy
-            'normal_score_required': 2.5
-        }

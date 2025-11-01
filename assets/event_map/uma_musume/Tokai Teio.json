@@ -1,0 +1,65 @@
+{
+  "events": [
+    {
+      "name": "Secret to Strength",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Cupcakes for All",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Good Luck Charm",
+      "choice": 1
+    },
+    {
+      "name": "Selfish Teio and a Nostalgic View",
+      "choice": 2
+    },
+    {
+      "name": "Racewear Like Prez",
+      "choice": 1
+    },
+    {
+      "name": "Teio, an Umadol?!",
+      "choice": 1
+    },
+    {
+      "name": "I Got Praised!",
+      "choice": 1
+    },
+    {
+      "name": "I Got Scolded!",
+      "choice": 2
+    },
+    {
+      "name": "I Figured It Out!",
+      "choice": 3
+    },
+    {
+      "name": "Grown-Up Time",
+      "choice": 2
+    },
+    {
+      "name": "Punny Prez",
+      "choice": 1
+    },
+    {
+      "name": "Karaoke Power?",
+      "choice": 2
+    },
+    {
+      "name": "Teio's Warrior Training",
+      "choice": 1
+    },
+    {
+      "name": "Empress vs Monarch",
+      "choice": 2
+    }
+  ]
+}

@@ -3,7 +3,7 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 60,
+  "stat_cap_threshold_day": 50,
   "stat_caps": {
     "spd": 1130,
     "sta": 1100,
@@ -48,8 +48,11 @@
     "wit_training": {
       "early_stage_bonus": 0.1,
       "medium_energy_score_requirement": {
-        "pre_debut": 2.00,
-        "post_debut": 3.0
+        "stages": [
+          {"end_day": 22, "score": 2.00},
+          {"end_day": 36, "score": 2.5},
+          {"end_day": null, "score": 3.0}
+        ]
       }
     },
     "energy_restrictions": {

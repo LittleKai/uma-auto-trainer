@@ -1,8 +1,6 @@
 import pyautogui
 import time
 import threading
-from core.execute import check_should_stop
-
 
 class TeamTrialsLogic:
     """Optimized Team Trials logic handler with F3 stop support"""
@@ -26,10 +24,8 @@ class TeamTrialsLogic:
         return self.start_generic_activity(self.daily_races_loop, "Daily Races")
 
     def start_legend_race(self):
-        """Start legend race functionality"""
-        self.main_window.log_message("Legend Race is currently under development. Bot stopped.")
-        self.stop_team_trials()
-        return False
+        """Start Legend Race with specified parameters"""
+        return self.start_generic_activity(self.legend_race_loop, "Legend Races")
 
     def start_generic_activity(self, loop_method, activity_name):
         """Generic method to start an activity"""
@@ -50,7 +46,7 @@ class TeamTrialsLogic:
         self.main_window.status_section.set_bot_status("Stopped", "red")
         self.main_window.set_running_state(False)
         self.main_window.is_running = False
-        self.main_window.log_message("Team Trials stopped")
+        self.main_window.log_message("Daily Activities stopped")
 
     def find_and_click(self, image_path, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True):
         """Universal function to find and optionally click images with stop checking"""
@@ -74,7 +70,7 @@ class TeamTrialsLogic:
 
             try:
                 button = pyautogui.locateCenterOnScreen(
-                    image_path, confidence=0.75, minSearchTime=0.2, region=region
+                    image_path, confidence=0.8, minSearchTime=0.2, region=region
                 )
                 if button:
                     if click:
@@ -125,7 +121,8 @@ class TeamTrialsLogic:
             return False
 
         # Daily race button
-        if not self.find_and_click("assets/buttons/home/daily_race/daily_race_btn.png", max_attempts=5, delay_between=5):
+        if not self.find_and_click("assets/buttons/home/daily_race/daily_race_btn.png",
+                                   max_attempts=5, delay_between=5):
             return False
 
         # Handle next button if it appears
@@ -242,6 +239,145 @@ class TeamTrialsLogic:
             self.main_window.log_message(f"Daily Races error: {e}")
         finally:
             self.main_window.root.after(0, self.stop_team_trials)
+
+    def legend_race_loop(self):
+        """Main legend race loop with stop checking"""
+        try:
+            # Check stop condition before navigation
+            if self.check_stop_condition():
+                self.main_window.log_message("Legend Races stopped before navigation")
+                return
+
+            if not self.navigate_to_legend_race():
+                return
+
+        except Exception as e:
+            self.main_window.log_message(f"Legend Races error: {e}")
+        finally:
+            self.main_window.root.after(0, self.stop_team_trials)
+
+    def navigate_to_legend_race(self):
+        # Check active tab and ensure no ongoing processes
+        # if not self.ui_tab.is_active_tab() or self.is_team_trials_running:
+        #     return False
+        #
+        # # Set running flag
+        # self.is_team_trials_running = True
+
+        try:
+            # 1. Check race images
+            race_tab_region = (200, 780, 680, 860)
+            race_images = ["assets/buttons/home/team_trials/race_tab.png",
+                           "assets/buttons/home/team_trials/race_tab_2.png"]
+
+            race_clicked = False
+            for race_image in race_images:
+                # Check stop condition before each race image attempt
+                if self.check_stop_condition():
+                    return False
+
+                if self.find_and_click(race_image, race_tab_region):
+                    self.main_window.log_message(f"Successfully clicked race tab")
+                    race_clicked = True
+                    time.sleep(1)
+                    break
+
+            if not race_clicked:
+                self.main_window.log_message("Race tab not found - Not on Home screen")
+                return False
+            # 2. Click Race Event button
+            if not self.find_and_click("assets/buttons/home/race_event/race_event_btn.png", click=True, max_attempts=3, delay_between=5):
+                return False
+                # Click Legend Race button
+            if not self.find_and_click("assets/buttons/home/race_event/legend_race_btn.png", click=True, max_attempts=3, delay_between=3):
+                return False
+
+            time.sleep(5)
+
+            while True:
+                # 3. Check EX unavailability
+                if not self.find_and_click("assets/buttons/next_btn.png", click=False, log_attempts=False):
+
+                    # if self.find_and_click("assets/buttons/home/race_event/ex-unavailable_btn.png", click=False, log_attempts=False):
+                    #         self.main_window.log_message("No more Legend Race attempts available.")
+                    #         break
+
+                        # 4. Click EX button
+                    if not self.find_and_click("assets/buttons/home/race_event/ex_btn.png", click=True, max_attempts=3, delay_between=3):
+                        return False
+
+                    # 5. Click Race button
+                    if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True,  max_attempts=3, delay_between=2):
+                        return False
+
+                    self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", click=True, log_attempts= False,
+                                        max_attempts=2, delay_between=3)
+
+                    # 6. Confirm
+                    if not self.find_and_click("assets/buttons/confirm_btn.png", click=True, max_attempts=3, delay_between=3):
+                        return False
+
+                # 7. Next button
+                if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=5, delay_between=3):
+                    return False
+
+                # 8. Use Parfait if enabled
+                if self.ui_tab.legend_race_use_parfait.get():
+                    self.find_and_click("assets/buttons/home/team_trials/parfait.png", click=True, max_attempts=3, delay_between=1)
+
+                # 9. Race button
+                if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True, max_attempts=5, delay_between=2):
+                    return False
+
+                # 10. View results and click
+                see_result_pos = self.find_and_click("assets/buttons/view_results.png", max_attempts=5, delay_between=3)
+                if not see_result_pos:
+                    return False
+
+                # Click result multiple times
+                for i in range(2):
+                    pyautogui.click(see_result_pos)
+                    time.sleep(4)
+
+                    # 11 & 12. Next buttons
+                if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=3, delay_between=3):
+                    return False
+
+                if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=3, delay_between=2):
+                    return False
+
+                    # 13. Handle shop if present
+                if self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", click=False, log_attempts=False):
+                    self.main_window.log_message("Shop available")
+
+                    if self.ui_tab.legend_race_stop_if_shop.get():
+                        # Check stop condition before shop click
+                        if self.check_stop_condition():
+                            return False
+
+                        self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", log_attempts=False)
+                        self.main_window.log_message("Shop detected - stopping as requested")
+                        return False
+                    else:
+                        # Check stop condition before cancel click
+                        if self.check_stop_condition():
+                            return False
+
+                        self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False)
+                        self.main_window.log_message("Shop bypassed - clicked cancel")
+
+                    # 14. Continue to next iteration
+                    if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=3, delay_between=2):
+                        return False
+
+        except Exception as e:
+            print(f"Error in Legend Race: {e}")
+            return False
+        finally:
+            self.is_team_trials_running = False
+
+        return True
+
 
     def navigate_to_team_trials(self):
         """Navigate to team trials section with stop checking"""

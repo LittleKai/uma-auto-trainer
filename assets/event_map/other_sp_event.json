@@ -87,6 +87,10 @@
       "choice": 1
     },
     {
+      "name": "A Winning Vocalist",
+      "choice": 1
+    },
+    {
       "name": "On and On",
       "choice": 1
     },
@@ -621,6 +625,19 @@
     },
     {
       "name": "Let's Go... Buono",
+      "choice": 1
+    },
+    {
+      "name": "Doomscrolling the Time Away",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Sponsored Posts Can Be Low-Key Sus",
+      "choice": 1
+    },
+    {
+      "name": "Nail Artist on the Turf",
       "choice": 1
     }
   ]

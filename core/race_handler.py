@@ -257,7 +257,7 @@ class RaceHandler:
 
             match_track_location = pyautogui.locateCenterOnScreen(
                 "assets/ui/match_track.png",
-                confidence=0.7,
+                confidence=0.6,
                 minSearchTime=0.3,
                 region=region_ltrb
             )

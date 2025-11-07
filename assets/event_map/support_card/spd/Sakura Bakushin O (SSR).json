@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Genius Efficiency!",
+      "choice": 1
+    },
+    {
+      "name": "Enough to Break into a Dash!",
+      "choice": 2
+    }
+  ]
+}

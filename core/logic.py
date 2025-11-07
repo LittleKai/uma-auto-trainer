@@ -278,7 +278,7 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
   score_info = format_score_info(best_key, best_data, current_date)
   return best_key, score_info
 
-def training_decision(results_training, energy_percentage, strategy_settings, current_date):
+def training_decision(results_training, energy_percentage, energy_max, strategy_settings, current_date):
   """Enhanced training decision with unified scoring system"""
   print(f"[DEBUG] === training_decision CALLED ===")
   print(f"[DEBUG] Energy: {energy_percentage}%, Strategy: {strategy_settings.get('priority_strategy', 'Unknown')}")
@@ -320,17 +320,11 @@ def training_decision(results_training, energy_percentage, strategy_settings, cu
   medium_energy_shortage = energy_restrictions['medium_energy_shortage']
   max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
 
-  # Get current energy state to calculate shortage from actual max energy
-  from core.state import check_energy_percentage
+  energy_shortage_absolute = energy_max - energy_percentage
+  print(f' energy_shortage_absolute: {energy_max} - {energy_percentage}')
 
-  try:
-    # Get both current and max energy values
-    current_energy, max_energy = check_energy_percentage(return_max_energy=True)
-    energy_shortage_absolute = max_energy - current_energy
-  except Exception as e:
-    # Stop program if cannot get energy values correctly
-    raise SystemExit("Energy calculation failed - program stopped to prevent incorrect behavior")
-
+  stage = stage_info['stage']
+  print(f'{stage} - e: {energy_shortage_absolute} - {medium_energy_shortage}')
   if (stage_info['stage'] in ['mid', 'late'] and energy_shortage_absolute >= medium_energy_shortage):
     # Check if any available training score is > threshold using total_score with WIT bonus
     has_high_score_training = False
@@ -382,30 +376,23 @@ def medium_energy_wit_training(results, current_date):
 
   return None
 
-# def low_energy_training(results, current_date=None):
-#   """Enhanced low energy training logic with configurable score requirements"""
-#   wit_data = results.get("wit")
-#
-#   if not wit_data:
-#     return None
-#
-#   stage_info = get_career_stage_info(current_date)
-#   total_score = wit_data.get("total_score", 0)
-#   absolute_day = current_date.get('absolute_day', 0)
-#
-#   required_score = get_wit_score_requirement("low_energy", absolute_day)
-#
-#   if total_score >= required_score:
-#     return "wit"
-#
-#   return None
-
 def fallback_training(results, current_date):
   """Enhanced fallback training using original scores without artificial bonuses"""
   if not results:
     return None
 
-  stage_info = get_career_stage_info(current_date)
+  # Apply filter by stat caps if on or after threshold day
+  absolute_day = current_date.get('absolute_day', 0)
+  stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
+
+  if absolute_day >= stat_cap_threshold_day:
+    from core.state import stat_state
+    current_stats = stat_state()
+    results = filter_by_stat_caps(results, current_stats, current_date)
+
+    if not results:
+      print(f"[DEBUG] All training filtered out by stat caps in fallback_training")
+      return None
 
   # Calculate best training using total_score
   training_list = []

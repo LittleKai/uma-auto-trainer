@@ -18,13 +18,13 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
   "target_month": "August",
   "stop_on_ura_final": false,
@@ -35,71 +35,18 @@
     "uma_musume": "Agnes Tachyon",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Sweep Tosho (SR)",
       "spd: Special Week (SSR)",
+      "spd: Sweep Tosho (SR)",
       "frd: Tazuna Hayakawa (SSR)",
-      "pow: Daiwa Scarlet (SSR)",
-      "pow: Vodka (SSR)"
+      "pow: Mihono Bourbon (SR)",
+      "pow: Vodka (SSR)",
+      "None",
+      "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 4,
+    "current_set": 2,
     "preset_sets": {
       "1": {
-        "uma_musume": "Tokai Teio",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Special Week (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)"
-        ]
-      },
-      "2": {
-        "uma_musume": "Sakura Bakushin O",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Silence Suzuka (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Oguri Cap (SSR)"
-        ]
-      },
-      "3": {
-        "uma_musume": "Maruzensky (Summer)",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Silence Suzuka (SSR)",
-          "spd: Eishin Flash (SR)",
-          "pow: Vodka (SSR)"
-        ]
-      },
-      "4": {
-        "uma_musume": "Agnes Tachyon",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Special Week (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
-          "pow: Vodka (SSR)"
-        ]
-      },
-      "5": {
-        "uma_musume": "Seiun Sky",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "sta: Gold Ship (SSR)",
-          "gut: Air Groove (SR)",
-          "pow: Oguri Cap (SSR)",
-          "sta: Super Creek (SSR)"
-        ]
-      },
-      "6": {
         "uma_musume": "Maruzensky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
@@ -107,7 +54,100 @@
           "spd: Silence Suzuka (SSR)",
           "pow: Oguri Cap (SSR)",
           "gut: Air Groove (SR)",
-          "pow: Vodka (SSR)"
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
+        ]
+      },
+      "2": {
+        "uma_musume": "Agnes Tachyon",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "spd: Special Week (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "pow: Daiwa Scarlet (SSR)",
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
+        ]
+      },
+      "3": {
+        "uma_musume": "Maruzensky (Summer)",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Silence Suzuka (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
+        ]
+      },
+      "4": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "5": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "6": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "7": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "8": {
+        "uma_musume": "Maruzensky",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "spd: Silence Suzuka (SSR)",
+          "spd: Gold Ship (SSR)",
+          "gut: Air Groove (SR)",
+          "pow: Oguri Cap (SSR)",
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
         ]
       }
     }
@@ -116,16 +156,16 @@
     "daily_activity_type": "Team Trial",
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
-    "stop_if_shop": true,
+    "stop_if_shop": false,
     "default_race": "Moonlight Sho",
-    "daily_race_stop_if_shop": true,
+    "daily_race_stop_if_shop": false,
     "legend_race_use_parfait": false,
-    "legend_race_stop_if_shop": true
+    "legend_race_stop_if_shop": false
   },
   "window": {
     "width": 835,
     "height": 948,
-    "x": 1024,
-    "y": 7
+    "x": 1065,
+    "y": 37
   }
 }

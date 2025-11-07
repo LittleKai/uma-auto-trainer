@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "A Winning Vocalist",
+      "choice": 1
+    },
+    {
+      "name": "On and On",
+      "choice": 1
+    },
+    {
+      "name": "What Should I Do?",
+      "choice": 1
+    }
+  ]
+}

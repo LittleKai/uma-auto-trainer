@@ -35,35 +35,43 @@ class EventChoiceTab:
         self.auto_event_map_var = tk.BooleanVar(value=False)
         self.auto_first_choice_var = tk.BooleanVar(value=True)
         self.selected_uma_musume = tk.StringVar(value="None")
-        self.support_cards = [tk.StringVar(value="None") for _ in range(6)]
+        self.support_cards = [tk.StringVar(value="None") for _ in range(8)]
         self.unknown_event_action = tk.StringVar(value="Auto select first choice")
 
-        # Variables for 6 preset sets
+        # Variables for 8 preset sets (thay đổi từ 6 sang 8)
         self.current_set = tk.IntVar(value=1)
         self.preset_sets = {
             1: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]
             },
             2: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]  # Thay đổi từ 6 sang 8
             },
             3: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]  # Thay đổi từ 6 sang 8
             },
             4: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]  # Thay đổi từ 6 sang 8
             },
             5: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]  # Thay đổi từ 6 sang 8
             },
             6: {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]  # Thay đổi từ 6 sang 8
+            },
+            7: {  # Thêm 2 preset set mới
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]
+            },
+            8: {
+                'uma_musume': tk.StringVar(value="None"),
+                'support_cards': [tk.StringVar(value="None") for _ in range(8)]
             }
         }
 
@@ -203,7 +211,7 @@ class EventChoiceTab:
         # Uma Musume label and dropdown
         ttk.Label(
             uma_container,
-            text="Select Uma Musume:",
+            text="Uma Musume:",
             font=("Arial", 9),
             foreground="#CC0066"
         ).pack(side=tk.LEFT, padx=(0, 15))
@@ -224,7 +232,7 @@ class EventChoiceTab:
 
         ttk.Label(
             preset_container,
-            text="Preset Sets:",
+            text="Presets:",
             font=("Arial", 9),
             foreground="#0066CC"
         ).pack(side=tk.LEFT, padx=(0, 8))
@@ -233,7 +241,7 @@ class EventChoiceTab:
         button_frame = ttk.Frame(preset_container)
         button_frame.pack(side=tk.LEFT)
 
-        for i in range(1, 7):
+        for i in range(1, 9):
             btn = tk.Button(
                 button_frame,
                 text=str(i),

@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Ikuno-Style Support",
+      "choice": 1
+    },
+    {
+      "name": "Ikuno-Style Management",
+      "choice": 1
+    }
+  ]
+}

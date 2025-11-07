@@ -103,9 +103,9 @@ def _clean_stat_number(raw_text: str, max_stat: int = 1200) -> int:
   # Kiểm tra nếu là MAX hoặc biến thể, với nhiều biến thể hơn
   max_variants = [
     'MAX', 'max', 'Max',  # Uppercase, lowercase, title case
-    'MA', 'ma',           # Chữ hoa và chữ thường
-    'MX', 'mx',           # Chữ hoa và chữ thường
-    'AX', 'ax'            # Thêm biến thể AX
+    'MA',            # Chữ hoa và chữ thường
+    'MX',            # Chữ hoa và chữ thường
+    'AX'          # Thêm biến thể AX
   ]
 
   # Tìm kiếm MAX với điều kiện chặt chẽ

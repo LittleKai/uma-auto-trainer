@@ -221,7 +221,7 @@ class DecisionEngine:
         self.controller = controller
         self.date_turn = {}
 
-    def _execute_training_flow(self, energy_percentage: int, strategy_settings: Dict[str, Any],
+    def _execute_training_flow(self, energy_percentage: int, energy_max: int, strategy_settings: Dict[str, Any],
                                current_date: Dict[str, Any], race_manager, gui=None) -> bool:
         """Execute complete training flow: check options, make decision, execute training or rest"""
         # Check training options
@@ -239,7 +239,7 @@ class DecisionEngine:
 
         best_training = training_decision(
             results_training,
-            energy_percentage,
+            energy_percentage, energy_max,
             strategy_settings,
             current_date
         )
@@ -414,6 +414,7 @@ class DecisionEngine:
         mood = game_state['mood']
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
+        max_energy = game_state['energy_max']
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
@@ -440,7 +441,7 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        return self._execute_training_flow(energy_percentage, strategy_settings, current_date, race_manager, gui)
+        return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager, gui)
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],
                                  current_date: Dict[str, Any], gui=None) -> bool:

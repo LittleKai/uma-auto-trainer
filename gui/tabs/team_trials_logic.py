@@ -190,7 +190,7 @@ class TeamTrialsLogic:
                 # Check stop condition before cancel click
                 if self.check_stop_condition():
                     return False
-                self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False)
+                self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False, click=True)
 
         # Race again button
         if not self.find_and_click("assets/buttons/home/team_trials/race_again_btn.png", max_attempts=5, delay_between=5):

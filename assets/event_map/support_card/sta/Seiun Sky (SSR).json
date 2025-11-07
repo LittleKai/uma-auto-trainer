@@ -1,0 +1,22 @@
+{
+  "events": [
+    {
+      "name": "A Page of Flower Shop Assistance",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Be Strategic ☆",
+      "choice": 1
+    },
+    {
+      "name": "Recruiting Cat Catchers",
+      "choice_1_if_energy_shortage_gte": 5,
+      "default_choice": 2
+    },
+    {
+      "name": "Recruiting Advisors",
+      "choice": 1
+    }
+  ]
+}

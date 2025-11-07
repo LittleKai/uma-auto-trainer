@@ -118,7 +118,8 @@ class WindowManager:
                 **strategy_settings,
                 'event_choice': event_choice_settings,
                 'team_trials': team_trials_settings,
-                'window': self.window_settings
+                'window': self.window_settings,
+                'scenario': self.main_window.scenario_selection.get()
             }
 
             # Save to file
@@ -149,6 +150,11 @@ class WindowManager:
             # Load window settings if they exist
             if 'window' in settings:
                 self.window_settings = settings['window']
+
+            if 'scenario' in settings:
+                self.main_window.scenario_selection.set(settings['scenario'])
+                if hasattr(self.main_window.status_section, 'scenario_dropdown'):
+                    self.main_window.status_section.scenario_dropdown.set(settings['scenario'])
 
             # Load tab settings
             self.main_window.strategy_tab.load_settings(settings)

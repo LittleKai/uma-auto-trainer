@@ -80,6 +80,18 @@ class StatusSection:
         self.key_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
         self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
+        # Scenario Selection
+        ttk.Label(right_column, text="Scenario:", font=("Arial", 10, "bold")).grid(
+            row=2, column=0, sticky=tk.W, pady=3)
+        self.scenario_dropdown = ttk.Combobox(
+            right_column,
+            values=["URA Final", "Unity Cup"],
+            state="readonly",
+            width=15
+        )
+        self.scenario_dropdown.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=3)
+        self.scenario_dropdown.set("URA Final")  # Default value
+
     def set_bot_status(self, status, color):
         """Update bot status display"""
         self.status_label.config(text=status, foreground=color)

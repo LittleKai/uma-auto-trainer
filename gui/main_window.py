@@ -55,7 +55,7 @@ class UmaAutoGUI:
         self.bot_thread = None
         self.key_valid = False
         self.initial_key_validation_done = False
-
+        self.scenario_selection = tk.StringVar(value="URA Final")
         # All settings will be handled by tab modules
         self.all_settings = {}
 

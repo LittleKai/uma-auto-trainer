@@ -75,6 +75,8 @@ def calculate_unified_training_score(training_type, support_counts, current_date
   base_score = get_support_base_score()
   hint_score = support_counts.get("hint_score", 0)
   npc_score = support_counts.get("npc_score", 0)
+  special_training_score = support_counts.get("special_training_score", 0)
+  spirit_explosion_score = support_counts.get("spirit_explosion_score", 0)
 
   stage_thresholds = get_stage_thresholds()
   absolute_day = current_date.get('absolute_day', 0) if current_date else 0
@@ -94,7 +96,9 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
   other_support = sum(count for key, count in support_counts.items()
                       if key not in [training_type, "friend", "hint", "hint_score",
-                                     "total_score", "npc", "npc_count", "npc_score"])
+                                     "total_score", "npc", "npc_count", "npc_score",
+                                     "special_training", "special_training_score",
+                                     "spirit_explosion", "spirit_explosion_score"])
 
   if is_pre_debut:
     rainbow_multiplier = get_rainbow_multiplier("pre_debut")
@@ -107,7 +111,7 @@ def calculate_unified_training_score(training_type, support_counts, current_date
 
   rainbow_score = rainbow_count * rainbow_multiplier * base_score
   other_score = other_support * base_score
-  total_score = rainbow_score + friend_score + other_score + hint_score + npc_score
+  total_score = rainbow_score + friend_score + other_score + hint_score + npc_score + special_training_score + spirit_explosion_score
 
   if training_type == "wit" and current_date:
     if absolute_day < EARLY_STAGE_THRESHOLD:
@@ -115,7 +119,6 @@ def calculate_unified_training_score(training_type, support_counts, current_date
       total_score += wit_bonus
 
   return total_score
-
 
 def validate_stat_value(stat_key, value, threshold=200):
   """Validate stat value and return warning if below threshold"""
@@ -500,6 +503,8 @@ def validate_region_coordinates(region):
 
 def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, current_date=None):
   """Check support card in each training with unified score calculation and support card bonus"""
+  from utils.constants import SCENARIO_NAME
+
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
 
@@ -549,6 +554,35 @@ def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, c
   count_result["npc_count"] = total_npc_count
   count_result["npc_score"] = npc_score
 
+  special_training_count = 0
+  special_training_score = 0
+  spirit_explosion_count = 0
+  spirit_explosion_score = 0
+
+  if SCENARIO_NAME == "Unity Cup":
+    special_training_matches = match_template("assets/icons/unity_cup/special_training.png", support_region, threshold)
+    special_training_count = len(special_training_matches)
+
+    spirit_explosion_matches = match_template("assets/icons/unity_cup/spirit_explosion.png", support_region, threshold)
+    spirit_explosion_count = len(spirit_explosion_matches)
+
+    if special_training_count > 0 or spirit_explosion_count > 0:
+      scoring_config = load_scoring_config()
+      unity_cup_config = scoring_config.get("unity_cup", {})
+
+      if special_training_count > 0:
+        special_training_score_value = unity_cup_config.get("special_training_score", 1.0)
+        special_training_score = special_training_count * special_training_score_value
+
+      if spirit_explosion_count > 0:
+        spirit_explosion_score_value = unity_cup_config.get("spirit_explosion_score", 1.5)
+        spirit_explosion_score = spirit_explosion_count * spirit_explosion_score_value
+
+  count_result["special_training"] = special_training_count
+  count_result["special_training_score"] = special_training_score
+  count_result["spirit_explosion"] = spirit_explosion_count
+  count_result["spirit_explosion_score"] = spirit_explosion_score
+
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
 
   support_card_bonus = 0
@@ -562,7 +596,6 @@ def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, c
   count_result["total_score"] = total_score
 
   return count_result
-
 
 def check_failure():
   """Get failure chance from UI region"""

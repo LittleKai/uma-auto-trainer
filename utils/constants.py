@@ -394,7 +394,7 @@ def get_turn_year_regions():
     year_region = tuple(settings.get('YEAR_REGION', DEFAULT_REGIONS['YEAR_REGION']))
     unity_cup_turn_region = tuple(settings.get('UNITY_CUP_TURN_REGION', DEFAULT_REGIONS['UNITY_CUP_TURN_REGION']))
     unity_cup_year_region = tuple(settings.get('UNITY_CUP_YEAR_REGION', DEFAULT_REGIONS['UNITY_CUP_YEAR_REGION']))
-
+    print(f'scenario: {SCENARIO_NAME}')
     # Select active regions based on global scenario
     if SCENARIO_NAME == "Unity Cup":
         active_turn_region = unity_cup_turn_region

@@ -50,43 +50,44 @@ class TrainingHandler:
         if self.check_stop():
             return None
 
-        # Get current date info to check stage
         current_date = get_current_date_info()
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
 
-        # Get stage thresholds from configuration
         stage_thresholds = get_stage_thresholds()
         is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
 
-        # First check
         support_counts = check_support_card(
             is_pre_debut=is_pre_debut,
             training_type=training_type,
             current_date=current_date
         )
 
-        # Get total_score from unified calculation in check_support_card
         total_score = support_counts.get("total_score", 0)
         total_support = sum(count for key, count in support_counts.items()
-                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"])
+                            if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
+                                           "support_card_bonus", "special_training", "special_training_score",
+                                           "spirit_explosion", "spirit_explosion_score"])
 
         first_result = {
             'support': {k: v for k, v in support_counts.items()
-                        if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"]},
-            'total_support': total_support,
+                        if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
+                                     "support_card_bonus", "special_training", "special_training_score",
+                                     "spirit_explosion", "spirit_explosion_score"]},
             'hint_count': support_counts.get("hint", 0),
             'hint_score': support_counts.get("hint_score", 0),
             'npc_count': support_counts.get("npc_count", 0),
             'npc_score': support_counts.get("npc_score", 0),
+            'special_training_count': support_counts.get("special_training", 0),
+            'special_training_score': support_counts.get("special_training_score", 0),
+            'spirit_explosion_count': support_counts.get("spirit_explosion", 0),
+            'spirit_explosion_score': support_counts.get("spirit_explosion_score", 0),
             'total_score': total_score,
             'support_card_bonus': support_counts.get("support_card_bonus", 0)
         }
 
-        # If total support <= 6, return immediately without logging
         if total_support <= 6:
             return first_result
 
-        # If total support > 6, perform additional checks for stability
         self.log(f"[{training_type.upper()}] High support count ({total_support}), performing additional checks for accuracy...")
 
         support_results = [first_result]
@@ -95,7 +96,6 @@ class TrainingHandler:
             if self.check_stop():
                 return first_result
 
-            # Small delay between checks for stability
             time.sleep(0.1)
 
             support_counts = check_support_card(
@@ -105,31 +105,85 @@ class TrainingHandler:
             )
             total_score = support_counts.get("total_score", 0)
             total_support = sum(count for key, count in support_counts.items()
-                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"])
+                                if key not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
+                                               "support_card_bonus", "special_training", "special_training_score",
+                                               "spirit_explosion", "spirit_explosion_score"])
 
             support_results.append({
                 'support': {k: v for k, v in support_counts.items()
-                            if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score", "support_card_bonus"]},
-                'total_support': total_support,
+                            if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
+                                         "support_card_bonus", "special_training", "special_training_score",
+                                         "spirit_explosion", "spirit_explosion_score"]},
                 'hint_count': support_counts.get("hint", 0),
                 'hint_score': support_counts.get("hint_score", 0),
                 'npc_count': support_counts.get("npc_count", 0),
                 'npc_score': support_counts.get("npc_score", 0),
+                'special_training_count': support_counts.get("special_training", 0),
+                'special_training_score': support_counts.get("special_training_score", 0),
+                'spirit_explosion_count': support_counts.get("spirit_explosion", 0),
+                'spirit_explosion_score': support_counts.get("spirit_explosion_score", 0),
                 'total_score': total_score,
                 'support_card_bonus': support_counts.get("support_card_bonus", 0)
             })
 
-        # Use the result with median total score
         support_results.sort(key=lambda x: x['total_score'])
         median_index = len(support_results) // 2
         result = support_results[median_index]
 
-        # Only log for multiple checks case
         self.log(f"[{training_type.upper()}] Multiple checks completed, using median result: "
-                 f"{result['support']} (total: {result['total_support']}, "
-                 f"final score: {result['total_score']})")
+                 f"{result['support']} (final score: {result['total_score']})")
 
         return result
+
+    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
+        """Log training result with unified score information including support card bonus"""
+        bonus_components = []
+
+        if training_result.get('support_card_bonus', 0) > 0:
+            bonus_components.append(f"Support Bonus +{training_result['support_card_bonus']}")
+
+        if training_result.get('hint_count', 0) > 0:
+            bonus_components.append(f"hints +{training_result['hint_score']}")
+
+        if training_result.get('npc_count', 0) > 0:
+            bonus_components.append(f"NPCs +{training_result['npc_score']}")
+
+        if training_result.get('special_training_count', 0) > 0:
+            bonus_components.append(f"Special Training +{training_result['special_training_score']}")
+
+        if training_result.get('spirit_explosion_count', 0) > 0:
+            bonus_components.append(f"Spirit Explosion +{training_result['spirit_explosion_score']}")
+
+        from core.state import get_current_date_info, get_stage_thresholds
+        current_date = get_current_date_info()
+        is_early_stage = False
+
+        if current_date and key == "wit":
+            stage_thresholds = get_stage_thresholds()
+            absolute_day = current_date.get('absolute_day', 0)
+            is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
+
+            if is_early_stage:
+                from core.logic import get_wit_early_stage_bonus
+                bonus = get_wit_early_stage_bonus()
+                bonus_components.append(f"early WIT +{bonus}")
+
+        total_score = training_result.get('total_score', 0)
+
+        base_message = f"[{key.upper()}] → {training_result['support']} score: {total_score}"
+
+        if bonus_components:
+            bonus_info = " (" + ", ".join(bonus_components) + ")"
+            base_message += bonus_info
+
+        if is_early_stage:
+            base_message += " (Early-Stage)"
+
+        self.log(base_message)
+
+        if key == "wit" and training_result['support'].get('friend', 0) > 0:
+            friend_count = training_result['support']['friend']
+            expected_score = friend_count * 0.5
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
         """Check all available training options with unified score calculation"""
@@ -209,59 +263,6 @@ class TrainingHandler:
 
         return results
 
-    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
-        """Log training result with unified score information including support card bonus"""
-        # Build bonus information components
-        bonus_components = []
-
-        # Add support card bonus if exists
-        if training_result.get('support_card_bonus', 0) > 0:
-            bonus_components.append(f"Support Bonus +{training_result['support_card_bonus']}")
-
-        # Add hint info if exists
-        if training_result.get('hint_count', 0) > 0:
-            bonus_components.append(f"hints +{training_result['hint_score']}")
-
-        # Add NPC info if exists
-        if training_result.get('npc_count', 0) > 0:
-            bonus_components.append(f"NPCs +{training_result['npc_score']}")
-
-        # Check if WIT early stage bonus was applied
-        from core.state import get_current_date_info, get_stage_thresholds
-        current_date = get_current_date_info()
-        is_early_stage = False
-
-        if current_date and key == "wit":
-            stage_thresholds = get_stage_thresholds()
-            absolute_day = current_date.get('absolute_day', 0)
-            is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
-
-            if is_early_stage:
-                from core.logic import get_wit_early_stage_bonus
-                bonus = get_wit_early_stage_bonus()
-                bonus_components.append(f"early WIT +{bonus}")
-
-        # Get unified total score
-        total_score = training_result.get('total_score', 0)
-
-        # Build the final message
-        base_message = f"[{key.upper()}] → {training_result['support']} score: {total_score}"
-
-        # Add bonus information if any exists
-        if bonus_components:
-            bonus_info = " (" + ", ".join(bonus_components) + ")"
-            base_message += bonus_info
-
-        # Add stage indicator
-        if is_early_stage:
-            base_message += " (Early-Stage)"
-
-        self.log(base_message)
-
-        # Verify friend score calculation for WIT
-        if key == "wit" and training_result['support'].get('friend', 0) > 0:
-            friend_count = training_result['support']['friend']
-            expected_score = friend_count * 0.5
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

@@ -30,6 +30,16 @@ class EventHandler:
         if self._click("assets/buttons/next2_btn.png", minSearch=0.2):
             self.controller.reset_career_lobby_counter()
             return True
+        from utils.constants import SCENARIO_NAME
+
+        if SCENARIO_NAME == "Unity Cup":
+            if self._click("assets/buttons/close_btn.png", minSearch=0.2):
+                self.controller.reset_career_lobby_counter()
+                return True
+
+            if self._click("assets/icons/unity_cup/unity_cup_btn.png", minSearch=0.2):
+                self.controller.reset_career_lobby_counter()
+                return True
 
         return False
 

@@ -501,7 +501,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 
-def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, current_date=None):
+def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
   """Check support card in each training with unified score calculation and support card bonus"""
   from utils.constants import SCENARIO_NAME
 
@@ -514,13 +514,17 @@ def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, c
     "pwr": "assets/icons/support_card_type_pwr.png",
     "guts": "assets/icons/support_card_type_guts.png",
     "wit": "assets/icons/support_card_type_wit.png",
-    "friend": "assets/icons/support_card_type_friend1.png"
+    "friend": "assets/icons/support_card_type_friend.png"
   }
-
-  NPC_ICONS = {
-    "akikawa": "assets/icons/support_npc_akikawa.png",
-    "etsuko": "assets/icons/support_npc_etsuko.png"
-  }
+  if SCENARIO_NAME == "Unity Cup":
+    NPC_ICONS = {
+      "riko": "assets/icons/support_npc_riko.png"
+    }
+  else:
+    NPC_ICONS = {
+      "akikawa": "assets/icons/support_npc_akikawa.png",
+      "etsuko": "assets/icons/support_npc_etsuko.png"
+    }
 
   count_result = {}
 
@@ -560,7 +564,7 @@ def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, c
   spirit_explosion_score = 0
 
   if SCENARIO_NAME == "Unity Cup":
-    special_training_matches = match_template("assets/icons/unity_cup/special_training.png", support_region, threshold)
+    special_training_matches = match_template("assets/icons/unity_cup/special_training.png", support_region, 0.7)
     special_training_count = len(special_training_matches)
 
     spirit_explosion_matches = match_template("assets/icons/unity_cup/spirit_explosion.png", support_region, threshold)
@@ -575,7 +579,7 @@ def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, c
         special_training_score = special_training_count * special_training_score_value
 
       if spirit_explosion_count > 0:
-        spirit_explosion_score_value = unity_cup_config.get("spirit_explosion_score", 1.5)
+        spirit_explosion_score_value = unity_cup_config.get("spirit_explosion_score", 1.0)
         spirit_explosion_score = spirit_explosion_count * spirit_explosion_score_value
 
   count_result["special_training"] = special_training_count
@@ -628,15 +632,21 @@ def check_failure():
 def check_turn():
   """Check current turn number or race day"""
   from utils.constants import get_turn_year_regions
+  from utils.constants import SCENARIO_NAME
 
   regions = get_turn_year_regions()
   turn_region = regions['TURN_REGION']
 
   turn = enhanced_screenshot(turn_region)
   turn_text = extract_text(turn)
-
-  if "Race" in turn_text:
-    return "Race Day"
+  # print(f"check_turn: {SCENARIO_NAME}")
+  if SCENARIO_NAME == "Unity Cup":
+    print(f"turn_text: {turn_text}")
+    if "GO" in turn_text or "G0" in turn_text:
+      return "Race Day"
+  else:
+    if "Race" in turn_text:
+      return "Race Day"
 
   cleaned_text = (
     turn_text

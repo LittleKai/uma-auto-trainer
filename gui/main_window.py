@@ -24,6 +24,9 @@ class UmaAutoGUI:
         self.root = tk.Tk()
         self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
 
+        from utils.constants import load_scenario_from_settings
+        load_scenario_from_settings()
+
         # Initialize managers first
         self.game_monitor = GameWindowMonitor(self)
         self.race_manager = RaceManager()  # Initialize race_manager early

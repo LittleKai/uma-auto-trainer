@@ -6,13 +6,6 @@ from typing import Tuple, Optional
 def random_click_in_region(left: int, top: int, width: int, height: int, duration: float = 0.175) -> bool:
     """
     Click at a random position within the specified region
-
-    Args:
-        left, top, width, height: Region boundaries
-        duration: Mouse movement duration
-
-    Returns:
-        bool: True if click was successful
     """
     try:
         # Generate random coordinates within the region
@@ -39,20 +32,6 @@ def enhanced_click(img: str, confidence: float = 0.8, minSearch: float = 2,
                    check_stop_func=None, check_window_func=None, log_func=None) -> bool:
     """
     Enhanced click function with random clicking and stop check
-
-    Args:
-        img: Image path to find and click
-        confidence: Template matching confidence
-        minSearch: Minimum search time
-        click_count: Number of clicks to perform
-        text: Optional text to log
-        use_random: Whether to use random clicking
-        check_stop_func: Function to check if should stop
-        check_window_func: Function to check if game window is active
-        log_func: Function to log messages
-
-    Returns:
-        bool: True if click was successful
     """
     if check_stop_func and check_stop_func():
         return False
@@ -107,9 +86,6 @@ def triple_click_random(region: Tuple[int, int, int, int], interval: float = 0.1
     """
     Perform triple click with random positions within region
 
-    Args:
-        region: (left, top, width, height) region to click in
-        interval: Interval between clicks
     """
     left, top, width, height = region
 
@@ -121,10 +97,6 @@ def triple_click_random(region: Tuple[int, int, int, int], interval: float = 0.1
 def move_to_random_position(base_x: int, base_y: int, offset_range: int = 10) -> None:
     """
     Move mouse to a random position near the base coordinates
-
-    Args:
-        base_x, base_y: Base coordinates
-        offset_range: Maximum offset in pixels
     """
     try:
         random_x = base_x + random.randint(-offset_range, offset_range)
@@ -133,3 +105,102 @@ def move_to_random_position(base_x: int, base_y: int, offset_range: int = 10) ->
     except Exception as e:
         print(f"[WARNING] Random move failed: {e}")
         pyautogui.moveTo(x=base_x, y=base_y)  # Fallback to original position
+
+def find_and_click_with_random(img_path: str, region: Optional[Tuple[int, int, int, int]] = None,
+                               max_attempts: int = 1, delay_between: float = 1.0,
+                               click: bool = True, use_random: bool = True,
+                               confidence: float = 0.8, log_attempts: bool = True,
+                               check_stop_func=None, log_func=None) -> Optional[Tuple[int, int]]:
+    """
+    Find and optionally click an image on screen with random clicking support
+
+    Args:
+        img_path: Path to the image to find
+        region: Optional (left, top, width, height) region to search in
+        max_attempts: Number of attempts to find the image
+        delay_between: Delay between attempts in seconds
+        click: Whether to click when found
+        use_random: Whether to use random clicking within the found region
+        confidence: Template matching confidence (0-1)
+        log_attempts: Whether to log attempt failures
+        check_stop_func: Function to check if should stop
+        log_func: Function to log messages
+
+    Returns:
+        Tuple of (x, y) coordinates if found, None otherwise
+    """
+    time.sleep(1)
+
+    # Check stop condition before starting
+    if check_stop_func and check_stop_func():
+        return None
+
+    # Set default region to left half of screen if not provided
+    if not region:
+        screen_width, screen_height = pyautogui.size()
+        region = (0, 0, screen_width // 2, screen_height)
+
+    # Extract filename for logging
+    filename = img_path.split('/')[-1].replace('.png', '')
+
+    for attempt in range(max_attempts):
+        # Check stop condition before each attempt
+        if check_stop_func and check_stop_func():
+            return None
+
+        try:
+            # Try to locate the image center
+            button = pyautogui.locateCenterOnScreen(
+                img_path, confidence=confidence, minSearchTime=0.2, region=region
+            )
+
+            if button:
+                if click:
+                    # Check stop condition before clicking
+                    if check_stop_func and check_stop_func():
+                        return None
+
+                    if use_random:
+                        # Get the full button region for random clicking
+                        btn_region = pyautogui.locateOnScreen(
+                            img_path, confidence=confidence, minSearchTime=0.1, region=region
+                        )
+                        if btn_region:
+                            # Click randomly within the button region
+                            random_click_in_region(btn_region.left, btn_region.top,
+                                                   btn_region.width, btn_region.height)
+                            if log_func:
+                                log_func(f"Random clicked {filename}")
+                        else:
+                            # Fallback to center click
+                            pyautogui.moveTo(button, duration=0.175)
+                            pyautogui.click()
+                            if log_func:
+                                log_func(f"Clicked {filename}")
+                    else:
+                        # Traditional center click
+                        pyautogui.moveTo(button, duration=0.175)
+                        pyautogui.click()
+                        if log_func:
+                            log_func(f"Clicked {filename}")
+
+                    return button
+                else:
+                    # Just return the position without clicking
+                    return button
+
+        except pyautogui.ImageNotFoundException:
+            pass
+
+        # Delay between attempts if not the last attempt
+        if attempt < max_attempts - 1:
+            if check_stop_func and check_stop_func():
+                return None
+            time.sleep(delay_between)
+
+    # Log failure if enabled and multiple attempts were made
+    if log_attempts and max_attempts > 1:
+        if log_func:
+            log_func(f"Failed to find {filename}")
+
+    return None

@@ -95,12 +95,14 @@ class StatusSection:
         self.scenario_dropdown.bind('<<ComboboxSelected>>', self.on_scenario_change)
 
     def on_scenario_change(self, event=None):
-        """Handle scenario selection change"""
         from utils.constants import set_scenario
 
         scenario = self.main_window.scenario_selection.get()
-        set_scenario(scenario)  # Update global scenario variable
+        set_scenario(scenario)
         self.main_window.save_settings()
+
+        # Log để debug
+        self.main_window.log_message(f"Scenario changed to: {scenario}")
 
     def set_bot_status(self, status, color):
         """Update bot status display"""

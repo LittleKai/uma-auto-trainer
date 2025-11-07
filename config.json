@@ -46,8 +46,8 @@
       "max_bonus_types": 2
     },
     "unity_cup": {
-      "special_training_score": 0.25,
-      "spirit_explosion_score": 1.0
+      "special_training_score": 0.1,
+      "spirit_explosion_score": 0.75
     },
     "wit_training": {
       "early_stage_bonus": 0.1,

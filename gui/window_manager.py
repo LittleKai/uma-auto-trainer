@@ -27,6 +27,12 @@ class WindowManager:
                 if 'window' in settings:
                     self.window_settings.update(settings['window'])
 
+                if 'scenario' in settings:
+                    from utils.constants import set_scenario
+                    scenario = settings['scenario']
+                    self.main_window.scenario_selection.set(scenario)
+                    set_scenario(scenario)
+
         except Exception as e:
             print(f"Warning: Could not load initial settings: {e}")
 

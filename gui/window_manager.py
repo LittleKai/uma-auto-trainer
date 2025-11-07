@@ -77,6 +77,12 @@ class WindowManager:
             with open('bot_settings.json', 'r') as f:
                 settings = json.load(f)
 
+            # Load scenario selection first
+            if 'scenario' in settings:
+                self.main_window.scenario_selection.set(settings['scenario'])
+                if hasattr(self.main_window, 'status_section') and hasattr(self.main_window.status_section, 'scenario_dropdown'):
+                    self.main_window.status_section.scenario_dropdown.set(settings['scenario'])
+
             # Load tab settings
             self.main_window.strategy_tab.load_settings(settings)
             self.main_window.event_choice_tab.load_settings(settings.get('event_choice', {}))
@@ -152,9 +158,14 @@ class WindowManager:
                 self.window_settings = settings['window']
 
             if 'scenario' in settings:
-                self.main_window.scenario_selection.set(settings['scenario'])
+                from utils.constants import set_scenario
+
+                scenario = settings['scenario']
+                self.main_window.scenario_selection.set(scenario)
+                set_scenario(scenario)  # Update global scenario variable
+
                 if hasattr(self.main_window.status_section, 'scenario_dropdown'):
-                    self.main_window.status_section.scenario_dropdown.set(settings['scenario'])
+                    self.main_window.status_section.scenario_dropdown.set(scenario)
 
             # Load tab settings
             self.main_window.strategy_tab.load_settings(settings)

@@ -18,9 +18,9 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
@@ -168,5 +168,5 @@
     "x": 1065,
     "y": 37
   },
-  "scenario": "URA Final"
+  "scenario": "Unity Cup"
 }

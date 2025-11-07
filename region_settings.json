@@ -1,6 +1,6 @@
 {
   "SUPPORT_CARD_ICON_REGION": [
-    835,
+    820,
     155,
     120,
     700
@@ -40,6 +40,18 @@
     35,
     165,
     22
+  ],
+  "UNITY_CUP_TURN_REGION": [
+    265,
+    57,
+    60,
+    47
+  ],
+  "UNITY_CUP_YEAR_REGION": [
+    390,
+    37,
+    165,
+    16
   ],
   "CRITERIA_REGION": [
     223,

@@ -1,7 +1,7 @@
 import json
 
 # UI Region Constants
-SUPPORT_CARD_ICON_REGION = (845, 155, 180, 700)
+SUPPORT_CARD_ICON_REGION = (820, 155, 180, 700)
 MOOD_REGION = (700, 123, 120, 27)
 ENERGY_BAR = (440, 136, 705, 136)  # Energy bar endpoints (x1, y1, x2, y2)
 RACE_REGION = (260, 588, 580, 266)
@@ -31,7 +31,7 @@ STAT_REGIONS = {
 
 # Default regions for settings reset
 DEFAULT_REGIONS = {
-    'SUPPORT_CARD_ICON_REGION': (845, 155, 180, 700),
+    'SUPPORT_CARD_ICON_REGION': (820, 155, 180, 700),
     'MOOD_REGION': (700, 123, 120, 27),
     'ENERGY_BAR': (440, 136, 705, 136),
     'RACE_REGION': (260, 588, 580, 266),
@@ -385,10 +385,36 @@ def save_region_settings(regions):
         print(f"Error saving region settings: {e}")
         return False
 
+def get_turn_year_regions():
+    """Get TURN_REGION and YEAR_REGION based on global scenario selection"""
+    settings = load_region_settings()
+
+    # Load all turn/year regions
+    turn_region = tuple(settings.get('TURN_REGION', DEFAULT_REGIONS['TURN_REGION']))
+    year_region = tuple(settings.get('YEAR_REGION', DEFAULT_REGIONS['YEAR_REGION']))
+    unity_cup_turn_region = tuple(settings.get('UNITY_CUP_TURN_REGION', DEFAULT_REGIONS['UNITY_CUP_TURN_REGION']))
+    unity_cup_year_region = tuple(settings.get('UNITY_CUP_YEAR_REGION', DEFAULT_REGIONS['UNITY_CUP_YEAR_REGION']))
+
+    # Select active regions based on global scenario
+    if SCENARIO_NAME == "Unity Cup":
+        active_turn_region = unity_cup_turn_region
+        active_year_region = unity_cup_year_region
+    else:  # "URA Final" or default
+        active_turn_region = turn_region
+        active_year_region = year_region
+
+    return {
+        'TURN_REGION': active_turn_region,
+        'YEAR_REGION': active_year_region,
+        'UNITY_CUP_TURN_REGION': unity_cup_turn_region,
+        'UNITY_CUP_YEAR_REGION': unity_cup_year_region
+    }
+
 def get_current_regions():
     """Get current region values, loading from file if available"""
     global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
     global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS, EVENT_REGIONS
+    global UNITY_CUP_TURN_REGION, UNITY_CUP_YEAR_REGION
 
     settings = load_region_settings()
 
@@ -400,6 +426,8 @@ def get_current_regions():
     RACE_REGION = tuple(settings.get('RACE_REGION', DEFAULT_REGIONS['RACE_REGION']))
     FAILURE_REGION = tuple(settings.get('FAILURE_REGION', DEFAULT_REGIONS['FAILURE_REGION']))
     YEAR_REGION = tuple(settings.get('YEAR_REGION', DEFAULT_REGIONS['YEAR_REGION']))
+    UNITY_CUP_TURN_REGION = tuple(settings.get('UNITY_CUP_TURN_REGION', DEFAULT_REGIONS['UNITY_CUP_TURN_REGION']))
+    UNITY_CUP_YEAR_REGION = tuple(settings.get('UNITY_CUP_YEAR_REGION', DEFAULT_REGIONS['UNITY_CUP_YEAR_REGION']))
     CRITERIA_REGION = tuple(settings.get('CRITERIA_REGION', DEFAULT_REGIONS['CRITERIA_REGION']))
     STAT_REGIONS = settings.get('STAT_REGIONS', DEFAULT_REGIONS['STAT_REGIONS'])
     EVENT_REGIONS = settings.get('EVENT_REGIONS', DEFAULT_REGIONS['EVENT_REGIONS'])
@@ -412,6 +440,8 @@ def get_current_regions():
         'RACE_REGION': RACE_REGION,
         'FAILURE_REGION': FAILURE_REGION,
         'YEAR_REGION': YEAR_REGION,
+        'UNITY_CUP_TURN_REGION': UNITY_CUP_TURN_REGION,
+        'UNITY_CUP_YEAR_REGION': UNITY_CUP_YEAR_REGION,
         'CRITERIA_REGION': CRITERIA_REGION,
         'STAT_REGIONS': STAT_REGIONS,
         'EVENT_REGIONS': EVENT_REGIONS
@@ -421,6 +451,7 @@ def update_regions(new_regions):
     """Update region values and save to file"""
     global SUPPORT_CARD_ICON_REGION, MOOD_REGION, TURN_REGION, ENERGY_BAR
     global RACE_REGION, FAILURE_REGION, YEAR_REGION, CRITERIA_REGION, STAT_REGIONS, EVENT_REGIONS
+    global UNITY_CUP_TURN_REGION, UNITY_CUP_YEAR_REGION
 
     # Update global variables
     SUPPORT_CARD_ICON_REGION = tuple(new_regions.get('SUPPORT_CARD_ICON_REGION', SUPPORT_CARD_ICON_REGION))
@@ -430,6 +461,8 @@ def update_regions(new_regions):
     RACE_REGION = tuple(new_regions.get('RACE_REGION', RACE_REGION))
     FAILURE_REGION = tuple(new_regions.get('FAILURE_REGION', FAILURE_REGION))
     YEAR_REGION = tuple(new_regions.get('YEAR_REGION', YEAR_REGION))
+    UNITY_CUP_TURN_REGION = tuple(new_regions.get('UNITY_CUP_TURN_REGION', UNITY_CUP_TURN_REGION))
+    UNITY_CUP_YEAR_REGION = tuple(new_regions.get('UNITY_CUP_YEAR_REGION', UNITY_CUP_YEAR_REGION))
     CRITERIA_REGION = tuple(new_regions.get('CRITERIA_REGION', CRITERIA_REGION))
     STAT_REGIONS = new_regions.get('STAT_REGIONS', STAT_REGIONS)
     EVENT_REGIONS = new_regions.get('EVENT_REGIONS', EVENT_REGIONS)
@@ -443,12 +476,38 @@ def update_regions(new_regions):
         'RACE_REGION': RACE_REGION,
         'FAILURE_REGION': FAILURE_REGION,
         'YEAR_REGION': YEAR_REGION,
+        'UNITY_CUP_TURN_REGION': UNITY_CUP_TURN_REGION,
+        'UNITY_CUP_YEAR_REGION': UNITY_CUP_YEAR_REGION,
         'CRITERIA_REGION': CRITERIA_REGION,
         'STAT_REGIONS': STAT_REGIONS,
         'EVENT_REGIONS': EVENT_REGIONS
     }
 
     return save_region_settings(current_regions)
+
+# Global scenario selection
+SCENARIO_NAME = "URA Final"  # Default value
+
+def set_scenario(scenario_name):
+    """Set global scenario name"""
+    global SCENARIO_NAME
+    SCENARIO_NAME = scenario_name
+
+def get_scenario():
+    """Get current scenario name"""
+    return SCENARIO_NAME
+
+def load_scenario_from_settings():
+    """Load scenario from bot_settings.json and update global variable"""
+    global SCENARIO_NAME
+    try:
+        with open('bot_settings.json', 'r') as f:
+            bot_settings = json.load(f)
+            SCENARIO_NAME = bot_settings.get('scenario', 'URA Final')
+    except (FileNotFoundError, json.JSONDecodeError):
+        SCENARIO_NAME = "URA Final"
+    return SCENARIO_NAME
+
 
 def get_mood_config():
     """Get current mood detection configuration"""

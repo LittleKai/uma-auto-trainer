@@ -498,7 +498,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 
-def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
+def check_support_card(threshold=0.75, is_pre_debut=False, training_type=None, current_date=None):
   """Check support card in each training with unified score calculation and support card bonus"""
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
@@ -594,8 +594,10 @@ def check_failure():
 
 def check_turn():
   """Check current turn number or race day"""
-  current_regions = get_current_regions()
-  turn_region = current_regions['TURN_REGION']
+  from utils.constants import get_turn_year_regions
+
+  regions = get_turn_year_regions()
+  turn_region = regions['TURN_REGION']
 
   turn = enhanced_screenshot(turn_region)
   turn_text = extract_text(turn)
@@ -622,9 +624,10 @@ def check_turn():
 def check_current_year():
   """Enhanced year checking with date parsing"""
   global current_date_info
+  from utils.constants import get_turn_year_regions
 
-  current_regions = get_current_regions()
-  year_region = current_regions['YEAR_REGION']
+  regions = get_turn_year_regions()
+  year_region = regions['YEAR_REGION']
 
   year = enhanced_screenshot(year_region)
   text = extract_text(year)

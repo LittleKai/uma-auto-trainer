@@ -85,12 +85,22 @@ class StatusSection:
             row=2, column=0, sticky=tk.W, pady=3)
         self.scenario_dropdown = ttk.Combobox(
             right_column,
+            textvariable=self.main_window.scenario_selection,
             values=["URA Final", "Unity Cup"],
             state="readonly",
             width=15
         )
         self.scenario_dropdown.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=3)
-        self.scenario_dropdown.set("URA Final")  # Default value
+        self.scenario_dropdown.set("URA Final")
+        self.scenario_dropdown.bind('<<ComboboxSelected>>', self.on_scenario_change)
+
+    def on_scenario_change(self, event=None):
+        """Handle scenario selection change"""
+        from utils.constants import set_scenario
+
+        scenario = self.main_window.scenario_selection.get()
+        set_scenario(scenario)  # Update global scenario variable
+        self.main_window.save_settings()
 
     def set_bot_status(self, status, color):
         """Update bot status display"""

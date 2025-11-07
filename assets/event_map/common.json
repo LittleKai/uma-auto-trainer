@@ -63,6 +63,10 @@
     {
       "name": "Number One Reactions?",
       "choice_2_if_energy_shortage_gte": 7
+    },
+    {
+      "name": "Tutorial",
+      "choice": 2
     }
   ]
 }

@@ -67,6 +67,10 @@
     {
       "name": "Tutorial",
       "choice": 2
+    },
+    {
+      "name": "A Team at Last",
+      "choice": 1
     }
   ]
 }

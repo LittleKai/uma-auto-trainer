@@ -226,6 +226,7 @@ class DecisionEngine:
         """Execute complete training flow: check options, make decision, execute training or rest"""
         # Check training options
         if not self.controller.training_handler.go_to_training():
+            print('not go_to_training')
             return True
 
         if self.controller.check_should_stop():
@@ -379,6 +380,9 @@ class DecisionEngine:
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
 
+        year_txt = game_state['year']
+        turn = game_state['turn']
+        print(f'{year_txt} - {turn}')
         # Handle URA Finale
         if game_state['year'] == "Finale Season":
             stop_on_ura_final = strategy_settings.get('stop_on_ura_final', False)
@@ -441,7 +445,8 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager, gui)
+        return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager,
+                                           gui)
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],
                                  current_date: Dict[str, Any], gui=None) -> bool:
@@ -680,7 +685,9 @@ class MainExecutor:
         """Initialize the main executor"""
         self.controller = BotController()
         self.game_state_manager = GameStateManager(self.controller)
-        self.event_handler = EventHandler(self.controller)
+        self.event_handler = EventHandler(self.controller, check_stop_func=self.controller.check_should_stop,
+                                          check_window_func=self.controller.is_game_window_active,
+                                          log_func=self.controller.log_message)
         self.decision_engine = DecisionEngine(self.controller)
         self.lobby_manager = CareerLobbyManager(self.controller)
         self.status_logger = StatusLogger(self.controller)
@@ -714,7 +721,8 @@ class MainExecutor:
 
             # Update game state (only if in lobby)
             game_state = self.game_state_manager.update_game_state()
-
+            year_txt = game_state['year']
+            print(f'{year_txt}')
             # Check stop conditions immediately after getting game state
             if gui and hasattr(gui, 'should_stop_for_conditions'):
                 if gui.should_stop_for_conditions(game_state):

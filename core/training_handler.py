@@ -168,7 +168,7 @@ class TrainingHandler:
                 bonus = get_wit_early_stage_bonus()
                 bonus_components.append(f"early WIT +{bonus}")
 
-        total_score = training_result.get('total_score', 0)
+        total_score = round(training_result.get('total_score', 0), 3)
 
         base_message = f"[{key.upper()}] → {training_result['support']} score: {total_score}"
 
@@ -181,9 +181,9 @@ class TrainingHandler:
 
         self.log(base_message)
 
-        if key == "wit" and training_result['support'].get('friend', 0) > 0:
-            friend_count = training_result['support']['friend']
-            expected_score = friend_count * 0.5
+        # if key == "wit" and training_result['support'].get('friend', 0) > 0:
+        #     friend_count = training_result['support']['friend']
+        #     expected_score = friend_count * 0.5
 
     def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
         """Check all available training options with unified score calculation"""

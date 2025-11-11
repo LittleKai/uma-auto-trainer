@@ -3,8 +3,9 @@ import time
 from typing import Callable, Optional, Dict, List, Tuple
 from core.recognizer import find_template_position
 
-from core.click_handler import enhanced_click, random_click_in_region, move_to_random_position, random_screen_click
+from core.click_handler import enhanced_click, random_click_in_region, find_and_click, random_screen_click
 from utils.constants import RACE_REGION
+
 
 class RaceHandler:
     """Handles all race-related operations with panel-based race detection"""
@@ -21,6 +22,52 @@ class RaceHandler:
         self.check_stop = check_stop_func
         self.check_window = check_window_func
         self.log = log_func
+
+    def unity_race_flow(self):
+        """Handle Unity Cup race flow with opponent selection and race execution"""
+        # Step 1: Check and click opponent selection or race button
+        if not find_and_click(
+                "assets/buttons/unity_cup/select_opponent_btn.png", max_attempts=3, delay_between=2,
+                check_stop_func=self.check_stop):
+            if not find_and_click(
+                    "assets/buttons/unity_cup/unity_cup_race_btn.png", max_attempts=1, delay_between=2,
+                    check_stop_func=self.check_stop):
+                return
+
+        # If opponent selection found, click begin showdown
+        if not find_and_click(
+                "assets/buttons/unity_cup/bebin_showdown_btn.png", max_attempts=3, delay_between=2,
+                check_stop_func=self.check_stop):
+            return
+
+        # Step 2: Click see all race results
+        if not find_and_click(
+                "assets/buttons/unity_cup/see_all_race_results_2.png", confidence=0.7, max_attempts=5, delay_between=3,
+                check_stop_func=self.check_stop):
+            print('fail check')
+            return
+
+        # Step 3: Click skip button
+        if not find_and_click(
+                "assets/buttons/skip_btn.png", max_attempts=3, delay_between=3, check_stop_func=self.check_stop):
+            return
+
+        # Step 4: Click next button
+        if not find_and_click(
+                "assets/buttons/next_btn.png", max_attempts=3, delay_between=2, check_stop_func=self.check_stop):
+            return
+
+        # Step 5: Click next2 button
+        if not find_and_click(
+                "assets/buttons/next2_btn.png", max_attempts=3, delay_between=2, check_stop_func=self.check_stop
+        ):
+            return
+
+        # Step 6: Click next button
+        if not find_and_click(
+                "assets/buttons/next_btn.png", max_attempts=3, delay_between=2, check_stop_func=self.check_stop
+        ):
+            return
 
     def start_race_flow(self, prioritize_g1: bool = False, prioritize_g2: bool = False,
                         allow_continuous_racing: bool = True) -> bool:
@@ -243,7 +290,7 @@ class RaceHandler:
                 grade_location = find_template_position(
                     template_path=template_path,
                     region=panel_region,
-                    threshold=0.6,
+                    threshold=0.7,
                     region_format='xywh'
                 )
 
@@ -257,7 +304,7 @@ class RaceHandler:
 
             match_track_location = pyautogui.locateCenterOnScreen(
                 "assets/ui/match_track.png",
-                confidence=0.6,
+                confidence=0.7,
                 minSearchTime=0.3,
                 region=region_ltrb
             )
@@ -316,7 +363,6 @@ class RaceHandler:
         except Exception as e:
             self.log(f"[DEBUG] Error finding match_track in panel: {e}")
             return None
-
 
     def _click_race_buttons_original(self) -> bool:
         """Click race buttons to confirm selection"""
@@ -417,6 +463,7 @@ class RaceHandler:
 
         if is_ura_final:
             race_day_btn = "assets/buttons/ura_final_race_day_btn.png"
+            print(f'race_day_btn {race_day_btn}')
         else:
             race_day_btn = "assets/buttons/race_day_btn.png"
 
@@ -427,7 +474,6 @@ class RaceHandler:
                 check_window_func=self.check_window,
                 log_func=self.log
         ):
-
             return False
 
         if self.check_stop():

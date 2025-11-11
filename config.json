@@ -32,7 +32,7 @@
         "pre_debut": 1.0,
         "early_stage": 1.0,
         "mid_stage": 2.0,
-        "late_stage": 2.0
+        "late_stage": 2.25
       }
     },
     "stage_thresholds": {
@@ -41,13 +41,13 @@
       "mid_stage": 48
     },
     "support_card_bonus": {
-      "score_bonus": 0.75,
-      "threshold_day": 28,
+      "score_bonus": 0.5,
+      "threshold_day": 24,
       "max_bonus_types": 2
     },
     "unity_cup": {
-      "special_training_score": 0.1,
-      "spirit_explosion_score": 0.75
+      "special_training_score": 0.15,
+      "spirit_explosion_score": 2.5
     },
     "wit_training": {
       "early_stage_bonus": 0.1,

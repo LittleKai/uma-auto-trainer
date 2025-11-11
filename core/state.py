@@ -43,7 +43,7 @@ def get_npc_score_value():
   """Get NPC base score value from configuration"""
   scoring_config = load_scoring_config()
   npc_config = scoring_config.get("npc_score", {})
-  return npc_config.get("base_value", 0.5)
+  return npc_config.get("base_value", 0.25)
 
 def get_support_base_score():
   """Get support card base score value from configuration"""
@@ -518,7 +518,8 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   }
   if SCENARIO_NAME == "Unity Cup":
     NPC_ICONS = {
-      "riko": "assets/icons/support_npc_riko.png"
+      # "riko": "assets/icons/support_npc_riko.png",
+      "etsuko": "assets/icons/support_npc_etsuko.png"
     }
   else:
     NPC_ICONS = {
@@ -550,8 +551,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     absolute_day = current_date.get('absolute_day', 0)
     hint_score = get_hint_score_value(absolute_day)
 
-  npc_score_per_unit = get_npc_score_value()
-  npc_score = total_npc_count * npc_score_per_unit
+  npc_score = 0
+  if total_npc_count > 0:
+    npc_score_per_unit = get_npc_score_value()
+    # npc_score = total_npc_count * npc_score_per_unit
+    npc_score = get_npc_score_value()
 
   count_result["hint"] = hint_count
   count_result["hint_score"] = hint_score
@@ -564,10 +568,10 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   spirit_explosion_score = 0
 
   if SCENARIO_NAME == "Unity Cup":
-    special_training_matches = match_template("assets/icons/unity_cup/special_training.png", support_region, 0.7)
+    special_training_matches = match_template("assets/buttons/unity_cup/special_training.png", support_region, 0.65)
     special_training_count = len(special_training_matches)
 
-    spirit_explosion_matches = match_template("assets/icons/unity_cup/spirit_explosion.png", support_region, threshold)
+    spirit_explosion_matches = match_template("assets/buttons/unity_cup/spirit_explosion.png", support_region, 0.6)
     spirit_explosion_count = len(spirit_explosion_matches)
 
     if special_training_count > 0 or spirit_explosion_count > 0:
@@ -576,11 +580,13 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
 
       if special_training_count > 0:
         special_training_score_value = unity_cup_config.get("special_training_score", 1.0)
-        special_training_score = special_training_count * special_training_score_value
+        # special_training_score = round(special_training_count * special_training_score_value, 2)
+        special_training_score = round(special_training_score_value * (2 ** (special_training_count-1)), 2)
 
       if spirit_explosion_count > 0:
         spirit_explosion_score_value = unity_cup_config.get("spirit_explosion_score", 1.0)
-        spirit_explosion_score = spirit_explosion_count * spirit_explosion_score_value
+        spirit_explosion_score = round(spirit_explosion_count * spirit_explosion_score_value, 2)
+        # spirit_explosion_score = unity_cup_config.get("spirit_explosion_score", 1.0)
 
   count_result["special_training"] = special_training_count
   count_result["special_training_score"] = special_training_score
@@ -676,12 +682,13 @@ def check_current_year():
   text = extract_text(year)
 
   current_date_info = DateManager.parse_year_text(text)
-
+  year_txt = current_date_info['year']
+  print(f'check_current_year {year_txt}')
   if current_date_info is None:
     print(f"[ERROR] Failed to parse year text: {text}")
     raise Exception(f"Critical error: Cannot parse date from OCR text: {text}")
 
-  return text
+  return current_date_info['year']
 
 
 def get_current_date_info():

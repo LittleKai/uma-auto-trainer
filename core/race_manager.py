@@ -74,7 +74,7 @@ class DateManager:
         if 'finale' in cleaned_text.lower() or 'finalseason' in cleaned_text.lower():
             print(f"[INFO] Finale Season detected! Career completed.")
             return {
-                'year': 'Finale',
+                'year': 'Finale Season',
                 'month': 'Season',
                 'period': 'End',
                 'day': 1,

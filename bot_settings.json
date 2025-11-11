@@ -5,9 +5,9 @@
   },
   "distance": {
     "sprint": false,
-    "mile": false,
+    "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -20,101 +20,101 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": true,
+  "stop_before_summer": false,
   "stop_at_month": false,
-  "target_month": "August",
+  "target_month": "March",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Agnes Tachyon",
+    "uma_musume": "Silence Suzuka",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Special Week (SSR)",
       "spd: Sweep Tosho (SR)",
-      "frd: Tazuna Hayakawa (SSR)",
-      "pow: Mihono Bourbon (SR)",
-      "pow: Vodka (SSR)",
+      "spd: Eishin Flash (SR)",
+      "frd: Riko Kashimoto (SSR)",
+      "sta: Mejiro McQueen (SSR)",
+      "sta: Super Creek (SSR)",
       "None",
       "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 2,
+    "current_set": 6,
     "preset_sets": {
       "1": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Oguri Cap",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Gold Ship (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "pow: Oguri Cap (SSR)",
-          "gut: Air Groove (SR)",
-          "pow: Vodka (SSR)",
+          "spd: Special Week (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Daiwa Scarlet (SSR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
       },
       "2": {
-        "uma_musume": "Agnes Tachyon",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Special Week (SSR)",
           "spd: Sweep Tosho (SR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
-          "pow: Vodka (SSR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
       },
       "3": {
-        "uma_musume": "Maruzensky (Summer)",
+        "uma_musume": "Vodka",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Silence Suzuka (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)",
+          "spd: Eishin Flash (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Winning Ticket (SSR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
       },
       "4": {
-        "uma_musume": "None",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Rice Shower (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "spd: Eishin Flash (SR)",
           "None",
           "None"
         ]
       },
       "5": {
-        "uma_musume": "None",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
+          "spd: Kitasan Black (SSR)",
+          "spd: Special Week (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
       },
       "6": {
-        "uma_musume": "None",
+        "uma_musume": "Vodka",
         "support_cards": [
-          "None",
+          "spd: Kitasan Black (SSR)",
           "None",
           "None",
           "None",
@@ -125,14 +125,14 @@
         ]
       },
       "7": {
-        "uma_musume": "None",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
+          "spd: Kitasan Black (SSR)",
+          "spd: Gold Ship (SSR)",
+          "gut: Air Groove (SR)",
+          "sta: Silence Suzuka (SSR)",
+          "spd: Narita Brian (SSR)",
+          "sta: Super Creek (SSR)",
           "None",
           "None"
         ]
@@ -145,7 +145,7 @@
           "spd: Gold Ship (SSR)",
           "gut: Air Groove (SR)",
           "pow: Oguri Cap (SSR)",
-          "pow: Vodka (SSR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
@@ -165,8 +165,8 @@
   "window": {
     "width": 835,
     "height": 948,
-    "x": 1065,
-    "y": 37
+    "x": 1074,
+    "y": 6
   },
   "scenario": "Unity Cup"
 }

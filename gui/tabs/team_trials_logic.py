@@ -2,6 +2,7 @@ import pyautogui
 import time
 import threading
 
+
 class TeamTrialsLogic:
     """Optimized Team Trials logic handler with F3 stop support"""
 
@@ -193,7 +194,8 @@ class TeamTrialsLogic:
                 self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False, click=True)
 
         # Race again button
-        if not self.find_and_click("assets/buttons/home/team_trials/race_again_btn.png", max_attempts=5, delay_between=5):
+        if not self.find_and_click("assets/buttons/home/team_trials/race_again_btn.png", max_attempts=5,
+                                   delay_between=5):
             return False
 
         # Check no more turns
@@ -286,10 +288,12 @@ class TeamTrialsLogic:
                 self.main_window.log_message("Race tab not found - Not on Home screen")
                 return False
             # 2. Click Race Event button
-            if not self.find_and_click("assets/buttons/home/race_event/race_event_btn.png", click=True, max_attempts=3, delay_between=5):
+            if not self.find_and_click("assets/buttons/home/race_event/race_event_btn.png", click=True, max_attempts=3,
+                                       delay_between=5):
                 return False
                 # Click Legend Race button
-            if not self.find_and_click("assets/buttons/home/race_event/legend_race_btn.png", click=True, max_attempts=3, delay_between=3):
+            if not self.find_and_click("assets/buttons/home/race_event/legend_race_btn.png", click=True, max_attempts=3,
+                                       delay_between=3):
                 return False
 
             time.sleep(5)
@@ -302,19 +306,22 @@ class TeamTrialsLogic:
                     #         self.main_window.log_message("No more Legend Race attempts available.")
                     #         break
 
-                        # 4. Click EX button
-                    if not self.find_and_click("assets/buttons/home/race_event/ex_btn.png", click=True, max_attempts=3, delay_between=3):
+                    # 4. Click EX button
+                    if not self.find_and_click("assets/buttons/home/race_event/ex_btn.png", click=True, max_attempts=3,
+                                               delay_between=3):
                         return False
 
                     # 5. Click Race button
-                    if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True,  max_attempts=3, delay_between=2):
+                    if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True,
+                                               max_attempts=3, delay_between=2):
                         return False
 
-                    self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", click=True, log_attempts= False,
+                    self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", click=True, log_attempts=False,
                                         max_attempts=2, delay_between=3)
 
                     # 6. Confirm
-                    if not self.find_and_click("assets/buttons/confirm_btn.png", click=True, max_attempts=3, delay_between=3):
+                    if not self.find_and_click("assets/buttons/confirm_btn.png", click=True, max_attempts=3,
+                                               delay_between=3):
                         return False
 
                 # 7. Next button
@@ -323,10 +330,12 @@ class TeamTrialsLogic:
 
                 # 8. Use Parfait if enabled
                 if self.ui_tab.legend_race_use_parfait.get():
-                    self.find_and_click("assets/buttons/home/team_trials/parfait.png", click=True, max_attempts=3, delay_between=1)
+                    self.find_and_click("assets/buttons/home/team_trials/parfait.png", click=True, max_attempts=3,
+                                        delay_between=1)
 
                 # 9. Race button
-                if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True, max_attempts=5, delay_between=2):
+                if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", click=True, max_attempts=5,
+                                           delay_between=2):
                     return False
 
                 # 10. View results and click
@@ -367,7 +376,8 @@ class TeamTrialsLogic:
                         self.main_window.log_message("Shop bypassed - clicked cancel")
 
                     # 14. Continue to next iteration
-                    if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=3, delay_between=2):
+                    if not self.find_and_click("assets/buttons/next_btn.png", click=True, max_attempts=3,
+                                               delay_between=2):
                         return False
 
         except Exception as e:
@@ -377,7 +387,6 @@ class TeamTrialsLogic:
             self.is_team_trials_running = False
 
         return True
-
 
     def navigate_to_team_trials(self):
         """Navigate to team trials section with stop checking"""
@@ -455,12 +464,14 @@ class TeamTrialsLogic:
             return False
 
         # Step 3 final: Check for refresh button
-        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=8, delay_between=3, click=False, log_attempts=False):
+        if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=8, delay_between=3, click=False,
+                                   log_attempts=False):
             self.main_window.log_message("Neither refresh nor next button found")
             return False
 
         # Check PvP gift
-        pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png", log_attempts="Found Pvp gift")
+        pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png",
+                                           log_attempts="Found Pvp gift")
 
         # Select opponent if no PvP gift
         if not pvp_gift_pos:
@@ -562,7 +573,7 @@ class TeamTrialsLogic:
             # Check for completion buttons after 25 clicks
             if i >= 24:
                 completion_buttons = [
-                    "assets/buttons/cancel_btn.png",
+                    "assets/buttons/cancel_btn.png", "assets/buttons/next_btn.png",
                     "assets/buttons/next2_btn.png",
                     "assets/buttons/home/team_trials/race_again_btn.png"
                 ]

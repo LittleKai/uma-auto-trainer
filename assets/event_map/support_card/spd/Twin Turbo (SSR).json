@@ -1,0 +1,24 @@
+{
+  "events": [
+    {
+      "name": "Can't Catch Me!",
+      "choice": 1
+    },
+    {
+      "name": "I'm Not Afraid!",
+      "choice": 1
+    },
+    {
+      "name": "Just Start Running!",
+      "choice": 2
+    },
+    {
+      "name": "I'm All Fired Up!",
+      "choice": 1
+    },
+    {
+      "name": "Turbo Is Strong!",
+      "choice": 1
+    }
+  ]
+}

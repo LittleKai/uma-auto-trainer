@@ -402,20 +402,56 @@ class EventChoiceTab:
                 # Define the order of support card types: spd, sta, pow, gut, wit, frd
                 card_types = ["spd", "sta", "pow", "gut", "wit", "frd"]
 
+                # Helper function to extract rarity from filename
+                def get_rarity_order(filename):
+                    if "(SSR)" in filename:
+                        return 0
+                    elif "(SR)" in filename:
+                        return 1
+                    elif "(R)" in filename:
+                        return 2
+                    else:
+                        return 3  # No rarity specified goes last
+
+                # Helper function to get the filename without rarity for alphabetical sorting
+                def get_clean_name(filename):
+                    import re
+                    # Remove rarity tags for pure alphabetical comparison
+                    return re.sub(r'\s*\((SSR|SR|R)\)', '', filename).lower()
+
                 for card_type in card_types:
                     type_folder = os.path.join(support_folder, card_type)
                     if os.path.exists(type_folder):
                         json_files = glob.glob(os.path.join(type_folder, "*.json"))
+
+                        # Create list of tuples (filename, rarity_order, clean_name)
+                        files_with_sort_key = []
                         for file_path in json_files:
                             filename = os.path.basename(file_path).replace('.json', '')
-                            # Format display name as "type: filename"
+                            rarity_order = get_rarity_order(filename)
+                            clean_name = get_clean_name(filename)
+                            files_with_sort_key.append((filename, rarity_order, clean_name))
+
+                        # Sort by rarity first, then alphabetically
+                        files_with_sort_key.sort(key=lambda x: (x[1], x[2]))
+
+                        # Add to support_list with formatting
+                        for filename, _, _ in files_with_sort_key:
                             display_name = f"{card_type}: {filename}"
                             support_list.append(display_name)
 
                 # Also check for any JSON files directly in the support_card folder for backward compatibility
                 direct_json_files = glob.glob(os.path.join(support_folder, "*.json"))
+                direct_files_data = []
                 for file_path in direct_json_files:
                     filename = os.path.basename(file_path).replace('.json', '')
+                    rarity_order = get_rarity_order(filename)
+                    clean_name = get_clean_name(filename)
+                    direct_files_data.append((filename, rarity_order, clean_name))
+
+                # Sort direct files the same way
+                direct_files_data.sort(key=lambda x: (x[1], x[2]))
+                for filename, _, _ in direct_files_data:
                     support_list.append(filename)
 
         except Exception as e:

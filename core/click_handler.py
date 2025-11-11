@@ -2,6 +2,8 @@ import pyautogui
 import random
 import time
 from typing import Tuple, Optional
+from core.recognizer import match_template
+
 
 def random_click_in_region(left: int, top: int, width: int, height: int, duration: float = 0.175) -> bool:
     """
@@ -26,6 +28,7 @@ def random_click_in_region(left: int, top: int, width: int, height: int, duratio
     except Exception as e:
         print(f"[WARNING] Random click failed: {e}")
         return False
+
 
 def enhanced_click(img: str, confidence: float = 0.8, minSearch: float = 2,
                    click_count: int = 1, text: str = "", use_random: bool = True,
@@ -72,15 +75,16 @@ def enhanced_click(img: str, confidence: float = 0.8, minSearch: float = 2,
 
     return False
 
-def random_screen_click(offset_range: int = 100) -> None:
 
+def random_screen_click(offset_range: int = 100) -> None:
     try:
         screen_width, screen_height = pyautogui.size()
-        center_x = screen_width // 3  + random.randint(-offset_range, offset_range)
+        center_x = screen_width // 3 + random.randint(-offset_range, offset_range)
         center_y = screen_height // 2 + random.randint(-offset_range, offset_range)
         pyautogui.click(center_x, center_y)
     except Exception as e:
         print(f"[WARNING] Random screen click failed: {e}")
+
 
 def triple_click_random(region: Tuple[int, int, int, int], interval: float = 0.1) -> None:
     """
@@ -94,6 +98,7 @@ def triple_click_random(region: Tuple[int, int, int, int], interval: float = 0.1
         if i < 2:  # Don't sleep after the last click
             time.sleep(interval)
 
+
 def move_to_random_position(base_x: int, base_y: int, offset_range: int = 10) -> None:
     """
     Move mouse to a random position near the base coordinates
@@ -106,11 +111,12 @@ def move_to_random_position(base_x: int, base_y: int, offset_range: int = 10) ->
         print(f"[WARNING] Random move failed: {e}")
         pyautogui.moveTo(x=base_x, y=base_y)  # Fallback to original position
 
-def find_and_click_with_random(img_path: str, region: Optional[Tuple[int, int, int, int]] = None,
-                               max_attempts: int = 1, delay_between: float = 1.0,
-                               click: bool = True, use_random: bool = True,
-                               confidence: float = 0.8, log_attempts: bool = True,
-                               check_stop_func=None, log_func=None) -> Optional[Tuple[int, int]]:
+
+def find_and_click(img_path: str, region: Optional[Tuple[int, int, int, int]] = None,
+                   max_attempts: int = 1, delay_between: float = 1.0,
+                   click: bool = True, confidence: float = 0.8, log_attempts: bool = True,
+                   use_random: bool = True,
+                   check_stop_func=None, log_func=None) -> Optional[Tuple[int, int]]:
     """
     Find and optionally click an image on screen with random clicking support
 
@@ -120,9 +126,9 @@ def find_and_click_with_random(img_path: str, region: Optional[Tuple[int, int, i
         max_attempts: Number of attempts to find the image
         delay_between: Delay between attempts in seconds
         click: Whether to click when found
-        use_random: Whether to use random clicking within the found region
         confidence: Template matching confidence (0-1)
         log_attempts: Whether to log attempt failures
+        use_random: Whether to click at random position within the box (default True)
         check_stop_func: Function to check if should stop
         log_func: Function to log messages
 
@@ -149,48 +155,47 @@ def find_and_click_with_random(img_path: str, region: Optional[Tuple[int, int, i
             return None
 
         try:
-            # Try to locate the image center
-            button = pyautogui.locateCenterOnScreen(
-                img_path, confidence=confidence, minSearchTime=0.2, region=region
-            )
+            # Try to locate the image
+            boxes = match_template(img_path, threshold=confidence, region=region)
 
-            if button:
+            # Check if any matches found
+            if boxes and len(boxes) > 0:
+                # Get first match
+                x, y, w, h = boxes[0]
+
+                # Calculate click position based on use_random
+                if use_random:
+                    # Random position within the box (with some margin from edges)
+                    margin_x = max(2, w // 10)  # 10% margin or minimum 2px
+                    margin_y = max(2, h // 10)
+                    click_x = random.randint(x + margin_x, x + w - margin_x)
+                    click_y = random.randint(y + margin_y, y + h - margin_y)
+                else:
+                    # Center of the box
+                    click_x = x + w // 2
+                    click_y = y + h // 2
+
                 if click:
                     # Check stop condition before clicking
                     if check_stop_func and check_stop_func():
                         return None
 
-                    if use_random:
-                        # Get the full button region for random clicking
-                        btn_region = pyautogui.locateOnScreen(
-                            img_path, confidence=confidence, minSearchTime=0.1, region=region
-                        )
-                        if btn_region:
-                            # Click randomly within the button region
-                            random_click_in_region(btn_region.left, btn_region.top,
-                                                   btn_region.width, btn_region.height)
-                            if log_func:
-                                log_func(f"Random clicked {filename}")
-                        else:
-                            # Fallback to center click
-                            pyautogui.moveTo(button, duration=0.175)
-                            pyautogui.click()
-                            if log_func:
-                                log_func(f"Clicked {filename}")
-                    else:
-                        # Traditional center click
-                        pyautogui.moveTo(button, duration=0.175)
-                        pyautogui.click()
-                        if log_func:
-                            log_func(f"Clicked {filename}")
+                    # Click at calculated position
+                    pyautogui.moveTo(click_x, click_y, duration=0.175)
+                    pyautogui.click()
+                    if log_func:
+                        log_func(f"Clicked {filename}")
 
-                    return button
+                    return (click_x, click_y)
                 else:
                     # Just return the position without clicking
-                    return button
+                    return (click_x, click_y)
 
         except pyautogui.ImageNotFoundException:
             pass
+        except Exception as e:
+            if log_func:
+                log_func(f"Error processing {filename}: {e}")
 
         # Delay between attempts if not the last attempt
         if attempt < max_attempts - 1:

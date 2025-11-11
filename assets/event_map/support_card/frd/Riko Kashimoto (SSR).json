@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "The Kashimoto Art of Tidying Up",
+      "choice": 1
+    },
+    {
+      "name": "Unexpected Side",
+      "choice": 2
+    },
+    {
+      "name": "Picture Their Joy",
+      "choice": 1
+    }
+  ]
+}

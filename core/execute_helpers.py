@@ -1,13 +1,22 @@
 import pyautogui
 import time
 from typing import Dict, Any, Callable
+from core.race_handler import RaceHandler
 
 
 class EventHandler:
     """Handles UI events and manual event processing"""
 
-    def __init__(self, controller):
+    def __init__(self, controller, check_stop_func: Callable, check_window_func: Callable, log_func: Callable):
         self.controller = controller
+        self.check_stop = check_stop_func
+        self.check_window = check_window_func
+        self.log = log_func
+        self.race_handler = RaceHandler(
+            check_stop_func=self.check_stop,
+            check_window_func=self.check_window,
+            log_func=self.log
+        )
 
     def handle_ui_elements(self, gui=None) -> bool:
         """Handle various UI elements with priority order including event choice"""
@@ -37,7 +46,8 @@ class EventHandler:
                 self.controller.reset_career_lobby_counter()
                 return True
 
-            if self._click("assets/icons/unity_cup/unity_cup_btn.png", minSearch=0.2):
+            if self._click("assets/buttons/unity_cup/unity_cup_btn.png", minSearch=0.2, text="Unity Cup Race found."):
+                self.race_handler.unity_race_flow()
                 self.controller.reset_career_lobby_counter()
                 return True
 

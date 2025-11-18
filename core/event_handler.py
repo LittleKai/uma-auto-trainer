@@ -682,7 +682,7 @@ class EventChoiceHandler:
 
             current_energy_val, max_energy_val = self.get_current_energy_with_max()
             energy_shortage = max_energy_val - current_energy_val
-
+            print(f'evaluate_event_conditions - e: {energy_shortage}')
             current_date = None
             try:
                 from core.state import get_current_date_info
@@ -819,9 +819,7 @@ class EventChoiceHandler:
             if self.check_stop():
                 return False
 
-            if not self.check_window():
-                return False
-
+            time.sleep(0.5)
             choice_number = max(1, min(5, choice_number))
             choice_icon = f"assets/icons/event_choice_{choice_number}.png"
 

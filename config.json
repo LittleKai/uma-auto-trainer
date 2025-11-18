@@ -46,8 +46,8 @@
       "max_bonus_types": 2
     },
     "unity_cup": {
-      "special_training_score": 0.15,
-      "spirit_explosion_score": 2.5
+      "special_training_score": 0.1,
+      "spirit_explosion_score": 2.0
     },
     "wit_training": {
       "early_stage_bonus": 0.1,
@@ -61,7 +61,7 @@
     },
     "energy_restrictions": {
       "medium_energy_shortage": 43,
-      "medium_energy_max_score_threshold": 3.0
+      "medium_energy_max_score_threshold": 2.9
     }
   }
 }

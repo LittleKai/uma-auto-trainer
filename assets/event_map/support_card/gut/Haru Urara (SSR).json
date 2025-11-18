@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Urara's ☆ Study Review",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "Urara's ☆ Long Shot Dash!",
+      "choice": 2
+    }
+  ]
+}

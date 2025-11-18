@@ -49,7 +49,7 @@ class TeamTrialsLogic:
         self.main_window.is_running = False
         self.main_window.log_message("Daily Activities stopped")
 
-    def find_and_click(self, image_path, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True, click_number = 1):
+    def find_and_click(self, image_path, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True):
         """Universal function to find and optionally click images with stop checking"""
         time.sleep(1)
 
@@ -78,12 +78,10 @@ class TeamTrialsLogic:
                         # Check stop condition before clicking
                         if self.check_stop_condition():
                             return None
-                        for i in range(click_number):
-                            pyautogui.click(button)
-                            time.sleep(0.2)
+                        pyautogui.click(button)
                         self.main_window.log_message(f"Clicked {filename}")
                         if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
-                            time.sleep(8)
+                            time.sleep(10)
                         return button
                     else:
                         return button
@@ -438,21 +436,24 @@ class TeamTrialsLogic:
             self.main_window.log_message("No more turns available - stopping bot")
             return False
 
-        time.sleep(8)
+        time.sleep(10)
 
         # Check stop condition before next button check
         if self.check_stop_condition():
             return False
 
         # Step 3 continued: Check for immediate next button (skip to race results)
-        if self.find_and_click("assets/buttons/quick_mode_on.png", click =False) or self.find_and_click("assets/buttons/quick_mode_off.png", click =False):
-            self.main_window.log_message("Proceeding directly to race")
+        if self.find_and_click("assets/buttons/next_btn.png"):
+            self.main_window.log_message("Next button found - proceeding directly to race")
+            time.sleep(2)
 
             # Check stop condition before race button
             if self.check_stop_condition():
                 return False
 
-            return self.handle_race_results()
+            if self.find_and_click("assets/buttons/home/team_trials/race_btn.png"):
+                time.sleep(2)
+                return self.handle_race_results()
 
         return True
 
@@ -520,8 +521,6 @@ class TeamTrialsLogic:
             self.main_window.log_message("Failed to find race button")
             return False
 
-        time.sleep(2)
-
         # Handle race results
         return self.handle_race_results()
 
@@ -552,50 +551,56 @@ class TeamTrialsLogic:
 
     def handle_race_results(self):
         """Handle race results processing with stop checking"""
-        print('handle_race_results')
+        time.sleep(2)
+
         # Check stop condition before handling results
         if self.check_stop_condition():
             return False
 
-        if not self.find_and_click("assets/buttons/quick_mode_on.png", click=False, max_attempts=5, delay_between=2):
-            self.main_window.log_message("Failed to find quick_mode_on button")
-            if not self.find_and_click("assets/buttons/quick_mode_off.png"):
-                self.main_window.log_message("Failed to find quick_mode_off button")
+        # Find and click see result button
+        see_result_pos = self.find_and_click("assets/buttons/home/team_trials/see_result.png",
+                                             max_attempts=8, delay_between=3)
+        if not see_result_pos:
+            return False
+
+        # Click at see result position 40 times, checking for completion after 25 clicks
+        for i in range(40):
+            # Check stop condition at each iteration
+            if self.check_stop_condition():
+                self.main_window.log_message("Team Trials stopped during race results processing")
                 return False
-            time.sleep(1)
 
-        if not self.find_and_click("assets/buttons/home/team_trials/see_all_race_results.png"):
-            return False
+            # Check for completion buttons after 25 clicks
+            if i >= 24:
+                completion_buttons = [
+                    "assets/buttons/cancel_btn.png", "assets/buttons/next_btn.png",
+                    "assets/buttons/next2_btn.png",
+                    "assets/buttons/home/team_trials/race_again_btn.png"
+                ]
 
-        if self.check_stop_condition():
-            return False
+                for button in completion_buttons:
+                    # Check stop condition before each button check
+                    if self.check_stop_condition():
+                        return False
 
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=5, delay_between=1, click_number=2):
-            return False
+                    if self.find_and_click(button, click=False, log_attempts=False):
+                        self.main_window.log_message(f"Completion button found.")
+                        return self.handle_shop_and_continue()
+            else:
+                time.sleep(0.5)
 
-        if self.check_stop_condition():
-            return False
+            # Check stop condition before clicking
+            if self.check_stop_condition():
+                return False
 
-        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=5, delay_between=1):
-            return False
+            pyautogui.click(see_result_pos)
 
-        time.sleep(4)
-        pyautogui.click(300, 300)
-        time.sleep(0.5)
-        pyautogui.click(300, 300)
-        time.sleep(0.5)
-        pyautogui.click(300, 300)
-        time.sleep(0.5)
-
-        if not self.handle_shop_and_continue():
-            return False
-
-        return True
+        self.main_window.log_message("Completed 40 clicks - no completion buttons found, stopping bot")
+        return False
 
     def handle_shop_and_continue(self):
         """Handle shop detection and race continuation with stop checking"""
         # Check stop condition before shop handling
-        time.sleep(3)
         if self.check_stop_condition():
             return False
 
@@ -603,27 +608,53 @@ class TeamTrialsLogic:
         if self.find_and_click("assets/buttons/close_btn.png", log_attempts=False):
             time.sleep(2)
 
-           # Check stop condition before race again button
+        # Step 7: Handle shop if present
+        if self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", click=False, log_attempts=False):
+            self.main_window.log_message("Shop available")
+
+            if self.ui_tab.stop_if_shop.get():
+                # Check stop condition before shop click
+                if self.check_stop_condition():
+                    return False
+
+                self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", log_attempts=False)
+                self.main_window.log_message("Shop detected - stopping as requested")
+                return False
+            else:
+                # Check stop condition before cancel click
+                if self.check_stop_condition():
+                    return False
+
+                self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False)
+                self.main_window.log_message("Shop bypassed - clicked cancel")
+
+        # Check stop condition before race again button
         if self.check_stop_condition():
             return False
 
-            # Step 7 final: Final race again attempt
+        # Step 7 continued: Try race again button first
         if self.find_and_click("assets/buttons/home/team_trials/race_again_btn.png", log_attempts=False):
             if self.find_and_click("assets/buttons/restore_btn.png", click=False, log_attempts=False):
                 self.main_window.log_message("No more turns available - stopping bot")
                 return False
             return True
 
+        # Check stop condition before next2 button
+        if self.check_stop_condition():
+            return False
+
         # Step 7 alternate: Try next2 button sequence
-        if self.find_and_click("assets/buttons/next2_btn.png", log_attempts=False,):
+        if self.find_and_click("assets/buttons/next2_btn.png", log_attempts=False):
+            time.sleep(2)
+
             # Check stop condition before next button
             if self.check_stop_condition():
                 return False
 
-            self.find_and_click("assets/buttons/next_btn.png", log_attempts=False, max_attempts=5, delay_between=1)
+            self.find_and_click("assets/buttons/next_btn.png", log_attempts=False)
 
-        # Step 7 continued: Check shop
-        time.sleep(1)
+        # Step 7 continued: Check shop again after next2 sequence
+        time.sleep(2)
 
         # Check stop condition before shop check again
         if self.check_stop_condition():

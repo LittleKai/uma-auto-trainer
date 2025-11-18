@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "Seeking Uniqueness!",
+      "choice": 2
+    },
+    {
+      "name": "Just Your Typical Hard Work!",
+      "choice": 2
+    },
+    {
+      "name": "Just A Typical Accident?!",
+      "choice": 1
+    }
+  ]
+}

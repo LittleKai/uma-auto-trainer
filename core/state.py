@@ -242,8 +242,8 @@ def check_energy_percentage(return_max_energy=False):
 
     white_color = (255, 255, 255)
     gray_color = (118, 117, 118)
-    base_energy_pixels = 236.0
-    total_energy_pixels_adjust = -1
+    base_energy_pixels = 237.0
+    total_energy_pixels_adjust = -2
 
     energy_start_pos = None
     energy_end_pos = None
@@ -596,10 +596,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   total_score = calculate_unified_training_score(training_type, count_result, current_date)
 
   support_card_bonus = 0
-  if training_type and current_date:
-    bonus_dict = calculate_support_card_bonus(current_date)
-    support_card_bonus = bonus_dict.get(training_type, 0)
-    total_score += support_card_bonus
+  if SCENARIO_NAME != "Unity Cup":
+    if training_type and current_date:
+      bonus_dict = calculate_support_card_bonus(current_date)
+      support_card_bonus = bonus_dict.get(training_type, 0)
+      total_score += support_card_bonus
 
   count_result["support_card_bonus"] = support_card_bonus
 

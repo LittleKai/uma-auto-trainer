@@ -1,12 +1,12 @@
 {
   "track": {
     "turf": true,
-    "dirt": false
+    "dirt": true
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
-    "medium": true,
+    "medium": false,
     "long": false
   },
   "grade": {
@@ -18,13 +18,13 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
   "target_month": "March",
   "stop_on_ura_final": false,
@@ -32,28 +32,28 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Silence Suzuka",
+    "uma_musume": "Taiki Shuttle",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Sweep Tosho (SR)",
-      "spd: Eishin Flash (SR)",
-      "frd: Riko Kashimoto (SSR)",
-      "sta: Mejiro McQueen (SSR)",
-      "sta: Super Creek (SSR)",
+      "spd: Silence Suzuka (SSR)",
+      "spd: Gold Ship (SSR)",
+      "pow: Smart Falcon (SSR)",
+      "pow: Oguri Cap (SSR)",
+      "pow: Rice Shower (SSR)",
       "None",
       "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 6,
+    "current_set": 8,
     "preset_sets": {
       "1": {
-        "uma_musume": "Oguri Cap",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Special Week (SSR)",
           "spd: Sweep Tosho (SR)",
+          "spd: Eishin Flash (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
+          "pow: Mihono Bourbon (SR)",
           "pow: Rice Shower (SSR)",
           "None",
           "None"
@@ -91,9 +91,9 @@
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Rice Shower (SSR)",
+          "spd: Twin Turbo (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "spd: Eishin Flash (SR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
@@ -112,14 +112,14 @@
         ]
       },
       "6": {
-        "uma_musume": "Vodka",
+        "uma_musume": "Curren Chan",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
+          "wit: Matikanefukukitaru (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "gut: Matikanetannhauser (SSR)",
+          "gut: Haru Urara (SSR)",
+          "spd: Sakura Bakushin O (SSR)",
           "None",
           "None"
         ]
@@ -129,21 +129,21 @@
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Gold Ship (SSR)",
-          "gut: Air Groove (SR)",
           "sta: Silence Suzuka (SSR)",
-          "spd: Narita Brian (SSR)",
-          "sta: Super Creek (SSR)",
+          "sta: Mayano Top Gun (SR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Smart Falcon (SSR)",
           "None",
           "None"
         ]
       },
       "8": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Silence Suzuka (SSR)",
           "spd: Gold Ship (SSR)",
-          "gut: Air Groove (SR)",
+          "pow: Smart Falcon (SSR)",
           "pow: Oguri Cap (SSR)",
           "pow: Rice Shower (SSR)",
           "None",
@@ -164,9 +164,9 @@
   },
   "window": {
     "width": 835,
-    "height": 948,
+    "height": 991,
     "x": 1074,
-    "y": 6
+    "y": 0
   },
   "scenario": "Unity Cup"
 }

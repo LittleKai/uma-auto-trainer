@@ -1,7 +1,7 @@
 {
   "priority_stat": [ "spd", "pwr",  "sta", "wit", "guts"],
   "maximum_failure": 15,
-  "minimum_energy_percentage": 44,
+  "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 50,
   "stat_caps": {
@@ -14,7 +14,7 @@
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
     "hint_score": {
-      "early_stage": 0.9,
+      "early_stage": 1.0,
       "late_stage": 0.5,
       "day_threshold": 24
     },
@@ -25,7 +25,7 @@
       "base_value": 1.0,
       "friend_multiplier": {
         "early_stage": 1.2,
-        "late_stage": 1.0,
+        "late_stage": 1.1,
         "friend_wit_multiplier": 0.5
       },
       "rainbow_multiplier": {
@@ -46,7 +46,7 @@
       "max_bonus_types": 2
     },
     "unity_cup": {
-      "special_training_score": 0.1,
+      "special_training_score": 0.125,
       "spirit_explosion_score": 2.0
     },
     "wit_training": {
@@ -60,7 +60,7 @@
       }
     },
     "energy_restrictions": {
-      "medium_energy_shortage": 43,
+      "medium_energy_shortage": 45,
       "medium_energy_max_score_threshold": 2.9
     }
   }

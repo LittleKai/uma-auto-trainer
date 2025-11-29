@@ -1,0 +1,56 @@
+{
+  "events": [
+    {
+      "name": "Hearty Chanko! ☆",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Maya's Thrilling ☆ Test of Courage",
+      "choice": 1
+    },
+    {
+      "name": "Sweet Feelings for You ♪",
+      "choice": 1
+    },
+    {
+      "name": "Mayano Takes Off ☆",
+      "choice": 1
+    },
+    {
+      "name": "Maya Will Teach You ☆",
+      "choice": 1
+    },
+    {
+      "name": "Tips from a Top Model!",
+      "choice": 2
+    },
+    {
+      "name": "Maya's Race Class ☆",
+      "choice": 1
+    },
+    {
+      "name": "Maya's Exciting ☆ Livestream!",
+      "choice": 1
+    },
+    {
+      "name": "Maya's Euphoric ☆ Livestream!",
+      "choice": 1
+    },
+    {
+      "name": "Maya's Twinkly ☆ Determination!",
+      "choice": 1
+    },
+    {
+      "name": "Maya's Special Someone!",
+      "choice": 1
+    },
+    {
+      "name": "Wish on a Star",
+      "choice": 2
+    }
+  ]
+}

@@ -316,16 +316,21 @@ def training_decision(results_training, energy_percentage, energy_max, strategy_
     return medium_energy_wit_training(filtered_results, current_date)
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
-  energy_restrictions = get_energy_restriction_config()
-  medium_energy_shortage = energy_restrictions['medium_energy_shortage']
-  max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
+
+  if stage_info['stage'] in ['mid', 'late']:
+    energy_restrictions = get_energy_restriction_config()
+    medium_energy_shortage = energy_restrictions['medium_energy_shortage']
+    max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
+  else:
+    medium_energy_shortage = 46
+    max_score_threshold = 1.15
 
   energy_shortage_absolute = energy_max - energy_percentage
   print(f' energy_shortage_absolute: {energy_max} - {energy_percentage}')
 
   stage = stage_info['stage']
   print(f'{stage} - e: {energy_shortage_absolute} - {medium_energy_shortage}')
-  if (stage_info['stage'] in ['mid', 'late'] and energy_shortage_absolute >= medium_energy_shortage):
+  if (energy_shortage_absolute >= medium_energy_shortage):
     # Check if any available training score is > threshold using total_score with WIT bonus
     has_high_score_training = False
     best_score_for_debug = 0

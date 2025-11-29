@@ -5,6 +5,10 @@
       "choice_2_if_mood_lt": "GREAT"
     },
     {
+      "name": "The Ultimate Choice",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
       "name": "Awkward Honesty",
       "choice_2_if_energy_shortage_gte": 15
     },

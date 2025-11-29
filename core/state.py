@@ -242,8 +242,8 @@ def check_energy_percentage(return_max_energy=False):
 
     white_color = (255, 255, 255)
     gray_color = (118, 117, 118)
-    base_energy_pixels = 237.0
-    total_energy_pixels_adjust = -2
+    base_energy_pixels = 236.5
+    total_energy_pixels_adjust = 0.5
 
     energy_start_pos = None
     energy_end_pos = None
@@ -320,12 +320,14 @@ def check_energy_percentage(return_max_energy=False):
       current_energy = (current_energy_pixels * 100.0) / base_energy_pixels
 
       max_energy = max(0.0, max_energy)
+      if current_energy <max_energy:
+        current_energy = current_energy - 2.0
       current_energy = max(0.0, min(current_energy, max_energy))
 
       if return_max_energy:
-        return (round(current_energy, 1), round(max_energy, 1))
+        return (round(current_energy, 0), round(max_energy, 0))
       else:
-        return round(current_energy, 1)
+        return round(current_energy, 0)
 
     elif first_white_found:
       gray_pixel_count = 0
@@ -571,7 +573,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     special_training_matches = match_template("assets/buttons/unity_cup/special_training.png", support_region, 0.65)
     special_training_count = len(special_training_matches)
 
-    spirit_explosion_matches = match_template("assets/buttons/unity_cup/spirit_explosion.png", support_region, 0.6)
+    spirit_explosion_matches = match_template("assets/buttons/unity_cup/spirit_explosion.png", support_region, 0.65)
     spirit_explosion_count = len(spirit_explosion_matches)
 
     if special_training_count > 0 or spirit_explosion_count > 0:

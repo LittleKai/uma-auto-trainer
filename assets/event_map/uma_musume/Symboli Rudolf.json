@@ -1,0 +1,68 @@
+{
+  "events": [
+    {
+      "name": "The Emperor's Satiation",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "At Any Time",
+      "choice_2_if_energy_shortage_gte": 7
+    },
+    {
+      "name": "Sudden Kindness",
+      "choice_2_if_energy_shortage_gte": 7
+    },
+    {
+      "name": "As Good As My Word",
+      "choice_2_if_energy_shortage_gte": 7
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "Midway Reflection",
+      "choice": 1
+    },
+    {
+      "name": "The Smiling Emperor's New Clothes",
+      "choice": 2
+    },
+    {
+      "name": "The Distant View from the End of the Road",
+      "choice": 1
+    },
+    {
+      "name": "Those Who March Forth",
+      "choice": 1
+    },
+    {
+      "name": "The Emperor's Social Studies",
+      "choice": 2
+    },
+    {
+      "name": "The Emperor's Spare Time",
+      "choice": 1
+    },
+    {
+      "name": "Birds of a Feather",
+      "choice": 1
+    },
+    {
+      "name": "Well-Earned Respect",
+      "choice": 2
+    },
+    {
+      "name": "A Clear and Beautiful Night",
+      "choice": 1
+    },
+    {
+      "name": "The Emperor's Daily Routine",
+      "choice": 1
+    },
+    {
+      "name": "The Emperor's Path",
+      "choice": 2
+    }
+  ]
+}

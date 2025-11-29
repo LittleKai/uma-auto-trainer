@@ -34,7 +34,7 @@
     },
     {
       "name": "New Year's Shrine Visit",
-      "choice_1_if_energy_shortage_gte": 18,
+      "choice_1_if_energy_shortage_gte": 19,
       "default_choice": 2
     },
     {
@@ -67,10 +67,6 @@
     {
       "name": "Tutorial",
       "choice": 2
-    },
-    {
-      "name": "A Team at Last",
-      "choice": 1
     }
   ]
 }

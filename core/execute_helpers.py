@@ -42,9 +42,10 @@ class EventHandler:
         from utils.constants import SCENARIO_NAME
 
         if SCENARIO_NAME == "Unity Cup":
-            if self._click("assets/buttons/close_btn.png", minSearch=0.2):
-                self.controller.reset_career_lobby_counter()
-                return True
+            if self._click("assets/buttons/unity_cup/edit_team.png", minSearch=0.2,click_count=0):
+                if self._click("assets/buttons/close_btn.png", minSearch=0.2):
+                    self.controller.reset_career_lobby_counter()
+                    return True
 
             if self._click("assets/buttons/unity_cup/unity_cup_btn.png", minSearch=0.2, text="Unity Cup Race found."):
                 self.race_handler.unity_race_flow()
@@ -55,21 +56,36 @@ class EventHandler:
 
     def _handle_cancel_button(self, gui=None) -> bool:
         """Handle cancel button with warning detection"""
+        cancel_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
+                                                    minSearchTime=0.2)
+        if not cancel_btn:
+            return False
+        else:
+            try_again_btn = pyautogui.locateCenterOnScreen("assets/buttons/try_again_btn.png", confidence=0.95,
+                                                      minSearchTime=0.2)
+            if try_again_btn:
+                self.controller.log_message("⚠ Race Failed !")
+
+                # self.controller.log_message("⚠️ Failed Race Day - Trying again!")
+                # return self._click("assets/buttons/try_again_btn.png", minSearch=0.2)
+                if gui:
+                    gui.root.after(0, gui.stop_bot)
+                return True
+
         if gui:
             strategy_settings = gui.get_current_settings()
             stop_on_warning = strategy_settings.get('stop_on_warning', False)
 
             if stop_on_warning:
-                cancel_btn = pyautogui.locateCenterOnScreen("assets/buttons/cancel_btn.png", confidence=0.8,
-                                                            minSearchTime=0.2)
                 if cancel_btn:
                     race_btn = pyautogui.locateCenterOnScreen("assets/buttons/race_btn.png", confidence=0.8,
                                                               minSearchTime=0.2)
                     if race_btn:
-                        self.controller.log_message("⚠️ Warning detected (cancel + race buttons) - Stopping bot")
+                        self.controller.log_message("⚠️ Warning detected - Stopping bot")
                         if gui:
                             gui.root.after(0, gui.stop_bot)
                         return True
+
 
         return self._click("assets/buttons/cancel_btn.png", minSearch=0.2)
 
@@ -133,7 +149,7 @@ class EventHandler:
             self.controller.log_message(f"[ERROR] Event choice handling failed: {e}")
             return self.controller.event_choice_handler.click_choice(1)
 
-    def _click(self, img, confidence=0.8, minSearch=2, click_count=1, text=""):
+    def _click(self, img, confidence=0.8, minSearch=1.0, click_count=1, text=""):
         """Click UI element with stop and window checks"""
         if self.controller.check_should_stop():
             return False
@@ -143,6 +159,8 @@ class EventHandler:
 
         btn = pyautogui.locateCenterOnScreen(img, confidence=confidence, minSearchTime=minSearch)
         if btn:
+            if click_count==0:
+                return True
             if text:
                 self.controller.log_message(text)
             if self.controller.check_should_stop():

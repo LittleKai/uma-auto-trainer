@@ -502,7 +502,13 @@
     },
     {
       "name": "Verification Required",
-      "choice_2_if_energy_lte": 96
+      "choice_1_if_energy_shortage_gte": 4,
+      "default_choice": 2
+    },
+    {
+      "name": "Nerification Required",
+      "choice_1_if_energy_shortage_gte": 4,
+      "default_choice": 2
     },
     {
       "name": "Absolute Desire",
@@ -642,6 +648,18 @@
     },
     {
       "name": "Rainy Day, Floating Flowers",
+      "choice": 1
+    },
+    {
+      "name": "Status—Boring?",
+      "choice": 1
+    },
+    {
+      "name": "Mummy Hunt Drop the Jokes",
+      "choice": 2
+    },
+    {
+      "name": "",
       "choice": 1
     }
   ]

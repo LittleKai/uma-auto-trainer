@@ -113,7 +113,7 @@ def match_template(template_path, region=None, threshold=0.85, debug=False):
     print(f"[ERROR] Unexpected error in match_template: {e}")
     return []
 
-def deduplicate_boxes(boxes, min_dist=5):
+def deduplicate_boxes(boxes, min_dist=20):
   """Remove duplicate detection boxes that are too close to each other"""
   if not boxes:
     return []

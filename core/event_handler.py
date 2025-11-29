@@ -534,7 +534,7 @@ class EventChoiceHandler:
                     continue
 
                 event_names = [event.get("name", "") for event in events]
-                matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.7)
+                matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.65)
 
                 if not matched_name:
                     continue
@@ -615,7 +615,7 @@ class EventChoiceHandler:
 
             event_names = [event.get("name", "") for event in other_events]
 
-            matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.7)
+            matched_name = self.find_similar_text(normalized_event_name, event_names, threshold=0.65)
 
             if not matched_name:
                 self.log(f"[DEBUG] No matching event found in other special events for: '{event_name}'")

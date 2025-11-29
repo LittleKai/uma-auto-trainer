@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "name": "Together for Tea!",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Errands Have Perks",
+      "choice_1_if_energy_shortage_gte": 3,
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Hidden Meaning",
+      "choice": 1
+    },
+    {
+      "name": "Principles",
+      "choice": 2
+    },
+    {
+      "name": "Hate to Lose",
+      "choice": 2
+    },
+    {
+      "name": "Beauteaful",
+      "choice": 1
+    },
+    {
+      "name": "Tracen Karuta Queen",
+      "choice": 1
+    },
+    {
+      "name": "In Search of Refreshment",
+      "choice": 1
+    },
+    {
+      "name": "Yamato Nadeshiko",
+      "choice": 2
+    },
+    {
+      "name": "Childhoods Apart",
+      "choice": 2
+    },
+    {
+      "name": "Nadeshiko Gal",
+      "choice": 1
+    },
+    {
+      "name": "Childhood Dream",
+      "choice": 1
+    },
+    {
+      "name": "Flower Vase",
+      "choice": 2
+    }
+  ]
+}

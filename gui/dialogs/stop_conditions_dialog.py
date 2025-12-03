@@ -150,25 +150,37 @@ class StopConditionsWindow:
         """Create month condition with dropdown"""
         month_frame = ttk.Frame(parent)
         month_frame.pack(fill=tk.X, pady=5)
-
+    
         stop_month_check = ttk.Checkbutton(
             month_frame,
             text="Stop at month:",
             variable=self.stop_at_month_var
         )
         stop_month_check.pack(side=tk.LEFT)
-
+    
         month_dropdown = ttk.Combobox(
             month_frame,
             textvariable=self.target_month_var,
-            values=["January", "February", "March", "April",
-                    "May", "June", "July", "August",
-                    "September", "October", "November", "December"],
+            values=[
+                "Junior Year Nov 1", "Junior Year Nov 2", "Junior Year Dec 1", "Junior Year Dec 2",
+                "Junior Year Jan 1", "Junior Year Jan 2", "Junior Year Feb 1", "Junior Year Feb 2",
+                "Classic Year Mar 1", "Classic Year Mar 2", "Classic Year Apr 1", "Classic Year Apr 2",
+                "Classic Year May 1", "Classic Year May 2", "Classic Year Jun 1", "Classic Year Jun 2",
+                "Classic Year Jul 1", "Classic Year Jul 2", "Classic Year Aug 1", "Classic Year Aug 2",
+                "Classic Year Sep 1", "Classic Year Sep 2", "Classic Year Oct 1", "Classic Year Oct 2",
+                "Classic Year Nov 1", "Classic Year Nov 2", "Classic Year Dec 1", "Classic Year Dec 2",
+                "Senior Year Jan 1", "Senior Year Jan 2", "Senior Year Feb 1", "Senior Year Feb 2",
+                "Senior Year Mar 1", "Senior Year Mar 2", "Senior Year Apr 1", "Senior Year Apr 2",
+                "Senior Year May 1", "Senior Year May 2", "Senior Year Jun 1", "Senior Year Jun 2",
+                "Senior Year Jul 1", "Senior Year Jul 2", "Senior Year Aug 1", "Senior Year Aug 2",
+                "Senior Year Sep 1", "Senior Year Sep 2", "Senior Year Oct 1", "Senior Year Oct 2",
+                "Senior Year Nov 1", "Senior Year Nov 2", "Senior Year Dec 1", "Senior Year Dec 2"
+            ],
             state="readonly",
-            width=12
+            width=20
         )
         month_dropdown.pack(side=tk.LEFT, padx=(10, 0))
-
+    
         month_info_label = ttk.Label(
             month_frame,
             text="(day >24)",
@@ -176,7 +188,7 @@ class StopConditionsWindow:
             foreground="gray"
         )
         month_info_label.pack(side=tk.LEFT, padx=(5, 0))
-
+    
     def create_buttons(self, parent):
         """Create button section"""
         # Separator

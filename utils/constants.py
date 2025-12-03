@@ -1,5 +1,29 @@
 import json
 
+# Career Stage Constants
+PRE_DEBUT_DAY_THRESHOLD = 24
+RAINBOW_STAGE_DAY_THRESHOLD = 24
+EARLY_STAGE_DAY_THRESHOLD = 16
+CAREER_RESTRICTION_DAY_THRESHOLD = 16
+TOTAL_CAREER_DAYS = 72
+
+# Score Constants
+HINT_SCORE_EARLY = 1.0  # Day < 36
+HINT_SCORE_LATE = 0.5   # Day >= 36
+NPC_SCORE_VALUE = 0.5   # Each NPC support card (grouped)
+RAINBOW_MULTIPLIER = 2  # Rainbow cards in rainbow stage
+
+# UI Click Constants
+DEFAULT_CLICK_CONFIDENCE = 0.7
+DEFAULT_SEARCH_TIME = 2.0
+RANDOM_CLICK_PADDING_RATIO = 0.1  # 10% padding for random clicks
+
+# System Constants
+MAX_CAREER_LOBBY_ATTEMPTS = 12
+EVENT_WAIT_TIMEOUT = 120  # 5 minutes
+STABILITY_CHECK_RETRIES = 3
+
+
 # UI Region Constants
 SUPPORT_CARD_ICON_REGION = (820, 155, 180, 700)
 MOOD_REGION = (700, 123, 120, 27)
@@ -146,28 +170,6 @@ RACE_GRADES = ["G1", "G2", "G3", "OP", "Unknown"]
 TRACK_TYPES = ["turf", "dirt"]
 DISTANCE_CATEGORIES = ["sprint", "mile", "medium", "long"]
 
-# Career Stage Constants
-PRE_DEBUT_DAY_THRESHOLD = 24
-RAINBOW_STAGE_DAY_THRESHOLD = 24
-EARLY_STAGE_DAY_THRESHOLD = 16
-CAREER_RESTRICTION_DAY_THRESHOLD = 16
-TOTAL_CAREER_DAYS = 72
-
-# Score Constants
-HINT_SCORE_EARLY = 1.0  # Day < 36
-HINT_SCORE_LATE = 0.5   # Day >= 36
-NPC_SCORE_VALUE = 0.5   # Each NPC support card (grouped)
-RAINBOW_MULTIPLIER = 2  # Rainbow cards in rainbow stage
-
-# UI Click Constants
-DEFAULT_CLICK_CONFIDENCE = 0.7
-DEFAULT_SEARCH_TIME = 2.0
-RANDOM_CLICK_PADDING_RATIO = 0.1  # 10% padding for random clicks
-
-# System Constants
-MAX_CAREER_LOBBY_ATTEMPTS = 15
-EVENT_WAIT_TIMEOUT = 180  # 5 minutes
-STABILITY_CHECK_RETRIES = 3
 
 # File Paths
 RACE_DATA_FILE = "assets/race_list.json"

@@ -48,7 +48,7 @@ class StrategyTab:
         self.stop_mood_threshold = tk.StringVar(value="BAD")
         self.stop_before_summer = tk.BooleanVar(value=False)
         self.stop_at_month = tk.BooleanVar(value=False)
-        self.target_month = tk.StringVar(value="June")
+        self.target_month = tk.StringVar(value="Classic Year Jun 1")
         self.stop_on_ura_final = tk.BooleanVar(value=False)
         self.stop_on_warning = tk.BooleanVar(value=False)
 

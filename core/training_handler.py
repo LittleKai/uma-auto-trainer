@@ -7,6 +7,7 @@ from core.state import check_support_card, get_current_date_info, get_stage_thre
 from core.click_handler import enhanced_click, random_click_in_region, triple_click_random
 from utils.constants import MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE
 
+
 def load_scoring_config():
     """Load scoring configuration from config file"""
     try:
@@ -15,6 +16,7 @@ def load_scoring_config():
         return config.get("scoring_config", {})
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
+
 
 class TrainingHandler:
     """Handles all training-related operations with unified score calculation"""
@@ -45,7 +47,9 @@ class TrainingHandler:
             log_func=self.log
         )
 
-    def check_training_support_stable(self, training_type: str, max_retries: int = 3) -> Optional[Dict]:
+    def check_training_support_stable(self, training_type: str, energy_shortage: float, max_retries: int = 3) -> \
+    Optional[
+        Dict]:
         """Check training support with stability verification and unified score calculation"""
         if self.check_stop():
             return None
@@ -59,7 +63,7 @@ class TrainingHandler:
         support_counts = check_support_card(
             is_pre_debut=is_pre_debut,
             training_type=training_type,
-            current_date=current_date
+            current_date=current_date, energy_shortage = energy_shortage
         )
 
         total_score = support_counts.get("total_score", 0)
@@ -88,7 +92,8 @@ class TrainingHandler:
         if total_support <= 6:
             return first_result
 
-        self.log(f"[{training_type.upper()}] High support count ({total_support}), performing additional checks for accuracy...")
+        self.log(
+            f"[{training_type.upper()}] High support count ({total_support}), performing additional checks for accuracy...")
 
         support_results = [first_result]
 
@@ -135,7 +140,8 @@ class TrainingHandler:
 
         return result
 
-    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float, is_early_stage: bool) -> None:
+    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float,
+                             is_early_stage: bool) -> None:
         """Log training result with unified score information including support card bonus"""
         bonus_components = []
 
@@ -185,7 +191,7 @@ class TrainingHandler:
         #     friend_count = training_result['support']['friend']
         #     expected_score = friend_count * 0.5
 
-    def check_all_training(self, energy_percentage: float = 100) -> Dict[str, Any]:
+    def check_all_training(self, energy_percentage: float = 100, energy_max: float = 100) -> Dict[str, Any]:
         """Check all available training options with unified score calculation"""
         if self.check_stop():
             return {}
@@ -198,7 +204,7 @@ class TrainingHandler:
         absolute_day = current_date.get('absolute_day', 0) if current_date else 0
         stage_thresholds = get_stage_thresholds()
         is_pre_debut = absolute_day <= stage_thresholds.get("pre_debut", 16)
-
+        energy_shortage = energy_max - energy_percentage
         # Define which training types to check based on energy level
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             # Critical energy: no training check at all
@@ -233,7 +239,7 @@ class TrainingHandler:
                 pyautogui.mouseDown()
 
                 # Use unified support checking with stability verification
-                training_result = self.check_training_support_stable(key)
+                training_result = self.check_training_support_stable(key, energy_shortage=energy_shortage)
 
                 if training_result is None:  # Could be due to stop flag
                     pyautogui.mouseUp()
@@ -248,7 +254,7 @@ class TrainingHandler:
         # Move mouse to specific position before releasing if only one training type to avoid accidental clicks
         if len(training_types) == 1:
             current_x, current_y = pyautogui.position()
-            pyautogui.moveTo(current_x, current_y-100, duration=0.1)
+            pyautogui.moveTo(current_x, current_y - 100, duration=0.1)
 
         # Mouse release and back navigation
         pyautogui.mouseUp()
@@ -262,7 +268,6 @@ class TrainingHandler:
             )
 
         return results
-
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""
@@ -283,4 +288,3 @@ class TrainingHandler:
         else:
             self.log(f"[ERROR] Could not find {training_type.upper()} training button")
             return False
-

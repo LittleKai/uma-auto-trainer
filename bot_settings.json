@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": false,
-    "medium": true,
-    "long": true
+    "medium": false,
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -15,10 +15,10 @@
     "g3": false
   },
   "minimum_mood": "NORMAL",
-  "priority_strategy": "Train Score 3.5+",
+  "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": true,
+  "enable_stop_conditions": false,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
@@ -26,25 +26,25 @@
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "October",
+  "target_month": "Junior Year Jan 1",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Mayano Top Gun",
+    "uma_musume": "Curren Chan",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Narita Taishin (SR)",
+      "pow: Mihono Bourbon (SR)",
       "frd: Riko Kashimoto (SSR)",
-      "sta: Mejiro McQueen (SSR)",
-      "pow: Rice Shower (SSR)",
+      "wit: Fine Motion (SSR)",
+      "wit: Daiwa Scarlet (SR)",
       "None",
       "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 4,
+    "current_set": 5,
     "preset_sets": {
       "1": {
         "uma_musume": "Seiun Sky",
@@ -60,11 +60,11 @@
         ]
       },
       "2": {
-        "uma_musume": "Oguri Cap",
+        "uma_musume": "Agnes Tachyon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Special Week (SSR)",
           "frd: Riko Kashimoto (SSR)",
           "pow: Daiwa Scarlet (SSR)",
           "pow: Rice Shower (SSR)",
@@ -99,14 +99,14 @@
         ]
       },
       "5": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "Curren Chan",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Special Week (SSR)",
           "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
           "pow: Mihono Bourbon (SR)",
-          "pow: Rice Shower (SSR)",
+          "frd: Riko Kashimoto (SSR)",
+          "wit: Fine Motion (SSR)",
+          "wit: Daiwa Scarlet (SR)",
           "None",
           "None"
         ]
@@ -119,29 +119,29 @@
           "frd: Riko Kashimoto (SSR)",
           "spd: Silence Suzuka (SSR)",
           "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)",
+          "pow: Rice Shower (SSR)",
           "None",
           "None"
         ]
       },
       "7": {
-        "uma_musume": "Seiun Sky",
+        "uma_musume": "Curren Chan",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Gold Ship (SSR)",
-          "sta: Silence Suzuka (SSR)",
-          "sta: Super Creek (SSR)",
-          "sta: Mayano Top Gun (SR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Twin Turbo (SSR)",
+          "pow: Oguri Cap (SSR)",
+          "pow: Rice Shower (SSR)",
           "pow: Smart Falcon (SSR)",
           "None",
           "None"
         ]
       },
       "8": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Taiki Shuttle",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Silence Suzuka (SSR)",
+          "spd: Twin Turbo (SSR)",
           "spd: Gold Ship (SSR)",
           "pow: Smart Falcon (SSR)",
           "pow: Oguri Cap (SSR)",

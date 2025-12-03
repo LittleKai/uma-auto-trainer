@@ -233,7 +233,7 @@ class DecisionEngine:
             return False
 
         time.sleep(0.5)
-        results_training = self.controller.training_handler.check_all_training(energy_percentage)
+        results_training = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
 
         if self.controller.check_should_stop():
             return False

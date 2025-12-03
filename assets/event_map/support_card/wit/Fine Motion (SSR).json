@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "Wonderful New Shoes",
+      "choice": 1
+    },
+    {
+      "name": "Reminiscent Clover",
+      "choice": 2
+    },
+    {
+      "name": "Lovely Training Weather ♪",
+      "choice": 3
+    }
+  ]
+}

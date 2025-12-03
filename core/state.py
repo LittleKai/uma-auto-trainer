@@ -68,7 +68,7 @@ def get_stage_thresholds():
     "mid_stage": 48
   })
 
-def calculate_unified_training_score(training_type, support_counts, current_date):
+def calculate_unified_training_score(training_type, support_counts, current_date, energy_shortage = 0.0):
   """Calculate unified training score with all bonuses applied"""
   from core.logic import get_friend_multiplier, get_wit_early_stage_bonus, EARLY_STAGE_THRESHOLD
 
@@ -117,6 +117,8 @@ def calculate_unified_training_score(training_type, support_counts, current_date
     if absolute_day < EARLY_STAGE_THRESHOLD:
       wit_bonus = get_wit_early_stage_bonus()
       total_score += wit_bonus
+    if energy_shortage < 3.0 and total_score>= 0.5:
+      total_score +=-0.5
 
   return total_score
 
@@ -242,8 +244,8 @@ def check_energy_percentage(return_max_energy=False):
 
     white_color = (255, 255, 255)
     gray_color = (118, 117, 118)
-    base_energy_pixels = 236.5
-    total_energy_pixels_adjust = 0.5
+    base_energy_pixels = 237.5
+    total_energy_pixels_adjust = -0.5
 
     energy_start_pos = None
     energy_end_pos = None
@@ -503,7 +505,7 @@ def validate_region_coordinates(region):
   return (left, top, width, height)
 
 
-def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None):
+def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None, energy_shortage=0.0):
   """Check support card in each training with unified score calculation and support card bonus"""
   from utils.constants import SCENARIO_NAME
 
@@ -595,7 +597,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   count_result["spirit_explosion"] = spirit_explosion_count
   count_result["spirit_explosion_score"] = spirit_explosion_score
 
-  total_score = calculate_unified_training_score(training_type, count_result, current_date)
+  total_score = calculate_unified_training_score(training_type, count_result, current_date, energy_shortage)
 
   support_card_bonus = 0
   if SCENARIO_NAME != "Unity Cup":

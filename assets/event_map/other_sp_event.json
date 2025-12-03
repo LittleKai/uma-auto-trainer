@@ -103,6 +103,10 @@
       "choice_2_if_energy_shortage_gte": 7
     },
     {
+      "name": "Wonderful ☆ Mistake!",
+      "choice_2_if_day_lt": 30
+    },
+    {
       "name": "I'm All Fired Up",
       "choice": 1
     },

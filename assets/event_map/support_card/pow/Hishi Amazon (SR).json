@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "name": "Hishiama's Struggles: Final Stretch",
+      "choice": 2
+    },
+    {
+      "name": "Hishiama's Struggles: Problem Children",
+      "choice_1_if_energy_shortage_gte": 5,
+      "default_choice": 2
+    }
+  ]
+}

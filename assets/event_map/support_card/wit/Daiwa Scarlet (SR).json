@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "I'm Going to Win Tomorrow",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "This Is Nothing",
+      "choice": 2
+    }
+  ]
+}

@@ -205,6 +205,59 @@ class BotController:
                 self.enhanced_stop_bot()
                 return True
 
+            # 6. Stop at specific month
+            if settings.get('stop_at_month', False) and game_state.get('turn') != "Race Day":
+                target_month = settings.get('target_month', 'Classic Year Jun 1')
+                current_date_info = current_date
+
+                # Mapping target month to absolute day
+                month_to_day = {
+                    "Junior Year Nov 1": 21, "Junior Year Nov 2": 22,
+                    "Junior Year Dec 1": 23, "Junior Year Dec 2": 24,
+                    "Junior Year Jan 1": 25, "Junior Year Jan 2": 26,
+                    "Junior Year Feb 1": 27, "Junior Year Feb 2": 28,
+                    "Classic Year Mar 1": 29, "Classic Year Mar 2": 30,
+                    "Classic Year Apr 1": 31, "Classic Year Apr 2": 32,
+                    "Classic Year May 1": 33, "Classic Year May 2": 34,
+                    "Classic Year Jun 1": 35, "Classic Year Jun 2": 36,
+                    "Classic Year Jul 1": 37, "Classic Year Jul 2": 38,
+                    "Classic Year Aug 1": 39, "Classic Year Aug 2": 40,
+                    "Classic Year Sep 1": 41, "Classic Year Sep 2": 42,
+                    "Classic Year Oct 1": 43, "Classic Year Oct 2": 44,
+                    "Classic Year Nov 1": 45, "Classic Year Nov 2": 46,
+                    "Classic Year Dec 1": 47, "Classic Year Dec 2": 48,
+                    "Senior Year Jan 1": 49, "Senior Year Jan 2": 50,
+                    "Senior Year Feb 1": 51, "Senior Year Feb 2": 52,
+                    "Senior Year Mar 1": 53, "Senior Year Mar 2": 54,
+                    "Senior Year Apr 1": 55, "Senior Year Apr 2": 56,
+                    "Senior Year May 1": 57, "Senior Year May 2": 58,
+                    "Senior Year Jun 1": 59, "Senior Year Jun 2": 60,
+                    "Senior Year Jul 1": 61, "Senior Year Jul 2": 62,
+                    "Senior Year Aug 1": 63, "Senior Year Aug 2": 64,
+                    "Senior Year Sep 1": 65, "Senior Year Sep 2": 66,
+                    "Senior Year Oct 1": 67, "Senior Year Oct 2": 68,
+                    "Senior Year Nov 1": 69, "Senior Year Nov 2": 70,
+                    "Senior Year Dec 1": 71, "Senior Year Dec 2": 72
+                }
+
+                target_day = month_to_day.get(target_month)
+                current_day = current_date_info.get('absolute_day', 0)
+
+                if target_day and current_day == target_day:
+                    # Get strategy tab reference
+                    strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+
+                    if strategy_tab:
+                        # Disable stop at month checkbox
+                        strategy_tab.stop_at_month.set(False)
+
+                        # Save settings
+                        self.main_window.save_settings()
+
+                    self.main_window.log_message(f"Stop condition triggered: Target month reached ({target_month} - Day {target_day}) (Stop at month checkbox disabled)")
+                    self.enhanced_stop_bot()
+                    return True
+
             # Skip other conditions if before day 24
             if not day_24_passed:
                 return False
@@ -251,24 +304,7 @@ class BotController:
                     self.main_window.log_message("Stop condition triggered: Summer period reached (June)")
                     return True
 
-            # 6. Stop at specific month
-            if settings.get('stop_at_month', False) and game_state.get('turn') != "Race Day":
-                target_month = settings.get('target_month', 'June')
-                current_month = current_date.get('month', '')
 
-                # Convert month names to compare
-                month_mapping = {
-                    'January': 1, 'February': 2, 'March': 3, 'April': 4,
-                    'May': 5, 'June': 6, 'July': 7, 'August': 8,
-                    'September': 9, 'October': 10, 'November': 11, 'December': 12
-                }
-
-                target_month_num = month_mapping.get(target_month, 0)
-                current_month_num = current_date.get('month_num', 0)
-
-                if current_month_num == target_month_num:
-                    self.main_window.log_message(f"Stop condition triggered: Target month reached ({target_month})")
-                    return True
 
             return False
 

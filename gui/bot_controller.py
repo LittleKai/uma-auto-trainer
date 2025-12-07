@@ -276,13 +276,13 @@ class BotController:
                     self.main_window.log_message("Stop condition triggered: Infirmary needed (serious debuff detected)")
                     return True
 
-            # 3. Stop when need rest (check energy level)
-            if settings.get('stop_on_need_rest', False) and game_state.get('turn') != "Race Day":
-                energy_percentage = game_state.get('energy_percentage', 100)
-                # Consider need rest when energy is very low (below 30%)
-                if energy_percentage < 42:
-                    self.main_window.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
-                    return True
+            # # 3. Stop when need rest (check energy level)
+            # if settings.get('stop_on_need_rest', False) and game_state.get('turn') != "Race Day":
+            #     energy_percentage = game_state.get('energy_percentage', 100)
+            #     # Consider need rest when energy is very low (below 30%)
+            #     if energy_percentage < 42:
+            #         self.main_window.log_message(f"Stop condition triggered: Need rest (Energy: {energy_percentage}%)")
+            #         return True
 
             # 4. Stop when mood below threshold
             if settings.get('stop_on_low_mood', False) and game_state.get('turn') != "Race Day":

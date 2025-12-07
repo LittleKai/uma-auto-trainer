@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": true,
+    "sprint": false,
     "mile": false,
-    "medium": false,
-    "long": false
+    "medium": true,
+    "long": true
   },
   "grade": {
     "g1": true,
@@ -20,31 +20,31 @@
   "manual_event_handling": false,
   "enable_stop_conditions": false,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "Junior Year Jan 1",
+  "target_month": "Classic Year Oct 2",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Curren Chan",
+    "uma_musume": "Gold Ship",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
-      "pow: Mihono Bourbon (SR)",
       "frd: Riko Kashimoto (SSR)",
-      "wit: Fine Motion (SSR)",
-      "wit: Daiwa Scarlet (SR)",
+      "spd: Narita Taishin (SR)",
+      "sta: Mejiro McQueen (SSR)",
+      "sta: Super Creek (SSR)",
       "None",
       "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 5,
+    "current_set": 6,
     "preset_sets": {
       "1": {
         "uma_musume": "Seiun Sky",
@@ -64,7 +64,7 @@
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
-          "spd: Special Week (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
           "frd: Riko Kashimoto (SSR)",
           "pow: Daiwa Scarlet (SSR)",
           "pow: Rice Shower (SSR)",
@@ -99,14 +99,14 @@
         ]
       },
       "5": {
-        "uma_musume": "Curren Chan",
+        "uma_musume": "Agnes Tachyon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "pow: Mihono Bourbon (SR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "gut: Haru Urara (SSR)",
           "frd: Riko Kashimoto (SSR)",
-          "wit: Fine Motion (SSR)",
-          "wit: Daiwa Scarlet (SR)",
+          "gut: Matikanetannhauser (SSR)",
+          "gut: Mejiro Ryan (SSR)",
           "None",
           "None"
         ]
@@ -125,7 +125,7 @@
         ]
       },
       "7": {
-        "uma_musume": "Curren Chan",
+        "uma_musume": "Maruzensky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",

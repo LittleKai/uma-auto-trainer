@@ -259,7 +259,8 @@ class DecisionEngine:
         if best_training and best_training not in ["SHOULD_REST", "NO_TRAINING", "STRATEGY_NOT_MET"]:
             return self._execute_selected_training(best_training)
 
-        if best_training in ["SHOULD_REST", "NO_TRAINING"]:
+        # if best_training in ["SHOULD_REST", "NO_TRAINING"]:
+        if best_training in ["SHOULD_REST"]:
             return self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui)
 
         # best_training is None or STRATEGY_NOT_MET - no suitable training found

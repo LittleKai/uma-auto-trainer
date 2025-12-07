@@ -1,4 +1,15 @@
 import json
+from utils.constants_support import (
+    # Import mood patterns và configs từ support file
+    MOOD_PATTERNS,
+    GOOD_BAD_CONFUSION_MAP,
+    MOOD_CONFIDENCE_LEVELS,
+    MOOD_OCR_CONFIG,
+    MOOD_DETECTION_PRIORITY,
+    MOOD_DEBUG_CONFIG,
+    MOOD_FALLBACK_CONFIG,
+    DEFAULT_REGIONS
+)
 
 # Career Stage Constants
 PRE_DEBUT_DAY_THRESHOLD = 24
@@ -22,7 +33,6 @@ RANDOM_CLICK_PADDING_RATIO = 0.1  # 10% padding for random clicks
 MAX_CAREER_LOBBY_ATTEMPTS = 12
 EVENT_WAIT_TIMEOUT = 120  # 5 minutes
 STABILITY_CHECK_RETRIES = 3
-
 
 # UI Region Constants
 SUPPORT_CARD_ICON_REGION = (820, 155, 180, 700)
@@ -53,99 +63,8 @@ STAT_REGIONS = {
     "wit": (690, 723, 55, 20)
 }
 
-# Default regions for settings reset
-DEFAULT_REGIONS = {
-    'SUPPORT_CARD_ICON_REGION': (820, 155, 180, 700),
-    'MOOD_REGION': (700, 123, 120, 27),
-    'ENERGY_BAR': (440, 136, 705, 136),
-    'RACE_REGION': (260, 588, 580, 266),
-    'TURN_REGION': (260, 84, 108, 47),
-    'YEAR_REGION': (255, 35, 165, 22),
-    'UNITY_CUP_TURN_REGION': (265, 57, 60, 47),
-    'UNITY_CUP_YEAR_REGION': (390, 37, 165, 16),
-    'FAILURE_REGION': (275, 780, 551, 33),
-    'CRITERIA_REGION': (455, 85, 170, 26),
-    'STAT_REGIONS': {
-        "spd": (310, 723, 55, 20),
-        "sta": (405, 723, 55, 20),
-        "pwr": (500, 723, 55, 20),
-        "guts": (595, 723, 55, 20),
-        "wit": (690, 723, 55, 20)
-    },
-    'EVENT_REGIONS': {
-        "EVENT_REGION": (240, 173, 240, 25),
-        "EVENT_NAME_REGION": (240, 200, 400, 40)
-    }
-}
-
 # Mood Recognition Constants
 MOOD_LIST = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT", "UNKNOWN"]
-
-# Enhanced Mood Pattern Mapping for OCR Error Handling with improved GOOD vs BAD logic
-MOOD_PATTERNS = {
-    'AWFUL': [
-        'AWFUL', 'AWUL', 'AWFL', 'AVVFUL', 'AWFUI', 'AWFU', 'AWF', 'AWFULL',
-        'AWEFUL', 'AWFAL', 'AWFOL', 'WFL', 'FUL', 'WFUL', 'AVFUL', 'AWFIL', 'WFUL',
-        'AWFUI', 'AWFAL', 'AVVUL', 'AWFOL', 'AVFUL', 'AWFOL', 'AWFIL'
-    ],
-    'BAD': [
-        'BAD', 'BD', 'BaD', 'BAO', 'BAP', 'B4D', 'BA', 'BAC', 'BAN',
-        'BAT', 'BRD', 'BED', 'BID', 'BOD', 'BUD'
-        # Note: Removed 'AD' alone as it's too ambiguous and can be part of GOOD partials
-        # Strict BAD detection to prevent confusion with GOOD
-    ],
-    'NORMAL': [
-        'NORMAL', 'NORMAI', 'NORMOL', 'NORMALL', 'NORMM', 'NORRMAL', 'NORML',
-        'NORAL', 'NORHAL', 'NORMAL', 'NORNIAL', 'NORMIL', 'NORMAEL', 'NORMUL',
-        'NCRMAL', 'NORAML', 'NORMIAL', 'NOEMAL', 'NORMAI', 'HORMAL', 'NGRMAL', 'ORMAL',
-        'NORAML', 'NORMSL', 'NORMEAL', 'NORMAI', 'NORNAL', 'NORMLA'
-    ],
-    'GOOD': [
-        'GOOD', 'GOD', 'GOOO', 'GOOP', 'GOoD', 'G00D', 'COOO', 'GOAD',
-        'GOID', 'GOCD', 'GCOD', 'GORD', 'GOKD', 'GOUD', 'GOBD', 'GPOD','OOD',
-        'GOO', 'GOOD', 'GODD', 'GODO', 'GODOD', 'GOQD', 'GOOT', 'GOOF',
-        # Additional patterns for GOOD that are commonly misread
-        'G0OD', 'GO0D', 'GOO0', 'GOCD', 'GQOD', 'GOOS', 'GOOL', 'COOD',
-        'GOOQ', 'GOOC', 'GOOB', 'GOON', 'GOODD', 'GOOOD'
-    ],
-    'GREAT': [
-        'GREAT', 'CREAT', 'GRAT', 'GREAI', 'GRRAT', 'GRFAT', 'CRFAT', 'GREAK',
-        'GREMT', 'GRIAT', 'GRDAT', 'GBEAT', 'TREAT', 'GREET', 'GREAT', 'GRAET',
-        'GRELT', 'GRAAT', 'GRERT', 'GREHT', 'GREOT', 'GREIT', 'REAT',
-        'GREAI', 'GREATE', 'CREAT', 'GRFAT', 'GREAL', 'GRFAT', 'GRENT'
-    ]
-}
-
-# Additional mapping for common OCR confusions specifically for GOOD vs BAD
-GOOD_BAD_CONFUSION_MAP = {
-    # These should always map to GOOD, never BAD
-    'GOD': 'GOOD',
-    'OOD': 'GOOD',
-    'GOO': 'GOOD',
-    'GOOP': 'GOOD',
-    'GOOO': 'GOOD',
-    'COOO': 'GOOD',
-    'G00D': 'GOOD',
-    'GO0D': 'GOOD',
-    'G0OD': 'GOOD',
-    'COOD': 'GOOD',
-    'GCOD': 'GOOD',
-
-    # These should always map to BAD
-    'BD': 'BAD',
-    'B4D': 'BAD',
-    'BAO': 'BAD',
-    'BAP': 'BAD',
-    'BRD': 'BAD',
-    'BED': 'BAD',
-}
-
-# Confidence levels for mood detection
-MOOD_CONFIDENCE_LEVELS = {
-    'HIGH': ['AWFUL', 'NORMAL', 'GREAT'],    # These are usually detected correctly
-    'MEDIUM': ['GOOD', 'BAD'],               # These are prone to confusion
-    'LOW': ['UNKNOWN']                       # Fallback
-}
 
 # Load energy constants from config
 try:
@@ -169,7 +88,6 @@ NPC_TYPES = ["akikawa", "etsuko"]
 RACE_GRADES = ["G1", "G2", "G3", "OP", "Unknown"]
 TRACK_TYPES = ["turf", "dirt"]
 DISTANCE_CATEGORIES = ["sprint", "mile", "medium", "long"]
-
 
 # File Paths
 RACE_DATA_FILE = "assets/race_list.json"
@@ -199,6 +117,31 @@ TRAIN_STA_ICON = f"{ICONS_DIR}/train_sta.png"
 TRAIN_PWR_ICON = f"{ICONS_DIR}/train_pwr.png"
 TRAIN_GUTS_ICON = f"{ICONS_DIR}/train_guts.png"
 TRAIN_WIT_ICON = f"{ICONS_DIR}/train_wit.png"
+
+# Status Icons
+HINT_ICON = f"{ICONS_DIR}/hint.png"
+RAINBOW_ICON = f"{ICONS_DIR}/rainbow.png"
+
+# Race Type Icons
+TURF_ICON = f"{ICONS_DIR}/turf.png"
+DIRT_ICON = f"{ICONS_DIR}/dirt.png"
+
+# Distance Icons
+SPRINT_ICON = f"{ICONS_DIR}/sprint.png"
+MILE_ICON = f"{ICONS_DIR}/mile.png"
+MEDIUM_ICON = f"{ICONS_DIR}/medium.png"
+LONG_ICON = f"{ICONS_DIR}/long.png"
+
+# Race Grade Icons
+G1_ICON = f"{ICONS_DIR}/g1.png"
+G2_ICON = f"{ICONS_DIR}/g2.png"
+G3_ICON = f"{ICONS_DIR}/g3.png"
+OP_ICON = f"{ICONS_DIR}/op.png"
+
+# Additional UI Elements
+START_BUTTON = f"{UI_DIR}/start_btn.png"
+RETIRE_BUTTON = f"{UI_DIR}/retire_btn.png"
+CONFIRM_BUTTON = f"{UI_DIR}/confirm_btn.png"
 
 # Support Card Icons
 SUPPORT_SPD_ICON = f"{ICONS_DIR}/support_card_type_spd.png"
@@ -260,6 +203,10 @@ NPC_ICONS = {
     "etsuko": SUPPORT_NPC_ETSUKO
 }
 
+# Backward compatibility aliases
+NPC_SUPPORT_AKIKAWA_ICON = SUPPORT_NPC_AKIKAWA
+NPC_SUPPORT_ETSUKO_ICON = SUPPORT_NPC_ETSUKO
+
 # Event Choice Icon Mapping
 EVENT_CHOICE_ICONS = {
     1: EVENT_CHOICE_1,
@@ -303,71 +250,12 @@ ENERGY_COLORS = {
     'critical': 'red'   # < critical_energy
 }
 
-# OCR Enhancement Settings for Mood Detection
-MOOD_OCR_CONFIG = {
-    # Image preprocessing
-    "resize_scale": 3,              # Scale factor for image resizing (1-5)
-    "contrast_enhance": 2.0,        # Contrast enhancement factor (1.0-3.0)
-    "brightness_adjust": 10,        # Brightness adjustment (-50 to +50)
-    "sharpening": True,             # Apply sharpening filter
-    "threshold": 128,               # Binary threshold (0-255)
+# Global scenario selection
+SCENARIO_NAME = "URA Final"  # Default value
 
-    # OCR methods to try
-    "ocr_methods": {
-        "standard": {"psm": 6, "whitelist": None},
-        "char_whitelist": {"psm": 8, "whitelist": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
-        "single_word": {"psm": 7, "whitelist": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
-        "raw_line": {"psm": 13, "whitelist": None},
-    },
-
-    # Confidence thresholds
-    "min_text_length": 2,           # Minimum text length to consider
-    "max_attempts": 4,              # Maximum OCR attempts per image
-}
-
-# Pattern matching priority for mood detection
-MOOD_DETECTION_PRIORITY = {
-    # High confidence patterns (rarely misread)
-    "high_confidence": ["AWFUL", "NORMAL", "GREAT"],
-
-    # Medium confidence (prone to OCR errors)
-    "medium_confidence": ["GOOD", "BAD"],
-
-    # Special handling patterns for GOOD vs BAD confusion
-    "good_indicators": [
-        "GOD", "OOD", "GOO", "GOOP", "GOOO", "COOO",
-        "G00D", "GO0D", "G0OD", "GCOD", "GQOD", "COOD"
-    ],
-
-    "bad_indicators": [
-        "BD", "B4D", "BAO", "BAP", "BRD", "BED"
-    ],
-
-    # Patterns that should never be confused
-    "never_confuse": {
-        "GOD": "GOOD",      # Never classify as BAD
-        "OOD": "GOOD",      # Never classify as BAD
-        "GOO": "GOOD",      # Never classify as BAD
-    }
-}
-
-# Debug settings for mood detection
-MOOD_DEBUG_CONFIG = {
-    "enable_debug_logs": True,      # Enable detailed debug output
-    "save_debug_images": False,     # Save processed images for debugging
-    "debug_image_path": "debug/mood/",  # Path to save debug images
-    "log_all_ocr_results": True,    # Log all OCR attempts
-    "log_pattern_matching": True,   # Log pattern matching process
-}
-
-# Fallback behavior for mood detection
-MOOD_FALLBACK_CONFIG = {
-    "unknown_threshold": 0.7,       # If confidence < this, return UNKNOWN
-    "prefer_previous_mood": False,  # Use previous mood if uncertain
-    "default_mood": "NORMAL",       # Fallback mood if all else fails
-    "retry_on_unknown": True,       # Retry if first attempt returns UNKNOWN
-    "max_retries": 2,               # Maximum retry attempts
-}
+# =============================================================================
+# PUBLIC API FUNCTIONS
+# =============================================================================
 
 def load_region_settings():
     """Load region settings from file or return defaults"""
@@ -487,9 +375,6 @@ def update_regions(new_regions):
 
     return save_region_settings(current_regions)
 
-# Global scenario selection
-SCENARIO_NAME = "URA Final"  # Default value
-
 def set_scenario(scenario_name):
     """Set global scenario name"""
     global SCENARIO_NAME
@@ -509,7 +394,6 @@ def load_scenario_from_settings():
     except (FileNotFoundError, json.JSONDecodeError):
         SCENARIO_NAME = "URA Final"
     return SCENARIO_NAME
-
 
 def get_mood_config():
     """Get current mood detection configuration"""
@@ -536,6 +420,10 @@ def update_mood_config(**kwargs):
     if "fallback" in kwargs:
         MOOD_FALLBACK_CONFIG.update(kwargs["fallback"])
 
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
 # Initialize regions on module import
 _regions_initialized = False
 
@@ -548,5 +436,3 @@ def _initialize_regions():
 
 # Ensure regions are loaded when module is imported
 _initialize_regions()
-
-

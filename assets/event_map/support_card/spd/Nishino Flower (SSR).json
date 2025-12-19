@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "name": "Aspiring to Adulthood",
+      "choice": 2
+    },
+    {
+      "name": "Let's Bloom Beautifully ♪",
+      "choice": 2
+    },
+    {
+      "name": "Warmth, Love, and Lunch",
+      "choice_1_if_day_lt": 25,
+      "default_choice": 2
+    }
+  ]
+}

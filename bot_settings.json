@@ -32,55 +32,55 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Gold Ship",
+    "uma_musume": "Agnes Tachyon",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Sweep Tosho (SR)",
+      "spd: Nishino Flower (SSR)",
+      "gut: Haru Urara (SSR)",
       "frd: Riko Kashimoto (SSR)",
-      "spd: Narita Taishin (SR)",
-      "sta: Mejiro McQueen (SSR)",
-      "sta: Super Creek (SSR)",
+      "gut: Matikanetannhauser (SSR)",
+      "frd: Tazuna Hayakawa (SSR)",
       "None",
       "None"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 6,
+    "current_set": 5,
     "preset_sets": {
       "1": {
-        "uma_musume": "Seiun Sky",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Vodka (SSR)",
-          "pow: Rice Shower (SSR)",
-          "None",
-          "None"
-        ]
-      },
-      "2": {
-        "uma_musume": "Agnes Tachyon",
-        "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
-          "pow: Rice Shower (SSR)",
-          "None",
-          "None"
-        ]
-      },
-      "3": {
-        "uma_musume": "Oguri Cap",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Eishin Flash (SR)",
           "spd: Sweep Tosho (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Winning Ticket (SSR)",
-          "pow: Rice Shower (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
+        ]
+      },
+      "2": {
+        "uma_musume": "Oguri Cap",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "spd: Narita Brian (SSR)",
+          "spd: Special Week (SSR)",
+          "frd: Riko Kashimoto (SSR)",
+          "pow: Mihono Bourbon (SR)",
+          "pow: Vodka (SSR)",
+          "None",
+          "None"
+        ]
+      },
+      "3": {
+        "uma_musume": "Gold Ship",
+        "support_cards": [
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SSR)",
+          "spd: Narita Taishin (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Mayano Top Gun (SR)",
           "None",
           "None"
         ]
@@ -93,7 +93,7 @@
           "spd: Narita Taishin (SR)",
           "frd: Riko Kashimoto (SSR)",
           "sta: Mejiro McQueen (SSR)",
-          "pow: Rice Shower (SSR)",
+          "sta: Super Creek (SSR)",
           "None",
           "None"
         ]
@@ -102,11 +102,11 @@
         "uma_musume": "Agnes Tachyon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
+          "spd: Special Week (SSR)",
           "gut: Haru Urara (SSR)",
           "frd: Riko Kashimoto (SSR)",
           "gut: Matikanetannhauser (SSR)",
-          "gut: Mejiro Ryan (SSR)",
+          "gut: Special Week (SSR)",
           "None",
           "None"
         ]
@@ -115,9 +115,9 @@
         "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "spd: Silence Suzuka (SSR)",
+          "sta: Gold Ship (SSR)",
+          "pow: Smart Falcon (SSR)",
+          "sta: Silence Suzuka (SSR)",
           "sta: Mejiro McQueen (SSR)",
           "pow: Rice Shower (SSR)",
           "None",
@@ -130,7 +130,7 @@
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Twin Turbo (SSR)",
-          "pow: Oguri Cap (SSR)",
+          "pow: Hishi Amazon (SR)",
           "pow: Rice Shower (SSR)",
           "pow: Smart Falcon (SSR)",
           "None",
@@ -154,18 +154,16 @@
   },
   "team_trials": {
     "daily_activity_type": "Team Trial",
-    "opponent_type": "Opponent 3",
+    "opponent_type": "Opponent 2",
     "use_parfait_gift_pvp": true,
     "stop_if_shop": false,
-    "default_race": "Moonlight Sho",
-    "daily_race_stop_if_shop": false,
     "legend_race_use_parfait": false,
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 835,
-    "height": 991,
-    "x": 1074,
+    "width": 809,
+    "height": 958,
+    "x": 1068,
     "y": 0
   },
   "scenario": "Unity Cup"

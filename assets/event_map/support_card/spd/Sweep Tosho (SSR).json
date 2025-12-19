@@ -1,0 +1,21 @@
+{
+  "events": [
+    {
+      "name": "Fickle Genius Magical Girl Sweepy ☆",
+      "choice": 1
+    },
+    {
+      "name": "A Drop of Black Magic ☆",
+      "choice": 1
+    },
+    {
+      "name": "Miracle ☆ Escape!",
+      "choice_1_if_energy_shortage_gte": 10,
+      "default_choice": 2
+    },
+    {
+      "name": "Wonderful ☆ Mistake!",
+      "choice_2_if_day_lt": 30
+    }
+  ]
+}

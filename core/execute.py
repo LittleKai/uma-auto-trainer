@@ -282,13 +282,12 @@ class DecisionEngine:
         return True
 
     def _handle_rest_case(self, energy_percentage: int, strategy_settings: Dict[str, Any],
-                          current_date: Dict[str, Any], gui=None) -> bool:
+                          current_date: Dict[str, Any], gui=None, click_back=False, click_log="") -> bool:
         """Handle the case when bot should rest"""
 
         # Stop condition only applies after day 24
-        if (strategy_settings.get('enable_stop_conditions', False) and
-            strategy_settings.get('stop_on_need_rest', False) and
-            current_date and current_date.get('absolute_day', 0) > 24) and self.date_turn != "Race Day":
+        if (strategy_settings.get('enable_stop_conditions', False) and strategy_settings.get('stop_on_need_rest', False)
+            and current_date and current_date.get('absolute_day', 0) > 24) and self.date_turn != "Race Day":
             self.controller.log_message("Stop condition: Need rest detected - Stopping bot")
             self._click_back_button("")
             if gui:
@@ -303,9 +302,13 @@ class DecisionEngine:
 
         if self.controller.check_should_stop():
             return False
-        self._click_back_button("")
-        time.sleep(0.5)
-        self.controller.rest_handler.execute_rest()
+
+        if click_back:
+            self._click_back_button(click_log)
+            time.sleep(0.5)
+
+        strategy_context = strategy_settings.get('priority_strategy', '')
+        self.controller.rest_handler.execute_rest(strategy_context=strategy_context)
         return True
 
     def _handle_no_suitable_training(self, results_training: Dict, energy_percentage: int,
@@ -363,7 +366,9 @@ class DecisionEngine:
         # If low energy or no fallback training, rest
         if self.controller.check_should_stop():
             return False
-        self.controller.rest_handler.execute_rest()
+            # Execute rest with strategy context for summer handling
+
+        self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui, click_back= False,click_log="")
 
         if not results_training:
             self.controller.log_message("No training available!")
@@ -430,7 +435,7 @@ class DecisionEngine:
             return self._handle_race_priority_strategy(game_state, strategy_settings, race_manager, gui)
 
         energy_action = self._handle_energy_based_action(
-            energy_percentage, current_date, race_manager, allow_continuous_racing
+            energy_percentage, current_date, race_manager, allow_continuous_racing, strategy_settings,gui
         )
         if energy_action is not None:
             return energy_action
@@ -484,7 +489,7 @@ class DecisionEngine:
         return True
 
     def _handle_energy_based_action(self, energy_percentage: int, current_date: Dict[str, Any],
-                                    race_manager, allow_continuous_racing: bool) -> Optional[bool]:
+                                    race_manager, allow_continuous_racing: bool, strategy_settings: Dict[str, Any], gui=None) -> Optional[bool]:
         """Handle actions based on energy level. Returns None if should continue to training."""
         # Handle critical energy
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
@@ -502,14 +507,18 @@ class DecisionEngine:
                     if not self.controller.check_should_stop():
                         self._click_back_button("Race not found. Critical energy - will rest.")
                         time.sleep(0.5)
-                        self.controller.rest_handler.execute_rest()
+                        # Execute rest with strategy context for summer handling
+                        self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui, click_back= True, click_log="Race not found. Critical energy - will rest.")
+
                     return True
             else:
                 self.controller.log_message(
                     f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
                 if self.controller.check_should_stop():
                     return False
-                self.controller.rest_handler.execute_rest()
+
+                self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui, click_back= False,click_log="")
+
                 return True
 
         # Handle low energy
@@ -882,23 +891,6 @@ def career_lobby(gui=None):
                 window_check_failures = 0
 
             if not _main_executor.execute_single_iteration(race_manager, gui):
-                time.sleep(1)
-    else:
-        while not _main_executor.controller.should_stop:
-            # Check if game window is active with retry mechanism
-            if not check_and_focus_game_window(None, window_check_failures, max_window_check_failures):
-                window_check_failures += 1
-                if window_check_failures >= max_window_check_failures:
-                    print(f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
-                    _main_executor.controller.set_stop_flag(True)
-                    break
-                time.sleep(2)
-                continue
-            else:
-                # Reset failure counter on successful window check
-                window_check_failures = 0
-
-            if not _main_executor.execute_single_iteration(race_manager):
                 time.sleep(1)
 
 

@@ -1,7 +1,7 @@
 import pyautogui
 import time
 import json
-from typing import Callable, Optional, List, Tuple
+from typing import Callable, Optional, List, Tuple, Dict
 
 from core.click_handler import enhanced_click, random_click_in_region
 from core.state import get_current_date_info, get_stage_thresholds
@@ -26,7 +26,7 @@ class RestHandler:
         self.check_window = check_window_func
         self.log = log_func
 
-    def execute_rest(self, strategy_context: Optional[str] = None) -> bool:
+    def execute_rest(self,  strategy_context: str = None) -> bool:
         """
         Execute rest action with strategy-aware logic
 

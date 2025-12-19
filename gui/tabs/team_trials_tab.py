@@ -32,9 +32,6 @@ class TeamTrialsTab:
         self.use_parfait_gift_pvp = tk.BooleanVar(value=True)
         self.stop_if_shop = tk.BooleanVar(value=False)
 
-        # Daily Race variables
-        self.default_race = tk.StringVar(value="Moonlight Sho")
-        self.daily_race_stop_if_shop = tk.BooleanVar(value=False)
 
         # Legend Race variables
         self.legend_race_use_parfait = tk.BooleanVar(value=False)
@@ -48,8 +45,6 @@ class TeamTrialsTab:
             self.opponent_type,
             self.use_parfait_gift_pvp,
             self.stop_if_shop,
-            self.default_race,
-            self.daily_race_stop_if_shop,
             self.legend_race_use_parfait
         ]
 
@@ -74,7 +69,7 @@ class TeamTrialsTab:
         daily_activity_dropdown = ttk.Combobox(
             daily_activity_frame,
             textvariable=self.daily_activity_type,
-            values=["Team Trial", "Daily Races", "Legend Race"],
+            values=["Team Trial", "Champion Meeting", "Legend Race"],
             state="readonly",
             width=15
         )
@@ -100,8 +95,8 @@ class TeamTrialsTab:
 
         if activity_type == "Team Trial":
             self.create_team_trial_options()
-        elif activity_type == "Daily Races":
-            self.create_daily_race_options()
+        elif activity_type == "Champion Meeting":
+            self.create_champion_meet_options()
         elif activity_type == "Legend Race":
             self.create_legend_race_options()
 
@@ -135,29 +130,15 @@ class TeamTrialsTab:
         )
         shop_check.grid(row=1, column=1, sticky=tk.W, pady=5)
 
-    def create_daily_race_options(self):
-        """Create options for Daily Races"""
+    def create_champion_meet_options(self):
+        """Create options for Champion Meeting"""
         # Race dropdown
-        ttk.Label(self.options_frame, text="Default Race:").grid(
+        ttk.Label(self.options_frame, text="The bot will only start running after you confirm the Team.").grid(
             row=0, column=0, sticky=tk.W, padx=(0, 5), pady=5)
-
-        race_dropdown = ttk.Combobox(
-            self.options_frame,
-            textvariable=self.default_race,
-            values=["Moonlight Sho", "Jupiter Cup"],
-            state="readonly",
-            width=15
-        )
-        race_dropdown.grid(row=0, column=1, sticky=tk.W, pady=5)
-
-        # Stop if shop available
-        shop_check = ttk.Checkbutton(
-            self.options_frame,
-            text="Stop if shop available",
-            variable=self.daily_race_stop_if_shop
-        )
-        shop_check.grid(row=1, column=0, sticky=tk.W, pady=5)
-
+        ttk.Label(self.options_frame, text="You need to set the Screen Orientation in Portrait mode!").grid(
+            row=1, column=0, sticky=tk.W, padx=(0, 5), pady=5)
+        ttk.Label(self.options_frame, text="Click Start Button to begin! ").grid(
+            row=2, column=0, sticky=tk.W, padx=(0, 5), pady=5)
     def create_legend_race_options(self):
         """Create options for Legend Race"""
         # Use parfait if gift PvP
@@ -182,8 +163,8 @@ class TeamTrialsTab:
 
         if activity_type == "Team Trial":
             return self.logic.start_team_trials()
-        elif activity_type == "Daily Races":
-            return self.logic.start_daily_races()
+        elif activity_type == "Champion Meeting":
+            return self.logic.start_champion_meets()
         elif activity_type == "Legend Race":
             return self.logic.start_legend_race()
 
@@ -224,8 +205,6 @@ class TeamTrialsTab:
             'opponent_type': self.opponent_type.get(),
             'use_parfait_gift_pvp': self.use_parfait_gift_pvp.get(),
             'stop_if_shop': self.stop_if_shop.get(),
-            'default_race': self.default_race.get(),
-            'daily_race_stop_if_shop': self.daily_race_stop_if_shop.get(),
             'legend_race_use_parfait': self.legend_race_use_parfait.get(),
             'legend_race_stop_if_shop': self.legend_race_stop_if_shop.get()
         }
@@ -244,10 +223,6 @@ class TeamTrialsTab:
                 self.use_parfait_gift_pvp.set(settings['use_parfait_gift_pvp'])
             if 'stop_if_shop' in settings:
                 self.stop_if_shop.set(settings['stop_if_shop'])
-            if 'default_race' in settings:
-                self.default_race.set(settings['default_race'])
-            if 'daily_race_stop_if_shop' in settings:
-                self.daily_race_stop_if_shop.set(settings['daily_race_stop_if_shop'])
             if 'legend_race_use_parfait' in settings:
                 self.legend_race_use_parfait.set(settings['legend_race_use_parfait'])
             if 'legend_race_stop_if_shop' in settings:

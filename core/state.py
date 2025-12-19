@@ -244,8 +244,8 @@ def check_energy_percentage(return_max_energy=False):
 
     white_color = (255, 255, 255)
     gray_color = (118, 117, 118)
-    base_energy_pixels = 237.5
-    total_energy_pixels_adjust = -0.5
+    base_energy_pixels = 236.8
+    total_energy_pixels_adjust = 0.2
 
     energy_start_pos = None
     energy_end_pos = None

@@ -20,9 +20,9 @@ class TeamTrialsLogic:
         """Start team trials functionality"""
         return self.start_generic_activity(self.team_trials_loop, "Team Trials")
 
-    def start_daily_races(self):
-        """Start daily races functionality"""
-        return self.start_generic_activity(self.daily_races_loop, "Daily Races")
+    def start_champion_meets(self):
+        """Start Champion Meeting functionality"""
+        return self.start_generic_activity(self.champion_meet_loop, "Champion Meeting")
 
     def start_legend_race(self):
         """Start Legend Race with specified parameters"""
@@ -49,18 +49,21 @@ class TeamTrialsLogic:
         self.main_window.is_running = False
         self.main_window.log_message("Daily Activities stopped")
 
-    def find_and_click(self, image_path, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True, click_number = 1):
+    def find_and_click(self, image_path, full_screen = False, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True, click_count = 1):
         """Universal function to find and optionally click images with stop checking"""
         time.sleep(1)
 
         # Check stop condition before starting
         if self.check_stop_condition():
             return None
-
-        if not region:
-            # Default to left half of screen
+        if full_screen:
             screen_width, screen_height = pyautogui.size()
-            region = (0, 0, screen_width // 2, screen_height)
+            region = (0, 0, screen_width, screen_height)
+        else:
+            if not region:
+                # Default to left half of screen
+                screen_width, screen_height = pyautogui.size()
+                region = (0, 0, screen_width // 2, screen_height)
 
         filename = image_path.split('/')[-1].replace('.png', '')
 
@@ -78,10 +81,11 @@ class TeamTrialsLogic:
                         # Check stop condition before clicking
                         if self.check_stop_condition():
                             return None
-                        for i in range(click_number):
+                        for i in range(click_count):
                             pyautogui.click(button)
                             time.sleep(0.2)
-                        self.main_window.log_message(f"Clicked {filename}")
+                        if log_attempts:
+                           self.main_window.log_message(f"Clicked {filename}")
                         if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
                             time.sleep(8)
                         return button
@@ -100,147 +104,108 @@ class TeamTrialsLogic:
             self.main_window.log_message(f"Failed to find {filename}")
         return None
 
-    def navigate_to_daily_races(self):
-        """Navigate to daily races section"""
+    def navigate_to_champion_meet(self):
+        """Navigate to Champion Meeting section"""
         # Check stop condition
         if self.check_stop_condition():
             return False
 
         # Home screen race tab selection
-        race_tab_region = (200, 780, 680, 860)
-        race_images = ["assets/buttons/home/team_trials/race_tab.png", "assets/buttons/home/team_trials/race_tab_2.png"]
+        race_tab_region = (200, 600, 680, 800)
+        race_images = ["assets/buttons/home/champion_meeting/find_race_btn.png"]
         race_clicked = False
         for race_image in race_images:
             if self.check_stop_condition():
                 return False
 
-            if self.find_and_click(race_image, race_tab_region):
+            if self.find_and_click(race_image, race_tab_region, click=None):
                 race_clicked = True
                 time.sleep(1)
                 break
 
         if not race_clicked:
-            self.main_window.log_message("Race tab not found - Not on Home screen")
+            self.main_window.log_message("Race button not found - Not in Champion Meeting")
             return False
 
-        # Daily race button
-        if not self.find_and_click("assets/buttons/home/daily_race/daily_race_btn.png",
-                                   max_attempts=5, delay_between=5):
+        return True
+
+    def execute_champion_meet_cycle(self):
+        """Execute one complete daily race cycle"""
+        # Race button home
+        if not self.find_and_click("assets/buttons/home/champion_meeting/find_race_btn.png", max_attempts=5, delay_between=2):
+            return False
+        print("execute_champion_meet_cycle")
+        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=18, delay_between=5):
             return False
 
-        # Handle next button if it appears
-        if self.find_and_click("assets/buttons/next_btn.png", click=False, max_attempts=2, delay_between=5):
-            return True
+        if not self.find_and_click("assets/buttons/home/champion_meeting/race_brn.png", max_attempts=5, delay_between=3, click_count=3):
+            return False
+        time.sleep(3)
 
-        # # Handle resume button if it appears
-        # if self.find_and_click("assets/buttons/resume_btn.png"):
+        # # RECHECK if race_brn was clicked
+        # if self.find_and_click("assets/buttons/home/champion_meeting/race_brn.png", max_attempts=1, delay_between=1, log_attempts=""):
         #     time.sleep(2)
 
-        # Race selection (Moonlight Sho or Jupiter Cup)
-        race_selection = {
-            "Moonlight Sho": "assets/buttons/home/daily_race/moonlight_sho.png",
-            "Jupiter Cup": "assets/buttons/home/daily_race/jupiter_cup.png"
-        }
+        if not self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", max_attempts=5, delay_between=5):
+            return False
+        time.sleep(2)
 
-        race_btn_path = race_selection.get(self.ui_tab.default_race.get())
-        if not self.find_and_click(race_btn_path, max_attempts=5, delay_between=3):
+        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
             return False
 
-        # Check no more turns
-        if self.find_and_click("assets/buttons/ok_btn.png", click=False):
-            self.main_window.log_message("No more turns available - stopping bot")
+        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
             return False
 
-        # Hard difficulty
-        if not self.find_and_click("assets/buttons/home/daily_race/hard_btn.png", max_attempts=5, delay_between=3):
+        time.sleep(2)
+        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
             return False
 
-        # Race button
-        if not self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", max_attempts=5, delay_between=2):
+        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
             return False
 
-        # Confirm button
-        if not self.find_and_click("assets/buttons/confirm_btn.png", max_attempts=5, delay_between=3):
-            return False
-
-        return True
-
-    def execute_daily_race_cycle(self):
-        """Execute one complete daily race cycle"""
-        # Next button
-        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=5, delay_between=3):
-            return False
-
-        # Race button home
-        if not self.find_and_click("assets/buttons/home/team_trials/race_btn.png", max_attempts=5, delay_between=3):
-            return False
-
-        # View results processing
-        if not self.process_daily_race_results():
-            return False
-
-        if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=3, delay_between=5):
-            return False
-        time.sleep(1)
-
-        # Handle shop option
-        if self.find_and_click("assets/buttons/home/team_trials/shop_btn.png", click=False):
-            if self.ui_tab.daily_race_stop_if_shop.get():
-                self.find_and_click("assets/buttons/home/team_trials/shop_btn.png")
-                self.main_window.log_message("Shop detected - stopping as requested")
-                return False
-            else:
-                # Check stop condition before cancel click
-                if self.check_stop_condition():
+        time.sleep(2)
+        for i in range(4):
+            next_btn_pos = self.find_and_click("assets/buttons/next_btn.png", max_attempts=1, delay_between=1, click_count=3)
+            if not next_btn_pos:
+                if i == 4:
                     return False
-                self.find_and_click("assets/buttons/cancel_btn.png", log_attempts=False, click=True)
+                pyautogui.click(400, 400)
+                time.sleep(3)
+            else:
+                time.sleep(5)
+                break
 
-        # Race again button
-        if not self.find_and_click("assets/buttons/home/team_trials/race_again_btn.png", max_attempts=5,
-                                   delay_between=5):
-            return False
+        # # RECHECK if race_brn was clicked
+        # if self.find_and_click("assets/buttons/home/champion_meeting/race_brn.png", max_attempts=1, delay_between=1, log_attempts=""):
+        #     time.sleep(5)
 
         # Check no more turns
-        if self.find_and_click("assets/buttons/ok_btn.png", click=False):
+        if self.find_and_click("assets/buttons/home/champion_meeting/claim_btn.png", click=False):
             self.main_window.log_message("No more turns available - stopping bot")
             return False
 
         return True
 
-    def process_daily_race_results(self):
-        """Process daily race results"""
-        # View results
-        see_result_pos = self.find_and_click("assets/buttons/view_results.png", max_attempts=5, delay_between=5)
-        if not see_result_pos:
-            return False
-
-        # Click result multiple times
-        for i in range(2):
-            pyautogui.click(see_result_pos)
-            time.sleep(4)
-
-        return True
-
-    def daily_races_loop(self):
-        """Main daily races loop"""
+    def champion_meet_loop(self):
+        """Main Champion Meeting loop"""
         try:
             if self.check_stop_condition():
-                self.main_window.log_message("Daily Races stopped before navigation")
+                self.main_window.log_message("Champion Meeting stopped before navigation")
                 return
 
-            if not self.navigate_to_daily_races():
+            if not self.navigate_to_champion_meet():
                 return
 
             while self.is_team_trials_running:
                 if self.check_stop_condition():
-                    self.main_window.log_message("Daily Races stopped during execution")
+                    self.main_window.log_message("Champion Meeting stopped during execution")
                     break
 
-                if not self.execute_daily_race_cycle():
+                if not self.execute_champion_meet_cycle():
                     break
 
         except Exception as e:
-            self.main_window.log_message(f"Daily Races error: {e}")
+            self.main_window.log_message(f"Champion Meeting error: {e}")
         finally:
             self.main_window.root.after(0, self.stop_team_trials)
 
@@ -318,7 +283,7 @@ class TeamTrialsLogic:
                                                max_attempts=3, delay_between=2):
                         return False
 
-                    self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", click=True, log_attempts=False,
+                    self.find_and_click("assets/buttons/home/champion_meet/race!_btn.png", click=True, log_attempts=False,
                                         max_attempts=2, delay_between=3)
 
                     # 6. Confirm
@@ -568,7 +533,7 @@ class TeamTrialsLogic:
         if self.check_stop_condition():
             return False
 
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=5, delay_between=1, click_number=2):
+        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=5, delay_between=1, click_count=3):
             return False
 
         if self.check_stop_condition():

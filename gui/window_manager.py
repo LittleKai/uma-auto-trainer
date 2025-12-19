@@ -40,7 +40,7 @@ class WindowManager:
         """Setup window with loaded settings"""
         settings = self.window_settings
 
-        width = max(650, settings.get('width', 700))
+        width = max(700, settings.get('width', 700))
         height = max(850, settings.get('height', 900))
 
         # Get saved position or use default

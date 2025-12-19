@@ -1,0 +1,65 @@
+{
+  "events": [
+    {
+      "name": "A Page about Apples",
+      "choice_2_if_energy_shortage_gte": 17
+    },
+    {
+      "name": "Rice's Guide to Vampire Eradication",
+      "choice_1_if_energy_shortage_gte": 9,
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "A Treat from Rice!",
+      "choice": 2
+    },
+    {
+      "name": "A Trick from Rice!",
+      "choice": 1
+    },
+    {
+      "name": "I Am Enough",
+      "choice": 2
+    },
+    {
+      "name": "Training Inspiration",
+      "choice": 2
+    },
+    {
+      "name": "Wonderful New Worlds",
+      "choice": 2
+    },
+    {
+      "name": "Looking on the Bright Side",
+      "choice": 1
+    },
+    {
+      "name": "Looking on the Bright Side",
+      "choice": 1
+    },
+    {
+      "name": "A Wish to the Goddesses",
+      "choice": 1
+    },
+    {
+      "name": "Even When Clouds Cover the Sky",
+      "choice": 1
+    },
+    {
+      "name": "My Sun",
+      "choice": 2
+    },
+    {
+      "name": "I've Got This!",
+      "choice": 2
+    },
+    {
+      "name": "A Page about Sunsets",
+      "choice": 1
+    }
+  ]
+}

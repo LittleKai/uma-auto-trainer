@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "name": "So Many Options!",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "A Roller Coaster of Feelings!",
+      "choice": 1
+    },
+    {
+      "name": "Watch Where You're Going!",
+      "choice": 2
+    }
+  ]
+}

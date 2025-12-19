@@ -663,7 +663,28 @@
       "choice": 2
     },
     {
-      "name": "",
+      "name": "Sundown Showdown",
+      "choice_1_if_energy_shortage_gte": 7,
+      "default_choice": 2
+    },
+    {
+      "name": "Sundown Solo Supper",
+      "choice": 1
+    },
+    {
+      "name": "Night of Ill Portent",
+      "choice": 1
+    },
+    {
+      "name": "#CurrenPotential",
+      "choice": 2
+    },
+    {
+      "name": "#UrUniqueCuteness",
+      "choice": 2
+    },
+    {
+      "name": "#Cuteness4U ☆",
       "choice": 1
     }
   ]

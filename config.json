@@ -47,7 +47,7 @@
     },
     "unity_cup": {
       "special_training_score": 0.125,
-      "spirit_explosion_score": 2.0
+      "spirit_explosion_score": 2.25
     },
     "wit_training": {
       "early_stage_bonus": 0.1,

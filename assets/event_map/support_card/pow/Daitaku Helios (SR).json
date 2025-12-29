@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "name": "#BFF #Party!",
+      "choice": 2
+    },
+    {
+      "name": "#LOL #Party! #Round2",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Encounter With the Sun ☆",
+      "choice": 2
+    },
+    {
+      "name": "Smiles Forever",
+      "choice": 1
+    }
+  ]
+}

@@ -686,6 +686,14 @@
     {
       "name": "#Cuteness4U ☆",
       "choice": 1
+    },
+    {
+      "name": "Want Me to Teach You?",
+      "choice": 1
+    },
+    {
+      "name": "Want Me to Help You?",
+      "choice": 2
     }
   ]
 }

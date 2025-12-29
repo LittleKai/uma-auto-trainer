@@ -1,0 +1,64 @@
+{
+  "events": [
+    {
+      "name": "For My Friends",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Sweet Nighttime Temptation",
+      "choice_3_if_mood_lt": "GREAT",
+      "choice_1_if_energy_shortage_gte": 20,
+      "choice_2_if_energy_shortage_gte": 10,
+      "default_choice": 3
+
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "A Self-Satisfying Wish",
+      "choice": 1
+    },
+    {
+      "name": "Fill Life with Love",
+      "choice": 1
+    },
+    {
+      "name": "Patience Is Key",
+      "choice": 2
+    },
+    {
+      "name": "One-Day Experience ☆ Ceramics Class",
+      "choice": 2
+    },
+    {
+      "name": "Find the Lost Child!",
+      "choice": 1
+    },
+    {
+      "name": "A Dangerous Treat",
+      "choice": 1
+    },
+    {
+      "name": "Is Relaxing Being Spoiled?",
+      "choice": 1
+    },
+    {
+      "name": "Dispel Your Anxieties",
+      "choice": 1
+    },
+    {
+      "name": "Let's Share",
+      "choice": 2
+    },
+    {
+      "name": "Rough Massage!",
+      "choice": 2
+    },
+    {
+      "name": "Stargazing is Better Together",
+      "choice": 2
+    }
+  ]
+}

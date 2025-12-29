@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Marvelous, No Question ☆",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "How To Be More Marvelous ☆",
+      "choice": 1
+    }
+  ]
+}

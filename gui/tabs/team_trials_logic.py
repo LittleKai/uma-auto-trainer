@@ -49,7 +49,8 @@ class TeamTrialsLogic:
         self.main_window.is_running = False
         self.main_window.log_message("Daily Activities stopped")
 
-    def find_and_click(self, image_path, full_screen = False, region=None, max_attempts=1, delay_between=1, click=True, log_attempts=True, click_count = 1):
+    def find_and_click(self, image_path, full_screen=False, region=None, max_attempts=1, delay_between=1, click=True,
+                       log_attempts=True, click_count=1, confidence=0.8):
         """Universal function to find and optionally click images with stop checking"""
         time.sleep(1)
 
@@ -74,7 +75,7 @@ class TeamTrialsLogic:
 
             try:
                 button = pyautogui.locateCenterOnScreen(
-                    image_path, confidence=0.8, minSearchTime=0.2, region=region
+                    image_path, confidence=confidence, minSearchTime=0.2, region=region
                 )
                 if button:
                     if click:
@@ -85,7 +86,7 @@ class TeamTrialsLogic:
                             pyautogui.click(button)
                             time.sleep(0.2)
                         if log_attempts:
-                           self.main_window.log_message(f"Clicked {filename}")
+                            self.main_window.log_message(f"Clicked {filename}")
                         if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
                             time.sleep(8)
                         return button
@@ -132,13 +133,15 @@ class TeamTrialsLogic:
     def execute_champion_meet_cycle(self):
         """Execute one complete daily race cycle"""
         # Race button home
-        if not self.find_and_click("assets/buttons/home/champion_meeting/find_race_btn.png", max_attempts=5, delay_between=2):
+        if not self.find_and_click("assets/buttons/home/champion_meeting/find_race_btn.png", max_attempts=5,
+                                   delay_between=2):
             return False
         print("execute_champion_meet_cycle")
         if not self.find_and_click("assets/buttons/next_btn.png", max_attempts=18, delay_between=5):
             return False
 
-        if not self.find_and_click("assets/buttons/home/champion_meeting/race_brn.png", max_attempts=5, delay_between=3, click_count=3):
+        if not self.find_and_click("assets/buttons/home/champion_meeting/race_brn.png", max_attempts=5, delay_between=3,
+                                   click_count=3):
             return False
         time.sleep(3)
 
@@ -165,7 +168,8 @@ class TeamTrialsLogic:
 
         time.sleep(2)
         for i in range(4):
-            next_btn_pos = self.find_and_click("assets/buttons/next_btn.png", max_attempts=1, delay_between=1, click_count=3)
+            next_btn_pos = self.find_and_click("assets/buttons/next_btn.png", max_attempts=1, delay_between=1,
+                                               click_count=3)
             if not next_btn_pos:
                 if i == 4:
                     return False
@@ -283,8 +287,8 @@ class TeamTrialsLogic:
                                                max_attempts=3, delay_between=2):
                         return False
 
-                    self.find_and_click("assets/buttons/home/champion_meet/race!_btn.png", click=True, log_attempts=False,
-                                        max_attempts=2, delay_between=3)
+                    self.find_and_click("assets/buttons/home/daily_race/race!_btn.png", confidence=0.9,
+                                        click=True, log_attempts=False, max_attempts=2, delay_between=3)
 
                     # 6. Confirm
                     if not self.find_and_click("assets/buttons/confirm_btn.png", click=True, max_attempts=3,
@@ -400,7 +404,8 @@ class TeamTrialsLogic:
         elif self.find_and_click("assets/buttons/restore_btn.png", click=False, log_attempts=False):
             self.main_window.log_message("No more turns available - stopping bot")
             return False
-        if not self.find_and_click("assets/buttons/refresh_btn.png", click=False, log_attempts=False, max_attempts=2, delay_between=2):
+        if not self.find_and_click("assets/buttons/refresh_btn.png", click=False, log_attempts=False, max_attempts=2,
+                                   delay_between=2):
             time.sleep(4)
 
         # Check stop condition before next button check
@@ -408,7 +413,8 @@ class TeamTrialsLogic:
             return False
 
         # Step 3 continued: Check for immediate next button (skip to race results)
-        if self.find_and_click("assets/buttons/quick_mode_on.png", click =False) or self.find_and_click("assets/buttons/quick_mode_off.png", click =False):
+        if self.find_and_click("assets/buttons/quick_mode_on.png", click=False) or self.find_and_click(
+                "assets/buttons/quick_mode_off.png", click=False):
             self.main_window.log_message("Proceeding directly to race")
 
             # Check stop condition before race button
@@ -589,7 +595,7 @@ class TeamTrialsLogic:
         else:
             time.sleep(0.5)
 
-         # Check stop condition before race again button
+        # Check stop condition before race again button
         if self.check_stop_condition():
             return False
 

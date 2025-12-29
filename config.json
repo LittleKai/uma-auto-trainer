@@ -7,7 +7,7 @@
   "stat_caps": {
     "spd": 1130,
     "sta": 1100,
-    "pwr": 1100,
+    "pwr": 1080,
     "guts": 1100,
     "wit": 1130
   },
@@ -19,7 +19,7 @@
       "day_threshold": 24
     },
     "npc_score": {
-      "base_value": 0.25
+      "base_value": 0.4
     },
     "support_score": {
       "base_value": 1.0,

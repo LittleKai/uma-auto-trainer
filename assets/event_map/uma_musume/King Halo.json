@@ -1,0 +1,65 @@
+{
+  "events": [
+    {
+      "name": "Sweet Tooth Temptation",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 2
+    },
+    {
+      "name": "The Outfit That Suits Me Most",
+      "choice": 2
+    },
+    {
+      "name": "Running Isn't Everything",
+      "choice": 2
+    },
+    {
+      "name": "Manners Are Common Sense",
+      "choice": 2
+    },
+    {
+      "name": "Movies Are Full of Learning Opportunities",
+      "choice": 1
+    },
+    {
+      "name": "The King Knows No Exhaustion",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "First-Rate in Studies Too",
+      "choice": 1
+    },
+    {
+      "name": "After-School Soda",
+      "choice": 2
+    },
+    {
+      "name": "Three Heads Are Better than One",
+      "choice": 2
+    },
+    {
+      "name": "First-Rate Spot",
+      "choice": 1
+    },
+    {
+      "name": "First-Rate Harvest",
+      "choice": 2
+    },
+    {
+      "name": "First-Rate Terms",
+      "choice": 1
+    },
+    {
+      "name": "Crowds Are No Problem",
+      "choice": 1
+    },
+    {
+      "name": "Breaking Curfew is Second-Rate",
+      "choice": 2
+    }
+  ]
+}

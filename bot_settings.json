@@ -18,71 +18,85 @@
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
-  "enable_stop_conditions": false,
+  "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "Classic Year Oct 2",
-  "stop_on_ura_final": false,
+  "target_month": "Classic Year Jun 2",
+  "stop_on_ura_final": true,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Agnes Tachyon",
+    "uma_musume": "Mejiro Ryan",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Nishino Flower (SSR)",
-      "gut: Haru Urara (SSR)",
+      "spd: Sweep Tosho (SR)",
+      "spd: Narita Taishin (SR)",
       "frd: Riko Kashimoto (SSR)",
-      "gut: Matikanetannhauser (SSR)",
-      "frd: Tazuna Hayakawa (SSR)",
-      "None",
-      "None"
+      "sta: Mejiro McQueen (SSR)",
+      "sta: Super Creek (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 5,
+    "current_set": 4,
+    "preset_names": {
+      "1": "Preset 1",
+      "2": "Preset 2",
+      "3": "Preset 3",
+      "4": "Preset 4",
+      "5": "Preset 5",
+      "6": "Preset 6",
+      "7": "Preset 7",
+      "8": "Preset 8",
+      "9": "Preset 9",
+      "10": "Preset 10",
+      "11": "Preset 11",
+      "12": "Preset 12",
+      "13": "Preset 13",
+      "14": "Preset 14",
+      "15": "Preset 15",
+      "16": "Preset 16",
+      "17": "Preset 17",
+      "18": "Preset 18",
+      "19": "Preset 19",
+      "20": "Preset 20"
+    },
     "preset_sets": {
       "1": {
-        "uma_musume": "Silence Suzuka",
+        "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Eishin Flash (SR)",
           "spd: Sweep Tosho (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)",
-          "None",
-          "None"
+          "pow: Rice Shower (SSR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "2": {
         "uma_musume": "Oguri Cap",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Narita Brian (SSR)",
+          "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)",
-          "None",
-          "None"
+          "pow: Daiwa Scarlet (SSR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "3": {
-        "uma_musume": "Gold Ship",
+        "uma_musume": "Oguri Cap",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SSR)",
-          "spd: Narita Taishin (SR)",
+          "spd: Eishin Flash (SR)",
+          "pow: Daitaku Helios (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "sta: Mayano Top Gun (SR)",
-          "None",
-          "None"
+          "pow: Vodka (SSR)",
+          "pow: Winning Ticket (SSR)"
         ]
       },
       "4": {
@@ -93,35 +107,29 @@
           "spd: Narita Taishin (SR)",
           "frd: Riko Kashimoto (SSR)",
           "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)",
-          "None",
-          "None"
+          "sta: Super Creek (SSR)"
         ]
       },
       "5": {
-        "uma_musume": "Agnes Tachyon",
+        "uma_musume": "El Condor Pasa (Fantasy)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Special Week (SSR)",
+          "spd: Eishin Flash (SR)",
           "gut: Haru Urara (SSR)",
           "frd: Riko Kashimoto (SSR)",
-          "gut: Matikanetannhauser (SSR)",
-          "gut: Special Week (SSR)",
-          "None",
-          "None"
+          "spd: Sweep Tosho (SR)",
+          "gut: Special Week (SSR)"
         ]
       },
       "6": {
-        "uma_musume": "Seiun Sky",
+        "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "sta: Gold Ship (SSR)",
-          "pow: Smart Falcon (SSR)",
-          "sta: Silence Suzuka (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "pow: Rice Shower (SSR)",
-          "None",
-          "None"
+          "spd: Special Week (SSR)",
+          "frd: Riko Kashimoto (SSR)",
+          "wit: Matikanefukukitaru (SR)",
+          "wit: Daiwa Scarlet (SR)",
+          "wit: Fine Motion (SSR)"
         ]
       },
       "7": {
@@ -132,9 +140,7 @@
           "spd: Twin Turbo (SSR)",
           "pow: Hishi Amazon (SR)",
           "pow: Rice Shower (SSR)",
-          "pow: Smart Falcon (SSR)",
-          "None",
-          "None"
+          "pow: Smart Falcon (SSR)"
         ]
       },
       "8": {
@@ -145,7 +151,137 @@
           "spd: Gold Ship (SSR)",
           "pow: Smart Falcon (SSR)",
           "pow: Oguri Cap (SSR)",
-          "pow: Rice Shower (SSR)",
+          "pow: Rice Shower (SSR)"
+        ]
+      },
+      "9": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "10": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "11": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "12": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "13": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "14": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "15": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "16": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "17": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "18": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "19": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
+          "None",
+          "None"
+        ]
+      },
+      "20": {
+        "uma_musume": "None",
+        "support_cards": [
+          "None",
+          "None",
+          "None",
+          "None",
           "None",
           "None"
         ]
@@ -154,17 +290,17 @@
   },
   "team_trials": {
     "daily_activity_type": "Team Trial",
-    "opponent_type": "Opponent 2",
+    "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
     "stop_if_shop": false,
     "legend_race_use_parfait": false,
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 809,
-    "height": 958,
-    "x": 1068,
-    "y": 0
+    "width": 786,
+    "height": 973,
+    "x": 1042,
+    "y": 4
   },
   "scenario": "Unity Cup"
 }

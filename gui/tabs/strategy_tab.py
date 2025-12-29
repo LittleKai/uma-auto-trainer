@@ -144,8 +144,8 @@ class StrategyTab:
 
     def create_strategy_settings(self, parent, row):
         """Create strategy settings section"""
-        strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="10")
-        strategy_frame.grid(row=row, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
+        strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="5")
+        strategy_frame.grid(row=row, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
         strategy_frame.columnconfigure(1, weight=1)
         strategy_frame.columnconfigure(3, weight=1)
 
@@ -186,14 +186,14 @@ class StrategyTab:
             text="Allow Continuous Racing (>3 races)",
             variable=self.allow_continuous_racing
         )
-        continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(10, 5))
+        continuous_racing_check.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(5, 5))
 
         manual_event_check = ttk.Checkbutton(
             strategy_frame,
             text="Manual Event Handling (pause on events)",
             variable=self.manual_event_handling
         )
-        manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(10, 5))
+        manual_event_check.grid(row=1, column=2, columnspan=2, sticky=tk.W, pady=(5, 5))
 
         stop_ura_final_check = ttk.Checkbutton(
             strategy_frame,
@@ -212,7 +212,7 @@ class StrategyTab:
     def create_race_filters_section(self, parent, row):
         """Create race filters section"""
         filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
-        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
         filter_frame.columnconfigure(0, weight=1)
         filter_frame.columnconfigure(1, weight=1)
         filter_frame.columnconfigure(2, weight=1)
@@ -304,7 +304,7 @@ class StrategyTab:
     def create_stop_conditions_section(self, parent, row):
         """Create stop conditions section"""
         stop_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding="10")
-        stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E), pady=(0, 15))
+        stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E), pady=(0, 5))
 
         # Container for checkbox and button in same row
         # controls_frame = ttk.Frame(stop_frame)

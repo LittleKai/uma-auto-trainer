@@ -1,7 +1,7 @@
 {
   "track": {
-    "turf": true,
-    "dirt": false
+    "turf": false,
+    "dirt": true
   },
   "distance": {
     "sprint": true,
@@ -11,8 +11,8 @@
   },
   "grade": {
     "g1": true,
-    "g2": false,
-    "g3": false
+    "g2": true,
+    "g3": true
   },
   "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3+",
@@ -32,22 +32,22 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Maruzensky",
+    "uma_musume": "Smart Falcon",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
+      "spd: Silence Suzuka (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Twin Turbo (SSR)",
-      "pow: Hishi Amazon (SR)",
-      "pow: Rice Shower (SSR)",
-      "pow: Smart Falcon (SSR)"
+      "frd: Riko Kashimoto (SSR)",
+      "pow: Mihono Bourbon (SR)",
+      "pow: Vodka (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 7,
+    "current_set": 1,
     "preset_names": {
-      "1": "Preset 1",
-      "2": "Preset 2",
-      "3": "Preset 3",
-      "4": "Preset 4",
+      "1": "FRONT POWER",
+      "2": "PACE POWER",
+      "3": "LATE POWER",
+      "4": "END POWER",
       "5": "Preset 5",
       "6": "Preset 6",
       "7": "Preset 7",
@@ -62,7 +62,7 @@
       "16": "Preset 16",
       "17": "Preset 17",
       "18": "Preset 18",
-      "19": "Preset 19",
+      "19": "ParentFarm",
       "20": "Preset 20"
     },
     "preset_sets": {
@@ -265,14 +265,14 @@
         ]
       },
       "19": {
-        "uma_musume": "None",
+        "uma_musume": "Maruzensky",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "spd: Twin Turbo (SSR)",
+          "pow: Smart Falcon (SSR)",
+          "pow: Hishi Amazon (SR)",
+          "pow: Rice Shower (SSR)"
         ]
       },
       "20": {

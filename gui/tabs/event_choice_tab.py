@@ -333,7 +333,7 @@ class EventChoiceTab:
     def _get_preset_names(self):
         """Get list of preset names for dropdown"""
         names = []
-        for i in range(1, 9):
+        for i in range(1, 21):
             name = self.preset_names[i].get()
             names.append(name)
         return names

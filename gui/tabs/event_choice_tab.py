@@ -121,7 +121,7 @@ class EventChoiceTab:
         # Main content frame
         content_frame = ttk.Frame(scrollable_frame, padding="8")
         content_frame.pack(fill=tk.BOTH, expand=True)
-        content_frame.columnconfigure(0, weight=1, minsize=740)
+        content_frame.columnconfigure(0, weight=1, minsize=720)
 
         # Create sections
         self.create_support_selection(content_frame, row=0)

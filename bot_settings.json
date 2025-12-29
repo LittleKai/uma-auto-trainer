@@ -4,10 +4,10 @@
     "dirt": false
   },
   "distance": {
-    "sprint": false,
-    "mile": false,
+    "sprint": true,
+    "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
@@ -32,17 +32,17 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Mejiro Ryan",
+    "uma_musume": "Maruzensky",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
       "spd: Sweep Tosho (SR)",
-      "spd: Narita Taishin (SR)",
-      "frd: Riko Kashimoto (SSR)",
-      "sta: Mejiro McQueen (SSR)",
-      "sta: Super Creek (SSR)"
+      "spd: Twin Turbo (SSR)",
+      "pow: Hishi Amazon (SR)",
+      "pow: Rice Shower (SSR)",
+      "pow: Smart Falcon (SSR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 4,
+    "current_set": 7,
     "preset_names": {
       "1": "Preset 1",
       "2": "Preset 2",
@@ -100,7 +100,7 @@
         ]
       },
       "4": {
-        "uma_musume": "Mayano Top Gun",
+        "uma_musume": "Mejiro Ryan",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",

@@ -128,9 +128,9 @@ class StrategyTab:
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Main content frame
+        # Main content frame - pack without expand
         content_frame = ttk.Frame(scrollable_frame, padding="4")
-        content_frame.pack(fill=tk.BOTH, expand=True)
+        content_frame.pack(fill=tk.X, expand=False)  # Changed: expand=False, fill=tk.X only
         content_frame.columnconfigure(0, weight=1, minsize=470)
 
         # Create sections

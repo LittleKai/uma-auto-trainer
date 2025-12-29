@@ -138,7 +138,8 @@ class UmaAutoGUI:
     def create_tabbed_section(self, parent, row):
         """Create tabbed section with Strategy, Event Choice, and Team Trials tabs"""
         notebook = ttk.Notebook(parent)
-        notebook.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        # Add sticky N to prevent vertical expansion
+        notebook.grid(row=row, column=0, sticky=(tk.W, tk.E, tk.N), pady=(0, 15))
 
         # Strategy tab
         strategy_frame = ttk.Frame(notebook)

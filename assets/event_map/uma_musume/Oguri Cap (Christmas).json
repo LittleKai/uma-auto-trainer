@@ -1,0 +1,64 @@
+{
+  "events": [
+    {
+      "name": "Bottomless Pit",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Oguri's Gluttony Championship",
+      "choice_3_if_energy_shortage_gte": 60,
+      "choice_1_if_energy_shortage_gte": 15,
+      "default_choice": 2
+    },
+    {
+      "name": "A Grown-Up Present",
+      "choice_1_if_energy_shortage_gte": 15,
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Dashing through the Snow",
+      "choice": 1
+    },
+    {
+      "name": "Everyone's Oguri Cap",
+      "choice": 2
+    },
+    {
+      "name": "Lost Umamusume",
+      "choice": 2
+    },
+    {
+      "name": "Field Workout",
+      "choice": 2
+    },
+    {
+      "name": "Running on Full",
+      "choice": 1
+    },
+    {
+      "name": "Oguri Makes a Resolution",
+      "choice": 1
+    },
+    {
+      "name": "Oguri Perseveres",
+      "choice": 2
+    },
+    {
+      "name": "Oguri Matures",
+      "choice": 2
+    },
+    {
+      "name": "Something Smells Good!",
+      "choice": 1
+    },
+    {
+      "name": "High-Level Rival",
+      "choice": 1
+    }
+  ]
+}

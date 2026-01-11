@@ -1,0 +1,60 @@
+{
+  "events": [
+     {
+      "name": "It's the Thought That's Sweetest",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Mejiro Colors",
+      "choice": 1
+    },
+    {
+      "name": "The Aromatherapist",
+      "choice": 2
+    },
+    {
+      "name": "Like Mother, Like Daughter",
+      "choice": 2
+    },
+    {
+      "name": "Seeking the Summit",
+      "choice": 2
+    },
+    {
+      "name": "A Lovely Tea Time",
+      "choice": 2
+    },
+    {
+      "name": "Hot Pot Derby?!",
+      "choice": 1
+    },
+    {
+      "name": "Karaoke Challenge",
+      "choice": 1
+    },
+    {
+      "name": "Who I Am Now",
+      "choice": 1
+    },
+    {
+      "name": "I'll Give It a Shot",
+      "choice": 1
+    },
+    {
+      "name": "A Wish to Light Up the Sky",
+      "choice": 2
+    },
+    {
+      "name": "Friends and Fangirls",
+      "choice": 2
+    },
+    {
+      "name": "Fluttering Hearts at Sunset",
+      "choice": 1
+    }
+  ]
+}

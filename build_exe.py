@@ -69,7 +69,7 @@ def check_pyinstaller():
 
 def remove_old_spec_files():
     """Remove old spec files that need to be cleaned up"""
-    old_spec_files = ["simple_uma.spec", "uma_auto.spec"]
+    old_spec_files = ["simple_uma.spec", "uma_auto.spec", "uma_auto_train.spec"]
 
     for spec_file in old_spec_files:
         if os.path.exists(spec_file):
@@ -80,20 +80,45 @@ def remove_old_spec_files():
                 print_warning(f"Could not remove {spec_file}: {e}")
 
 def create_spec_file():
-    """Create PyInstaller spec file with improved window detection support"""
+    """Create PyInstaller spec file for multi-file build with tkinter support"""
     print_header("Creating PyInstaller Spec File")
 
     spec_content = """# -*- mode: python ; coding: utf-8 -*-
+import sys
+import os
+from pathlib import Path
 
 block_cipher = None
+
+# Find Python installation directory for tkinter DLLs
+python_dir = Path(sys.executable).parent
+tcl_dir = python_dir / 'tcl'
+tk_libs = python_dir / 'DLLs'
+
+# Collect tkinter related files
+tkinter_binaries = []
+tkinter_datas = []
+
+# Add TCL/TK DLLs
+if tk_libs.exists():
+    for dll in tk_libs.glob('tcl*.dll'):
+        tkinter_binaries.append((str(dll), '.'))
+    for dll in tk_libs.glob('tk*.dll'):
+        tkinter_binaries.append((str(dll), '.'))
+    for dll in tk_libs.glob('_tkinter*.pyd'):
+        tkinter_binaries.append((str(dll), '.'))
+
+# Add TCL library files
+if tcl_dir.exists():
+    tkinter_datas.append((str(tcl_dir), 'tcl'))
 
 # Data files to include
 added_files = [
     ('assets', 'assets'),
-    ('config.json', '.'),
-    ('bot_settings.json', '.'),
-    ('region_settings.json', '.'),
 ]
+
+# Add tkinter data files
+added_files.extend(tkinter_datas)
 
 # Hidden imports that PyInstaller might miss
 hidden_imports = [
@@ -112,6 +137,7 @@ hidden_imports = [
     'tkinter.ttk',
     'tkinter.scrolledtext',
     'tkinter.messagebox',
+    '_tkinter',
     'json',
     'threading',
     'time',
@@ -119,7 +145,6 @@ hidden_imports = [
     're',
     'os',
     'sys',
-    'pathlib',
     'ctypes',
     'ctypes.wintypes',
     'win32gui',
@@ -130,7 +155,7 @@ hidden_imports = [
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
+    binaries=tkinter_binaries,
     datas=added_files,
     hiddenimports=hidden_imports,
     hookspath=[],
@@ -148,17 +173,13 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='Uma_Musume_Auto_Train',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -166,6 +187,17 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='icon.ico' if os.path.exists('icon.ico') else None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='Uma_Musume_Auto_Train',
 )
 """
 
@@ -184,19 +216,18 @@ def check_required_files():
 
     required_files = [
         'main.py',
-        'config.json',
-        'bot_settings.json'
+        'README.txt'
     ]
 
     required_directories = [
         'assets',
         'core',
-        'utils'
+        'utils',
+        'gui'
     ]
 
     missing_files = []
 
-    # Check files
     for file in required_files:
         if os.path.exists(file):
             print_success(f"Found: {file}")
@@ -204,7 +235,6 @@ def check_required_files():
             print_error(f"Missing: {file}")
             missing_files.append(file)
 
-    # Check directories
     for directory in required_directories:
         if os.path.exists(directory):
             print_success(f"Found directory: {directory}")
@@ -218,70 +248,81 @@ def check_required_files():
 
     return True
 
-def create_default_files():
-    """Create default configuration files if they don't exist"""
+def create_default_config():
+    """Create default bot_settings.json if it doesn't exist"""
     print_header("Creating Default Configuration Files")
 
-    # Create config.json if missing
-    if not os.path.exists('config.json'):
-        config_content = {
-            "priority_stat": ["spd", "pwr", "sta", "wit", "guts"],
-            "maximum_failure": 15,
-            "minimum_energy_percentage": 40,
-            "critical_energy_percentage": 20,
-            "stat_caps": {
-                "spd": 1120,
-                "sta": 1120,
-                "pwr": 1120,
-                "guts": 500,
-                "wit": 500
-            },
-            "key": "jJ10uNHDwuPW9LGNWWZ2"
-        }
+    config_content = {
+        "track": {
+            "turf": True,
+            "dirt": False
+        },
+        "distance": {
+            "sprint": False,
+            "mile": True,
+            "medium": True,
+            "long": True
+        },
+        "grade": {
+            "g1": True,
+            "g2": False,
+            "g3": False
+        },
+        "minimum_mood": "NORMAL",
+        "priority_strategy": "Train Score 3+",
+        "allow_continuous_racing": False,
+        "manual_event_handling": False,
+        "enable_stop_conditions": False,
+        "stop_on_infirmary": True,
+        "stop_on_need_rest": False,
+        "stop_on_low_mood": True,
+        "stop_on_race_day": False,
+        "stop_mood_threshold": "GREAT",
+        "stop_before_summer": True,
+        "stop_at_month": False,
+        "target_month": "Junior Year Dec 1",
+        "stop_on_ura_final": False,
+        "stop_on_warning": True,
+        "event_choice": {
+            "auto_event_map": True,
+            "auto_first_choice": False,
+            "uma_musume": "None",
+            "support_cards": ["None"] * 6,
+            "unknown_event_action": "Search in other special events",
+            "current_set": 1,
+            "preset_names": {str(i): f"Preset {i}" for i in range(1, 21)},
+            "preset_sets": {
+                str(i): {
+                    "uma_musume": "None",
+                    "support_cards": ["None"] * 6
+                } for i in range(1, 21)
+            }
+        },
+        "team_trials": {
+            "daily_activity_type": "Team Trial",
+            "opponent_type": "Opponent 2",
+            "use_parfait_gift_pvp": True,
+            "stop_if_shop": False,
+            "legend_race_use_parfait": False,
+            "legend_race_stop_if_shop": False
+        },
+        "window": {
+            "width": 700,
+            "height": 900,
+            "x": 100,
+            "y": 20
+        },
+        "scenario": "URA Final"
+    }
 
-        try:
-            with open('config.json', 'w', encoding='utf-8') as f:
-                json.dump(config_content, f, indent=2)
-            print_success("Created default config.json")
-        except Exception as e:
-            print_error(f"Failed to create config.json: {e}")
-            return False
-
-    # Create bot_settings.json if missing
-    if not os.path.exists('bot_settings.json'):
-        bot_settings_content = {
-            "track": {
-                "turf": True,
-                "dirt": False
-            },
-            "distance": {
-                "sprint": False,
-                "mile": False,
-                "medium": True,
-                "long": True
-            },
-            "grade": {
-                "g1": True,
-                "g2": True,
-                "g3": False,
-                "op": False,
-                "unknown": False
-            },
-            "minimum_mood": "NORMAL",
-            "priority_strategy": "Train Score 2.5+",
-            "allow_continuous_racing": True,
-            "manual_event_handling": False
-        }
-
-        try:
-            with open('bot_settings.json', 'w', encoding='utf-8') as f:
-                json.dump(bot_settings_content, f, indent=2)
-            print_success("Created default bot_settings.json")
-        except Exception as e:
-            print_error(f"Failed to create bot_settings.json: {e}")
-            return False
-
-    return True
+    try:
+        with open('bot_settings_default.json', 'w', encoding='utf-8') as f:
+            json.dump(config_content, f, indent=2)
+        print_success("Created default bot_settings_default.json")
+        return True
+    except Exception as e:
+        print_error(f"Failed to create bot_settings_default.json: {e}")
+        return False
 
 def build_executable():
     """Build the executable using PyInstaller"""
@@ -290,11 +331,20 @@ def build_executable():
     print_info("Starting PyInstaller build process...")
     print_info("This may take several minutes depending on your system...")
 
+    # Remove old dist folder if exists
+    dist_folder = "dist/Uma_Musume_Auto_Train"
+    if os.path.exists(dist_folder):
+        try:
+            shutil.rmtree(dist_folder)
+            print_success(f"Removed old dist folder: {dist_folder}")
+        except Exception as e:
+            print_warning(f"Could not remove old dist folder: {e}")
+
     try:
-        # Use the spec file for building
         result = subprocess.run([
             sys.executable, "-m", "PyInstaller",
             "--clean",
+            "-y",  # Add this flag to remove output directory without confirmation
             "uma_auto_train.spec"
         ], check=True, capture_output=True, text=True)
 
@@ -310,78 +360,35 @@ def create_distribution_package():
     """Create a distribution package with all necessary files"""
     print_header("Creating Distribution Package")
 
-    dist_dir = "Uma_Musume_Auto_Train"
+    dist_dir = "Uma_Musume_Auto_Train_Distribution"
 
-    # Clean previous distribution
     if os.path.exists(dist_dir):
         shutil.rmtree(dist_dir)
 
     try:
-        # Create distribution directory
         os.makedirs(dist_dir, exist_ok=True)
 
-        # Copy executable
-        exe_path = "dist/Uma_Musume_Auto_Train.exe"
-        if os.path.exists(exe_path):
-            shutil.copy2(exe_path, os.path.join(dist_dir, "Uma_Musume_Auto_Train.exe"))
-            print_success("Copied executable")
+        # Copy the entire build folder
+        build_folder = "dist/Uma_Musume_Auto_Train"
+        if os.path.exists(build_folder):
+            shutil.copytree(build_folder, os.path.join(dist_dir, "Uma_Musume_Auto_Train"))
+            print_success("Copied executable folder")
         else:
-            print_error("Executable not found in dist folder")
+            print_error("Executable folder not found in dist")
             return False
 
-        # Copy assets folder
-        if os.path.exists("assets"):
-            shutil.copytree("assets", os.path.join(dist_dir, "assets"))
-            print_success("Copied assets folder")
+        # Copy README.txt
+        if os.path.exists("README.txt"):
+            shutil.copy2("README.txt", os.path.join(dist_dir, "README.txt"))
+            print_success("Copied README.txt")
+        else:
+            print_warning("README.txt not found")
 
-        # Copy configuration files
-        config_files = ["config.json", "bot_settings.json"]
-        for config_file in config_files:
-            if os.path.exists(config_file):
-                shutil.copy2(config_file, os.path.join(dist_dir, config_file))
-                print_success(f"Copied {config_file}")
-
-        # Create README file for users
-        readme_content = """Uma Musume Auto Train
-
-System Requirements:
-- Windows 10/11
-- Screen resolution: 1920x1080
-- Download Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki
-- Tesseract OCR installed at: C:\\Program Files\\Tesseract-OCR\\
-- Run Uma Musume game in fullscreen mode
-- Due to the tool's mouse control functionality, please add the exe file to Exclusions under Windows Security > Virus & threat protection to prevent interference.
-
-How to Use
-1. Double-click "Uma_Musume_Auto_Train.exe" to start
-2. Configure strategy settings in the GUI
-3. Set up race filters according to your preferences
-4. Press F1 to start the bot
-
-Keyboard Shortcuts:
-- F1: Start Bot
-- F2: Pause/Resume Bot
-- F3: Stop Bot
-- F5: Force Exit Program
-
-Configuration Files:
-- config.json: Basic bot configuration
-- bot_settings.json: Strategy and filter settings
-- region_settings.json: OCR region coordinates (auto-generated)
-
-Important Settings:
-- Turn off all items in "Require Confirmation" settings to ensure smooth bot operation
-
-Troubleshooting:
-- If OCR detection fails, use "Region Settings" in the GUI to adjust coordinates
-- Make sure Tesseract is installed correctly
-- Ensure game window title contains "Umamusume"
-- Check that screen resolution is 1920x1080
-"""
-
-        with open(os.path.join(dist_dir, "README.txt"), "w", encoding="utf-8") as f:
-            f.write(readme_content)
-        print_success("Created README.txt")
+        # Copy default config
+        if os.path.exists("bot_settings_default.json"):
+            shutil.copy2("bot_settings_default.json",
+                         os.path.join(dist_dir, "Uma_Musume_Auto_Train", "bot_settings.json"))
+            print_success("Copied default bot_settings.json")
 
         print_success(f"Distribution package created in: {dist_dir}")
         return True
@@ -396,9 +403,8 @@ def cleanup_build_files():
 
     cleanup_items = [
         "build",
-        "dist",
-        "__pycache__",
-        "uma_auto_train.spec"
+        "uma_auto_train.spec",
+        "bot_settings_default.json"
     ]
 
     for item in cleanup_items:
@@ -424,20 +430,12 @@ def main():
     print_info("This script will create a standalone executable (.exe) file")
     print_info("The executable can be distributed without source code")
 
-    # Wait for user confirmation
-    response = input(f"\n{Colors.OKCYAN}Continue with build? (y/N): {Colors.ENDC}").strip().lower()
-    if response not in ['y', 'yes']:
-        print_info("Build cancelled by user")
-        return
-
-    # Remove old spec files first
     remove_old_spec_files()
 
-    # Build steps
     build_steps = [
         ("PyInstaller", check_pyinstaller),
         ("Required Files", check_required_files),
-        ("Default Files", create_default_files),
+        ("Default Config", create_default_config),
         ("Spec File", create_spec_file),
         ("Executable", build_executable),
         ("Distribution Package", create_distribution_package)
@@ -449,13 +447,12 @@ def main():
         try:
             if not step_function():
                 failed_steps.append(step_name)
-                break  # Stop on first failure for build process
+                break
         except Exception as e:
             print_error(f"Unexpected error in {step_name}: {e}")
             failed_steps.append(step_name)
             break
 
-    # Print results
     print_header("Build Results")
 
     if failed_steps:
@@ -467,23 +464,16 @@ def main():
         print_colored("\n📦 Distribution Package Created:", Colors.BOLD)
         print_info("Folder: Uma_Musume_Auto_Train_Distribution/")
         print_info("Contains:")
-        print_info("  - Uma_Musume_Auto_Train.exe (main executable)")
-        print_info("  - assets/ (required game assets)")
-        print_info("  - config.json (configuration file)")
-        print_info("  - bot_settings.json (bot settings)")
+        print_info("  - Uma_Musume_Auto_Train/ (executable folder)")
         print_info("  - README.txt (user instructions)")
 
         print_colored("\n🚀 How to Distribute:", Colors.BOLD)
         print_info("1. Zip the 'Uma_Musume_Auto_Train_Distribution' folder")
         print_info("2. Send the zip file to users")
-        print_info("3. Users extract and run Uma_Musume_Auto_Train.exe")
+        print_info("3. Users extract and run Uma_Musume_Auto_Train.exe in the folder")
         print_info("4. Users need to install Tesseract OCR separately")
 
-    # Automatically clean up build files after completion
     cleanup_build_files()
-
-    print_colored(f"\n{Colors.BOLD}Press Enter to exit...{Colors.ENDC}")
-    input()
 
 if __name__ == "__main__":
     try:

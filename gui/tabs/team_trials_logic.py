@@ -50,7 +50,7 @@ class TeamTrialsLogic:
         self.main_window.log_message("Daily Activities stopped")
 
     def find_and_click(self, image_path, full_screen=False, region=None, max_attempts=1, delay_between=1, click=True,
-                       log_attempts=True, click_count=1, confidence=0.8):
+                       log_attempts=True, click_count=1, confidence=0.8, click_count_delay=0.3):
         """Universal function to find and optionally click images with stop checking"""
         time.sleep(1)
 
@@ -84,7 +84,7 @@ class TeamTrialsLogic:
                             return None
                         for i in range(click_count):
                             pyautogui.click(button)
-                            time.sleep(0.2)
+                            time.sleep(click_count_delay)
                         if log_attempts:
                             self.main_window.log_message(f"Clicked {filename}")
                         if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
@@ -153,30 +153,26 @@ class TeamTrialsLogic:
             return False
         time.sleep(2)
 
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
-            return False
-
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
-            return False
-
-        time.sleep(2)
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
-            return False
-
-        if not self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2):
-            return False
+        for i in range(4):
+            self.find_and_click("assets/buttons/skip_btn.png", max_attempts=3, delay_between=2, click_count=2,
+                                log_attempts=False)
 
         time.sleep(2)
         for i in range(4):
             next_btn_pos = self.find_and_click("assets/buttons/next_btn.png", max_attempts=1, delay_between=1,
-                                               click_count=3)
+                                               click_count=2)
             if not next_btn_pos:
-                if i == 4:
-                    return False
                 pyautogui.click(400, 400)
                 time.sleep(3)
+                if i == 4:
+                    return False
             else:
-                time.sleep(5)
+                time.sleep(3)
+                if self.find_and_click("assets/buttons/next_btn.png", max_attempts=1, delay_between=1,
+                                       click_count=3):
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 break
 
         # # RECHECK if race_brn was clicked
@@ -413,8 +409,9 @@ class TeamTrialsLogic:
             return False
 
         # Step 3 continued: Check for immediate next button (skip to race results)
-        if self.find_and_click("assets/buttons/quick_mode_on.png", click=False) or self.find_and_click(
-                "assets/buttons/quick_mode_off.png", click=False):
+        if self.find_and_click("assets/buttons/quick_mode_on.png", click=False, confidence=0.7, max_attempts=3,
+                               delay_between=1) or self.find_and_click("assets/buttons/quick_mode_off.png",
+                                                                       click=False):
             self.main_window.log_message("Proceeding directly to race")
 
             # Check stop condition before race button

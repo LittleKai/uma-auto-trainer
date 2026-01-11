@@ -15,7 +15,7 @@
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,
-      "late_stage": 0.5,
+      "late_stage": 0.75,
       "day_threshold": 24
     },
     "npc_score": {

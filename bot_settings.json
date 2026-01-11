@@ -1,18 +1,18 @@
 {
   "track": {
-    "turf": false,
-    "dirt": true
+    "turf": true,
+    "dirt": false
   },
   "distance": {
-    "sprint": true,
-    "mile": true,
+    "sprint": false,
+    "mile": false,
     "medium": true,
-    "long": false
+    "long": true
   },
   "grade": {
     "g1": true,
-    "g2": true,
-    "g3": true
+    "g2": false,
+    "g3": false
   },
   "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3+",
@@ -20,60 +20,60 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
   "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "Classic Year Jun 2",
+  "target_month": "Junior Year Dec 1",
   "stop_on_ura_final": true,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Smart Falcon",
+    "uma_musume": "Gold Ship",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Silence Suzuka (SSR)",
-      "spd: Sweep Tosho (SR)",
+      "spd: Sweep Tosho (SSR)",
+      "spd: Narita Taishin (SR)",
       "frd: Riko Kashimoto (SSR)",
-      "pow: Mihono Bourbon (SR)",
-      "pow: Vodka (SSR)"
+      "frd: Tazuna Hayakawa (SSR)",
+      "pow: Hishi Amazon (SR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 1,
+    "current_set": 4,
     "preset_names": {
       "1": "FRONT POWER",
       "2": "PACE POWER",
       "3": "LATE POWER",
       "4": "END POWER",
-      "5": "Preset 5",
-      "6": "Preset 6",
+      "5": "LATE GUTS",
+      "6": "Pace Guts",
       "7": "Preset 7",
       "8": "Preset 8",
       "9": "Preset 9",
-      "10": "Preset 10",
-      "11": "Preset 11",
-      "12": "Preset 12",
+      "10": "Front Wit",
+      "11": "PACE WIT",
+      "12": "LATE WIT",
       "13": "Preset 13",
       "14": "Preset 14",
       "15": "Preset 15",
       "16": "Preset 16",
-      "17": "Preset 17",
+      "17": "END STA",
       "18": "Preset 18",
       "19": "ParentFarm",
-      "20": "Preset 20"
+      "20": "PARENT FARM STA"
     },
     "preset_sets": {
       "1": {
         "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Eishin Flash (SR)",
+          "spd: Silence Suzuka (SSR)",
           "spd: Sweep Tosho (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Rice Shower (SSR)",
+          "pow: Mihono Bourbon (SR)",
           "pow: Vodka (SSR)"
         ]
       },
@@ -84,8 +84,8 @@
           "spd: Sweep Tosho (SR)",
           "spd: Special Week (SSR)",
           "frd: Riko Kashimoto (SSR)",
-          "pow: Daiwa Scarlet (SSR)",
-          "pow: Vodka (SSR)"
+          "pow: Daitaku Helios (SR)",
+          "pow: El Condor Pasa (SSR)"
         ]
       },
       "3": {
@@ -100,14 +100,14 @@
         ]
       },
       "4": {
-        "uma_musume": "Mejiro Ryan",
+        "uma_musume": "Mayano Top Gun",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
+          "spd: Sweep Tosho (SSR)",
           "spd: Narita Taishin (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "sta: Super Creek (SSR)"
+          "pow: Biwa Hayahide (SR)",
+          "pow: Hishi Amazon (SR)"
         ]
       },
       "5": {
@@ -122,14 +122,14 @@
         ]
       },
       "6": {
-        "uma_musume": "Smart Falcon",
+        "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Special Week (SSR)",
+          "gut: Air Groove (SR)",
           "frd: Riko Kashimoto (SSR)",
-          "wit: Matikanefukukitaru (SR)",
-          "wit: Daiwa Scarlet (SR)",
-          "wit: Fine Motion (SSR)"
+          "gut: Yukino Bijin (SSR)",
+          "gut: Haru Urara (SSR)",
+          "gut: Special Week (SSR)"
         ]
       },
       "7": {
@@ -166,36 +166,36 @@
         ]
       },
       "10": {
-        "uma_musume": "None",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Sweep Tosho (SR)",
+          "frd: Riko Kashimoto (SSR)",
+          "wit: Marvelous Sunday (SR)",
+          "wit: Mihono Bourbon (SSR)",
+          "pow: Vodka (SSR)"
         ]
       },
       "11": {
-        "uma_musume": "None",
+        "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Special Week (SSR)",
+          "frd: Riko Kashimoto (SSR)",
+          "wit: Daiwa Scarlet (SR)",
+          "wit: Fine Motion (SSR)",
+          "wit: Marvelous Sunday (SR)"
         ]
       },
       "12": {
-        "uma_musume": "None",
+        "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Zenno Rob Roy (SSR)",
+          "spd: Eishin Flash (SR)",
+          "wit: Marvelous Sunday (SR)",
+          "wit: Matikanefukukitaru (SR)",
+          "frd: Riko Kashimoto (SSR)"
         ]
       },
       "13": {
@@ -243,14 +243,14 @@
         ]
       },
       "17": {
-        "uma_musume": "None",
+        "uma_musume": "Mayano Top Gun",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Narita Taishin (SR)",
+          "spd: Sweep Tosho (SSR)",
+          "sta: Mejiro McQueen (SSR)",
+          "frd: Tazuna Hayakawa (SSR)",
+          "frd: Riko Kashimoto (SSR)"
         ]
       },
       "18": {
@@ -265,32 +265,32 @@
         ]
       },
       "19": {
-        "uma_musume": "Maruzensky",
+        "uma_musume": "Super Creek",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SR)",
           "spd: Twin Turbo (SSR)",
           "pow: Smart Falcon (SSR)",
           "pow: Hishi Amazon (SR)",
-          "pow: Rice Shower (SSR)"
+          "pow: Vodka (SSR)"
         ]
       },
       "20": {
-        "uma_musume": "None",
+        "uma_musume": "Mejiro Ryan",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Gold Ship (SSR)",
+          "spd: Sweep Tosho (SSR)",
+          "pow: Smart Falcon (SSR)",
+          "sta: Mejiro McQueen (SSR)",
+          "sta: Mayano Top Gun (SR)"
         ]
       }
     }
   },
   "team_trials": {
     "daily_activity_type": "Team Trial",
-    "opponent_type": "Opponent 3",
+    "opponent_type": "Opponent 2",
     "use_parfait_gift_pvp": true,
     "stop_if_shop": false,
     "legend_race_use_parfait": false,

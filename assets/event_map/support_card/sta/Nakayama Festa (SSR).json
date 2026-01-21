@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "name": "Night of Ill Portent",
+      "choice": 2
+    },
+    {
+      "name": "Sundown Showdown",
+      "choice_1_if_energy_shortage_gte": 10,
+      "default_choice": 2
+    },
+    {
+      "name": "Sundown Solo Supper",
+      "choice": 1
+    }
+  ]
+}

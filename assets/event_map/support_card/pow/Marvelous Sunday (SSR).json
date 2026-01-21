@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "Marvelous, No Question ☆",
+      "choice_2_if_mood_lt": "GREAT"
+    },
+    {
+      "name": "How To Be More Marvelous ☆",
+      "choice": 1
+    },
+    {
+      "name": "Dazzling and Marvelous ☆",
+      "choice_1_if_energy_shortage_gte": 7,
+      "default_choice": 2    }
+  ]
+}

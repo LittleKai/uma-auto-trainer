@@ -54,7 +54,7 @@
       "medium_energy_score_requirement": {
         "stages": [
           {"end_day": 22, "score": 2.00},
-          {"end_day": 36, "score": 2.5},
+          {"end_day": 26, "score": 2.5},
           {"end_day": null, "score": 3.0}
         ]
       }

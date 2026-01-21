@@ -34,7 +34,7 @@
     },
     {
       "name": "New Year's Shrine Visit",
-      "choice_1_if_energy_shortage_gte": 19,
+      "choice_1_if_energy_shortage_gte": 22,
       "default_choice": 2
     },
     {

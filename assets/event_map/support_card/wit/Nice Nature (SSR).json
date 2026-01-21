@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "name": "Not like Meow",
+      "choice_1_if_energy_shortage_gte": 14,
+      "default_choice": 2
+    },
+    {
+      "name": "(Delicious) Burden",
+      "choice": 2
+    },
+    {
+      "name": "Irrepressible Feelings",
+      "choice_1_if_energy_shortage_gte": 5,
+      "default_choice": 2
+    }
+  ]
+}

@@ -444,7 +444,11 @@
     },
     {
       "name": "Full-Power Thinking!",
-      "choice_2_if_uma": ["Hishi Amazon", "Narita Taishin","Gold Ship"]
+      "choice_2_if_uma": [
+        "Hishi Amazon",
+        "Narita Taishin",
+        "Gold Ship"
+      ]
     },
     {
       "name": "Eat Up",
@@ -694,6 +698,23 @@
     {
       "name": "Want Me to Help You?",
       "choice": 2
+    },
+    {
+      "name": "Slacking Off at Sundown",
+      "choice": 1
+    },
+    {
+      "name": "Just Because ♪",
+      "choice_3_if_energy_shortage_gte": 15,
+      "default_choice": 1
+    },
+    {
+      "name": "A Legendary Smile in the House!",
+      "choice_2_if_energy_shortage_gte": 8
+    },
+    {
+      "name": "Night of Ill Portent",
+      "choice": 1
     }
   ]
 }

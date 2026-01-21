@@ -523,14 +523,8 @@ class TeamTrialsLogic:
         if self.check_stop_condition():
             return False
 
-        if not self.find_and_click("assets/buttons/quick_mode_on.png", click=False, max_attempts=5, delay_between=2):
-            self.main_window.log_message("Failed to find quick_mode_on button")
-            if not self.find_and_click("assets/buttons/quick_mode_off.png"):
-                self.main_window.log_message("Failed to find quick_mode_off button")
-                return False
-            time.sleep(1)
-
-        if not self.find_and_click("assets/buttons/home/team_trials/see_all_race_results.png"):
+        if not self.find_and_click("assets/buttons/home/team_trials/see_all_race_results.png", max_attempts=5, delay_between=2, click_count=2):
+            self.main_window.log_message("Failed to find see_all_race_results button")
             return False
 
         if self.check_stop_condition():

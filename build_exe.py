@@ -80,7 +80,7 @@ def remove_old_spec_files():
                 print_warning(f"Could not remove {spec_file}: {e}")
 
 def create_spec_file():
-    """Create PyInstaller spec file for multi-file build with tkinter support"""
+    """Create PyInstaller spec file optimized for Conda environment"""
     print_header("Creating PyInstaller Spec File")
 
     spec_content = """# -*- mode: python ; coding: utf-8 -*-
@@ -90,72 +90,77 @@ from pathlib import Path
 
 block_cipher = None
 
-# Find Python installation directory for tkinter DLLs
 python_dir = Path(sys.executable).parent
-tcl_dir = python_dir / 'tcl'
-tk_libs = python_dir / 'DLLs'
+is_conda = (python_dir / 'Library').exists()
 
-# Collect tkinter related files
-tkinter_binaries = []
-tkinter_datas = []
+print(f"Building from: {python_dir}")
+print(f"Conda environment: {is_conda}")
 
-# Add TCL/TK DLLs
-if tk_libs.exists():
-    for dll in tk_libs.glob('tcl*.dll'):
-        tkinter_binaries.append((str(dll), '.'))
-    for dll in tk_libs.glob('tk*.dll'):
-        tkinter_binaries.append((str(dll), '.'))
-    for dll in tk_libs.glob('_tkinter*.pyd'):
-        tkinter_binaries.append((str(dll), '.'))
+all_binaries = []
+all_datas = []
 
-# Add TCL library files
-if tcl_dir.exists():
-    tkinter_datas.append((str(tcl_dir), 'tcl'))
+if is_conda:
+    library_bin = python_dir / 'Library' / 'bin'
+    library_lib = python_dir / 'Library' / 'lib'
+    dlls_dir = python_dir / 'DLLs'
+    
+    # Copy ALL DLLs from Library/bin to avoid missing dependencies
+    if library_bin.exists():
+        dll_count = 0
+        for dll_file in library_bin.glob('*.dll'):
+            all_binaries.append((str(dll_file), '.'))
+            dll_count += 1
+        print(f"  Added {dll_count} DLLs from Library/bin")
+    
+    # Copy ALL PYD files from DLLs directory
+    if dlls_dir.exists():
+        pyd_count = 0
+        for pyd_file in dlls_dir.glob('*.pyd'):
+            all_binaries.append((str(pyd_file), '.'))
+            pyd_count += 1
+        print(f"  Added {pyd_count} PYD files from DLLs")
+    
+    # Add TCL/TK libraries
+    if library_lib.exists():
+        for lib_name in ['tcl8.6', 'tk8.6', 'tcl8', 'tk8']:
+            lib_path = library_lib / lib_name
+            if lib_path.exists():
+                all_datas.append((str(lib_path), os.path.join('tcl', lib_name)))
+                print(f"  Added library: {lib_name}")
 
-# Data files to include
-added_files = [
-    ('assets', 'assets'),
-]
+else:
+    # Standard Python
+    tk_libs = python_dir / 'DLLs'
+    if tk_libs.exists():
+        for file in tk_libs.glob('*'):
+            if file.is_file():
+                all_binaries.append((str(file), '.'))
 
-# Add tkinter data files
-added_files.extend(tkinter_datas)
+added_files = all_datas
 
-# Hidden imports that PyInstaller might miss
 hidden_imports = [
     'PIL._tkinter_finder',
-    'cv2',
-    'numpy',
-    'pytesseract',
-    'mss',
-    'pygetwindow',
-    'pygetwindow._pygetwindow_win',
-    'pygetwindow._pygetwindow_macos', 
-    'pygetwindow._pygetwindow_linux',
-    'keyboard',
+    'cv2', 'numpy', 'pytesseract', 'mss',
+    'pygetwindow', 'pygetwindow._pygetwindow_win',
+    'keyboard', 'keyboard._winkeyboard',
     'requests',
-    'tkinter',
-    'tkinter.ttk',
-    'tkinter.scrolledtext',
-    'tkinter.messagebox',
-    '_tkinter',
-    'json',
-    'threading',
-    'time',
-    'datetime',
-    're',
-    'os',
-    'sys',
-    'ctypes',
-    'ctypes.wintypes',
-    'win32gui',
-    'win32con',
-    'win32api',
+    'tkinter', 'tkinter.ttk', 'tkinter.scrolledtext', 
+    'tkinter.messagebox', 'tkinter.filedialog',
+    '_tkinter', '_ctypes', 'ctypes', 'ctypes.wintypes',
+    'json', 'threading', 'time', 'datetime',
 ]
+
+if sys.platform == 'win32':
+    try:
+        import win32gui
+        hidden_imports.extend(['win32gui', 'win32con', 'win32api'])
+    except:
+        pass
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=tkinter_binaries,
+    binaries=all_binaries,
     datas=added_files,
     hiddenimports=hidden_imports,
     hookspath=[],
@@ -360,7 +365,7 @@ def create_distribution_package():
     """Create a distribution package with all necessary files"""
     print_header("Creating Distribution Package")
 
-    dist_dir = "Uma_Musume_Auto_Train_Distribution"
+    dist_dir = "Uma_Musume_Auto_Train"
 
     if os.path.exists(dist_dir):
         shutil.rmtree(dist_dir)
@@ -377,6 +382,14 @@ def create_distribution_package():
             print_error("Executable folder not found in dist")
             return False
 
+        # Copy assets folder to same level as exe (inside the distribution folder)
+        if os.path.exists("assets"):
+            assets_dest = os.path.join(dist_dir, "Uma_Musume_Auto_Train", "assets")
+            shutil.copytree("assets", assets_dest)
+            print_success("Copied assets folder")
+        else:
+            print_warning("Assets folder not found")
+
         # Copy README.txt
         if os.path.exists("README.txt"):
             shutil.copy2("README.txt", os.path.join(dist_dir, "README.txt"))
@@ -389,6 +402,12 @@ def create_distribution_package():
             shutil.copy2("bot_settings_default.json",
                          os.path.join(dist_dir, "Uma_Musume_Auto_Train", "bot_settings.json"))
             print_success("Copied default bot_settings.json")
+
+        # Copy config.json if exists
+        if os.path.exists("config.json"):
+            shutil.copy2("config.json",
+                         os.path.join(dist_dir, "Uma_Musume_Auto_Train", "config.json"))
+            print_success("Copied config.json")
 
         print_success(f"Distribution package created in: {dist_dir}")
         return True

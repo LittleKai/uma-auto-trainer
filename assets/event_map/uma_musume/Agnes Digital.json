@@ -1,0 +1,68 @@
+{
+  "events": [
+    {
+      "name": "I'd Be Honored to Trade!",
+      "choice_2_if_energy_shortage_gte": 15
+    },
+    {
+      "name": "Oshi Proximity Alert?!",
+      "choice_2_if_energy_shortage_gte": 8
+    },
+    {
+      "name": "Dance Lesson",
+      "choice": 1
+    },
+    {
+      "name": "Teach Us Your Ways, Digital!",
+      "choice": 2
+    },
+    {
+      "name": "I \"Simp\"ly Wanna Help...",
+      "choice": 1
+    },
+    {
+      "name": "Give Freely, for She Is My Oshi!",
+      "choice": 2
+    },
+    {
+      "name": "The Endless Possibilities of Moe",
+      "choice": 1
+    },
+    {
+      "name": "When Fantasy Becomes Real",
+      "choice": 2
+    },
+    {
+      "name": "The Cafeteria is Basically a Collab Cafe NGL",
+      "choice": 2
+    },
+    {
+      "name": "Umamusume Quiz ☆ –Relationships Arc–",
+      "choice": 1
+    },
+    {
+      "name": "Umamusume Quiz ☆ –Preferences Arc–",
+      "choice": 2
+    },
+    {
+      "name": "Umamusume Quiz ☆ –Roots Arc–",
+      "choice": 1
+    },
+    {
+      "name": "The Oshi Report –Induction Arc–",
+      "choice": 2
+    },
+    {
+      "name": "The Oshi Report –Peak Arc–",
+      "choice": 1
+    },
+    {
+      "name": "The Oshi Report –Recognition Arc–",
+      "choice": 3
+    },
+    {
+      "name": "The Best Life Is the Simp Life",
+      "choice": 1
+    }
+  ]
+}

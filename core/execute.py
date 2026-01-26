@@ -244,7 +244,7 @@ class DecisionEngine:
             strategy_settings,
             current_date
         )
-
+        print(f'best_training: {best_training}')
         return self._handle_training_decision(
             best_training, results_training, energy_percentage,
             strategy_settings, current_date, race_manager, gui
@@ -260,8 +260,8 @@ class DecisionEngine:
             return self._execute_selected_training(best_training)
 
         # if best_training in ["SHOULD_REST", "NO_TRAINING"]:
-        if best_training in ["SHOULD_REST"]:
-            return self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui)
+        # if best_training in ["SHOULD_REST"]:
+        #     return self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui)
 
         # best_training is None or STRATEGY_NOT_MET - no suitable training found
         return self._handle_no_suitable_training(
@@ -431,7 +431,7 @@ class DecisionEngine:
         if not self._handle_mood_requirement(mood, strategy_settings, current_date, gui):
             return False
 
-        if "G1 (no training)" in priority_strategy or "G2 (no training)" in priority_strategy:
+        if "G1 (no training)" in priority_strategy :
             return self._handle_race_priority_strategy(game_state, strategy_settings, race_manager, gui)
 
         energy_action = self._handle_energy_based_action(
@@ -579,16 +579,6 @@ class DecisionEngine:
             else:
                 self.controller.log_message(f"G1 priority: No G1 races found, will check training first")
 
-        elif "G2" in priority_strategy:
-            high_grade_races = [race for race in available_races
-                                if race_manager.extract_race_properties(race)['grade_type'] in ['g1', 'g2']]
-            if high_grade_races:
-                self.controller.log_message(
-                    f"G2 priority: Found {len(high_grade_races)} G1/G2 races matching filters - Racing immediately")
-                return True
-            else:
-                self.controller.log_message(f"G2 priority: No G1/G2 races found, will check training first")
-
         elif "Train Score" in priority_strategy:
             self.controller.log_message(
                 f"{priority_strategy}: Will check training first, then race if requirements not met")
@@ -597,11 +587,12 @@ class DecisionEngine:
 
     def _handle_race_priority_strategy(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any],
                                        race_manager, gui=None) -> bool:
-        """Handle G1/G2 priority strategies - race only, no training"""
+        """Handle G1 priority strategies - race only, no training"""
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
         current_date = game_state['current_date']
         energy_percentage = game_state['energy_percentage']
+        energy_max = game_state['energy_max']
 
         # Check if racing is possible today
         should_race, available_races = race_manager.should_race_today(current_date)
@@ -610,13 +601,13 @@ class DecisionEngine:
             self._log_no_races_available(current_date)
             self.controller.log_message(
                 f"{priority_strategy}: No races available, proceeding with normal training/rest logic")
-            return self._execute_training_flow(energy_percentage, strategy_settings, current_date, race_manager, gui)
+            return self._execute_training_flow(energy_percentage, energy_max, strategy_settings, current_date, race_manager, gui)
 
         # Check grade priority
         if not self._check_priority_race_grade(priority_strategy, available_races, race_manager):
             self.controller.log_message(
                 f"{priority_strategy}: No suitable races, proceeding with normal training/rest logic")
-            return self._execute_training_flow(energy_percentage, strategy_settings, current_date, race_manager, gui)
+            return self._execute_training_flow(energy_percentage, energy_max, strategy_settings, current_date, race_manager, gui)
 
         # Attempt to race
         if self.controller.check_should_stop():
@@ -633,7 +624,7 @@ class DecisionEngine:
                 return False
             self._click_back_button(f"{priority_strategy}: Race failed, going back to lobby")
             time.sleep(0.5)
-            return self._execute_training_flow(energy_percentage, strategy_settings, current_date, race_manager, gui)
+            return self._execute_training_flow(energy_percentage, energy_max, strategy_settings, current_date, race_manager, gui)
 
     def _log_no_races_available(self, current_date: Dict[str, Any]):
         """Log message when no races are available"""
@@ -647,23 +638,7 @@ class DecisionEngine:
 
     def _check_priority_race_grade(self, priority_strategy: str, available_races: list, race_manager) -> bool:
         """Check if available races match the priority strategy grade. Returns True if matches."""
-        if "G2 (no training)" in priority_strategy:
-            g1_races = [race for race in available_races
-                        if race_manager.extract_race_properties(race)['grade_type'] == 'g1']
-            g2_races = [race for race in available_races
-                        if race_manager.extract_race_properties(race)['grade_type'] == 'g2']
-
-            if g1_races:
-                self.controller.log_message(f"G2 priority: Found {len(g1_races)} G1 races (higher priority) - Racing")
-                return True
-            elif g2_races:
-                self.controller.log_message(f"G2 priority: Found {len(g2_races)} G2 races - Racing")
-                return True
-            else:
-                self.controller.log_message("G2 priority: No G1/G2 races found in available races")
-                return False
-
-        elif "G1 (no training)" in priority_strategy:
+        if "G1 (no training)" in priority_strategy:
             g1_races = [race for race in available_races
                         if race_manager.extract_race_properties(race)['grade_type'] == 'g1']
 

@@ -45,11 +45,8 @@ class RestHandler:
         current_date = get_current_date_info()
         is_summer = self._is_summer_period(current_date)
 
-        # Determine rest strategy based on context
-        avoid_summer_rest = self._should_avoid_summer_rest(strategy_context, is_summer)
-
         # Get rest button attempts based on strategy
-        rest_attempts = self._get_rest_button_attempts(is_summer, avoid_summer_rest)
+        rest_attempts = self._get_rest_button_attempts(is_summer)
 
         # Try each rest button in order
         for button_path, button_name, button_type in rest_attempts:
@@ -127,18 +124,6 @@ class RestHandler:
                 self.log("[ERROR] Both rest and recreation failed")
                 return False
 
-    def _should_avoid_summer_rest(self, strategy_context: Optional[str], is_summer: bool) -> bool:
-        """Determine if should avoid summer rest button based on strategy"""
-        if not is_summer:
-            return False
-
-        # For G1/G2 strategies, avoid summer rest to prevent training interruption
-        if strategy_context and ("G1" in strategy_context or "G2" in strategy_context):
-            self.log("[DEBUG] G1/G2 strategy detected - avoiding summer rest button")
-            return True
-
-        return False
-
     def _is_summer_period(self, current_date: Optional[dict]) -> bool:
         """Check if current date is in summer period (July-August)"""
         if not current_date:
@@ -147,14 +132,14 @@ class RestHandler:
         month_num = current_date.get('month_num', 0)
         return month_num == 7 or month_num == 8
 
-    def _get_rest_button_attempts(self, is_summer: bool, avoid_summer_rest: bool) -> List[Tuple[str, str, str]]:
+    def _get_rest_button_attempts(self, is_summer: bool) -> List[Tuple[str, str, str]]:
         """
         Get list of rest buttons to try in order
 
         Returns:
             List of (button_path, button_name, button_type) tuples
         """
-        if is_summer and not avoid_summer_rest:
+        if is_summer :
             # Summer period - try summer rest first if not avoiding it
             return [
                 ("assets/buttons/rest_summer_btn.png", "Summer rest button", "summer_rest"),

@@ -169,7 +169,6 @@ class StrategyTab:
             textvariable=self.priority_strategy,
             values=[
                 "G1 (no training)",
-                "G2 (no training)",
                 "Train Score 2.5+",
                 "Train Score 3+",
                 "Train Score 3.5+",

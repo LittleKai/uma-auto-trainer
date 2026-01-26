@@ -223,7 +223,7 @@ def format_score_info(training_key, training_data, current_date):
 
 def extract_score_threshold(priority_strategy):
   """Extract score threshold from priority strategy string"""
-  if "G1" in priority_strategy or "G2" in priority_strategy:
+  if "G1" in priority_strategy:
     return None  # Race priority - no training
   elif "Score 2.5+" in priority_strategy:
     return 2.5
@@ -316,13 +316,21 @@ def training_decision(results_training, energy_percentage, energy_max, strategy_
     return medium_energy_wit_training(filtered_results, current_date)
 
   # Mid-game energy restriction for low score training (only after early stage) - using config
-
   if stage_info['stage'] in ['mid', 'late']:
     energy_restrictions = get_energy_restriction_config()
     medium_energy_shortage = energy_restrictions['medium_energy_shortage']
     max_score_threshold = energy_restrictions['medium_energy_max_score_threshold']
+
+    # Check if in summer period (July-August) after day 24
+    if current_date:
+      month_num = current_date.get('month_num', 0)
+      absolute_day = current_date.get('absolute_day', 0)
+      is_summer = (month_num == 7 or month_num == 8) and absolute_day > 24
+
+      if is_summer:
+        medium_energy_shortage = 40
   else:
-    medium_energy_shortage = 46
+    medium_energy_shortage = 48
     max_score_threshold = 1.15
 
   energy_shortage_absolute = energy_max - energy_percentage
@@ -462,7 +470,7 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   score_threshold = extract_score_threshold(priority_strategy)
 
   if score_threshold is None:
-    # G1 or G2 strategy - prioritize racing, no training
+    # G1 strategy - prioritize racing, no training
     return None
   else:
     # Unified training strategy for all stages

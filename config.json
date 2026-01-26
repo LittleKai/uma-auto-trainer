@@ -46,7 +46,7 @@
       "max_bonus_types": 2
     },
     "unity_cup": {
-      "special_training_score": 0.125,
+      "special_training_score": 0.15,
       "spirit_explosion_score": 2.25
     },
     "wit_training": {

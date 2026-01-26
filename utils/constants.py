@@ -233,7 +233,6 @@ RACE_GRADE_ICONS = {
 # Strategy Mappings
 PRIORITY_STRATEGIES = [
     "G1 (no training)",
-    "G2 (no training)",
     "Train Score 2+",
     "Train Score 2.5+",
     "Train Score 3+",

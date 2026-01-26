@@ -28,14 +28,14 @@
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
   "stop_on_ura_final": false,
-  "stop_on_warning": true,
+  "stop_on_warning": false,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
     "uma_musume": "Oguri Cap (Christmas)",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Sweep Tosho (SR)",
+      "spd: Narita Brian (SSR)",
       "frd: Riko Kashimoto (SSR)",
       "wit: Daiwa Scarlet (SR)",
       "wit: Fine Motion (SSR)",
@@ -180,7 +180,7 @@
         "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
+          "spd: Narita Brian (SSR)",
           "frd: Riko Kashimoto (SSR)",
           "wit: Daiwa Scarlet (SR)",
           "wit: Fine Motion (SSR)",
@@ -188,7 +188,7 @@
         ]
       },
       "12": {
-        "uma_musume": "Oguri Cap (Christmas)",
+        "uma_musume": "Agnes Digital",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "wit: Nice Nature (SSR)",
@@ -243,7 +243,7 @@
         ]
       },
       "17": {
-        "uma_musume": "Gold Ship",
+        "uma_musume": "Mayano Top Gun",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Narita Taishin (SR)",
@@ -265,7 +265,7 @@
         ]
       },
       "19": {
-        "uma_musume": "Sakura Bakushin O",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Sweep Tosho (SSR)",
@@ -276,7 +276,7 @@
         ]
       },
       "20": {
-        "uma_musume": "Mayano Top Gun",
+        "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Gold Ship (SSR)",

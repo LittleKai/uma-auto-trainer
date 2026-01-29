@@ -280,7 +280,7 @@ class RaceHandler:
             grade_location = find_template_position(
                 template_path=template_path,
                 region=panel_region,
-                threshold=0.6,
+                threshold=0.8,
                 region_format='xywh'
             )
 
@@ -290,7 +290,7 @@ class RaceHandler:
                 grade_location = find_template_position(
                     template_path=template_path,
                     region=panel_region,
-                    threshold=0.7,
+                    threshold=0.8,
                     region_format='xywh'
                 )
 
@@ -304,7 +304,7 @@ class RaceHandler:
 
             match_track_location = pyautogui.locateCenterOnScreen(
                 "assets/ui/match_track.png",
-                confidence=0.7,
+                confidence=0.8,
                 minSearchTime=0.3,
                 region=region_ltrb
             )

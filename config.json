@@ -5,7 +5,7 @@
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 50,
   "stat_caps": {
-    "spd": 1130,
+    "spd": 1100,
     "sta": 1100,
     "pwr": 1080,
     "guts": 1100,

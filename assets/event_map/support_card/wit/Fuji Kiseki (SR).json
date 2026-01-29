@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "Misdirection",
+      "choice": 2
+    },
+    {
+      "name": "Sleight of Hand",
+      "choice": 2
+    }
+  ]
+}

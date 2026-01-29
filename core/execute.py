@@ -389,6 +389,7 @@ class DecisionEngine:
         year_txt = game_state['year']
         turn = game_state['turn']
         print(f'{year_txt} - {turn}')
+
         # Handle URA Finale
         if game_state['year'] == "Finale Season":
             stop_on_ura_final = strategy_settings.get('stop_on_ura_final', False)
@@ -431,11 +432,12 @@ class DecisionEngine:
         if not self._handle_mood_requirement(mood, strategy_settings, current_date, gui):
             return False
 
-        if "G1 (no training)" in priority_strategy :
+        if "G1 (no training)" in priority_strategy:
             return self._handle_race_priority_strategy(game_state, strategy_settings, race_manager, gui)
 
+        # CHANGED: Pass energy_max to energy handler
         energy_action = self._handle_energy_based_action(
-            energy_percentage, current_date, race_manager, allow_continuous_racing, strategy_settings,gui
+            energy_percentage, max_energy, current_date, race_manager, allow_continuous_racing, strategy_settings, gui
         )
         if energy_action is not None:
             return energy_action
@@ -451,8 +453,7 @@ class DecisionEngine:
         if self.controller.check_should_stop():
             return False
 
-        return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager,
-                                           gui)
+        return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager, gui)
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],
                                  current_date: Dict[str, Any], gui=None) -> bool:
@@ -488,10 +489,12 @@ class DecisionEngine:
 
         return True
 
-    def _handle_energy_based_action(self, energy_percentage: int, current_date: Dict[str, Any],
-                                    race_manager, allow_continuous_racing: bool, strategy_settings: Dict[str, Any], gui=None) -> Optional[bool]:
-        """Handle actions based on energy level. Returns None if should continue to training."""
-        # Handle critical energy
+    def _handle_energy_based_action(self, energy_percentage: int, energy_max: int, current_date: Dict[str, Any],
+                                    race_manager, allow_continuous_racing: bool, strategy_settings: Dict[str, Any],
+                                    gui=None) -> Optional[bool]:
+        """Handle actions based on energy level. Returns None if should continue to normal training flow."""
+
+        # Handle critical energy - no training allowed, race or rest only
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
@@ -507,26 +510,69 @@ class DecisionEngine:
                     if not self.controller.check_should_stop():
                         self._click_back_button("Race not found. Critical energy - will rest.")
                         time.sleep(0.5)
-                        # Execute rest with strategy context for summer handling
-                        self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui, click_back= True, click_log="Race not found. Critical energy - will rest.")
-
+                        self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui,
+                                               click_back=True, click_log="Race not found. Critical energy - will rest.")
                     return True
             else:
                 self.controller.log_message(
                     f"Critical energy ({energy_percentage}%) and no matching races today. Resting immediately.")
                 if self.controller.check_should_stop():
                     return False
-
-                self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui, click_back= False,click_log="")
-
+                self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui,
+                                       click_back=False, click_log="")
                 return True
 
-        # Handle low energy
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+            self.controller.log_message(
+                f"Medium energy ({energy_percentage}%) - checking WIT training first")
+
+            if self.controller.check_should_stop():
+                return False
+
+            # Nhưng cần đảm bảo chỉ check WIT, không train khác
+            if not self.controller.training_handler.go_to_training():
+                return None
+
+            time.sleep(0.5)
+
+            if self.controller.check_should_stop():
+                return False
+
+            # Chỉ check WIT training
+            results_training = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
+
+            if self.controller.check_should_stop():
+                return False
+
+            # Sử dụng hàm có sẵn để đánh giá WIT
+            from core.logic import medium_energy_wit_training
+            wit_decision = medium_energy_wit_training(results_training, current_date)
+
+            if wit_decision == "wit":
+                # WIT đạt score - execute training
+                self.controller.log_message(
+                    f"Medium energy ({energy_percentage}%) - WIT training meets score requirement, training WIT")
+                if self.controller.check_should_stop():
+                    return False
+
+                self.controller.training_handler.go_to_training()
+                time.sleep(1.0)
+                self.controller.training_handler.execute_training("wit")
+                self.controller.log_message("Training: WIT")
+                return True
+
+            # WIT không đạt - back và check race
+            self._click_back_button(f"Medium energy ({energy_percentage}%) - WIT doesn't meet score requirement")
+            time.sleep(0.5)
+
+            if self.controller.check_should_stop():
+                return False
+
+            # Check race
             should_race, available_races = race_manager.should_race_today(current_date)
             if should_race:
                 self.controller.log_message(
-                    f"Low energy ({energy_percentage}%) but found {len(available_races)} matching races for today. Racing instead of training.")
+                    f"Medium energy ({energy_percentage}%) - WIT insufficient, but found {len(available_races)} matching races. Racing instead.")
                 if self.controller.check_should_stop():
                     return False
                 race_found = self.controller.race_handler.start_race_flow(
@@ -534,15 +580,22 @@ class DecisionEngine:
                 if race_found:
                     return True
                 else:
+                    # Race fail - rest
                     if not self.controller.check_should_stop():
-                        self._click_back_button(
-                            "Matching race not found in game. Low energy - will check WIT training.")
+                        self._click_back_button("Matching race not found in game. Medium energy - will rest.")
                         time.sleep(0.5)
+                        self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui,
+                                               click_back=False, click_log="")
+                    return True
             else:
+                # No race - rest
                 self.controller.log_message(
-                    f"Low energy ({energy_percentage}%) and no matching races today. Will check WIT training or rest.")
-
-        return None  # Continue to training
+                    f"Medium energy ({energy_percentage}%) - WIT insufficient and no matching races. Resting.")
+                if self.controller.check_should_stop():
+                    return False
+                self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui,
+                                       click_back=False, click_log="")
+                return True
 
     def _should_prioritize_racing(self, current_date: Dict[str, Any], energy_percentage: int,
                                   priority_strategy: str, race_manager) -> bool:

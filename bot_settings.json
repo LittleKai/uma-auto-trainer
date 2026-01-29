@@ -1,48 +1,48 @@
 {
   "track": {
     "turf": true,
-    "dirt": true
+    "dirt": false
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
     "g2": false,
     "g3": false
   },
-  "minimum_mood": "NORMAL",
+  "minimum_mood": "GOOD",
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
-  "stop_mood_threshold": "GREAT",
+  "stop_mood_threshold": "GOOD",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
   "stop_on_ura_final": false,
-  "stop_on_warning": false,
+  "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Oguri Cap (Christmas)",
+    "uma_musume": "Maruzensky (Summer)",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Narita Brian (SSR)",
-      "frd: Riko Kashimoto (SSR)",
-      "wit: Daiwa Scarlet (SR)",
-      "wit: Fine Motion (SSR)",
-      "wit: Marvelous Sunday (SR)"
+      "spd: Silence Suzuka (SSR)",
+      "wit: Curren Chan (SSR)",
+      "wit: Mihono Bourbon (SSR)",
+      "wit: Marvelous Sunday (SR)",
+      "wit: Fuji Kiseki (SR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 11,
+    "current_set": 9,
     "preset_names": {
       "1": "FRONT POWER",
       "2": "PACE POWER",
@@ -52,7 +52,7 @@
       "6": "Pace Guts",
       "7": "Preset 7",
       "8": "Preset 8",
-      "9": "Preset 9",
+      "9": "Front Wit 2",
       "10": "Front Wit",
       "11": "PACE WIT",
       "12": "LATE WIT",
@@ -155,33 +155,33 @@
         ]
       },
       "9": {
-        "uma_musume": "None",
+        "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black (SSR)",
+          "spd: Silence Suzuka (SSR)",
+          "pow: Smart Falcon (SSR)",
+          "wit: Mihono Bourbon (SSR)",
+          "wit: Marvelous Sunday (SR)",
+          "wit: Fuji Kiseki (SR)"
         ]
       },
       "10": {
-        "uma_musume": "Silence Suzuka",
+        "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
+          "wit: Fuji Kiseki (SR)",
+          "spd: Silence Suzuka (SSR)",
           "wit: Marvelous Sunday (SR)",
           "wit: Mihono Bourbon (SSR)",
-          "pow: Vodka (SSR)"
+          "wit: Curren Chan (SSR)"
         ]
       },
       "11": {
-        "uma_musume": "Oguri Cap (Christmas)",
+        "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "spd: Narita Brian (SSR)",
-          "frd: Riko Kashimoto (SSR)",
+          "spd: King Halo (SR)",
+          "wit: Curren Chan (SSR)",
           "wit: Daiwa Scarlet (SR)",
           "wit: Fine Motion (SSR)",
           "wit: Marvelous Sunday (SR)"
@@ -192,7 +192,7 @@
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "wit: Nice Nature (SSR)",
-          "spd: Eishin Flash (SR)",
+          "pow: Winning Ticket (SSR)",
           "wit: Marvelous Sunday (SR)",
           "wit: Matikanefukukitaru (SR)",
           "frd: Riko Kashimoto (SSR)"
@@ -297,10 +297,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 779,
-    "height": 973,
-    "x": 1049,
-    "y": 4
+    "width": 818,
+    "height": 948,
+    "x": 1036,
+    "y": 1
   },
   "scenario": "Unity Cup"
 }

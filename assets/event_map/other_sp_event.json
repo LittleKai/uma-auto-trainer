@@ -14,7 +14,7 @@
     },
     {
       "name": "A Hero's Woes",
-      "choice": 1
+      "choice_2_if_energy_shortage_gte": 5
     },
     {
       "name": "Preparing My Special Move",
@@ -715,6 +715,14 @@
     {
       "name": "Night of Ill Portent",
       "choice": 1
+    },
+    {
+      "name": "Mikoshi, Heave Ho!",
+      "choice": 1
+    },
+    {
+      "name": "Let's Tussle! Booyah!",
+      "choice_2_if_mood_lt": "GREAT"
     }
   ]
 }

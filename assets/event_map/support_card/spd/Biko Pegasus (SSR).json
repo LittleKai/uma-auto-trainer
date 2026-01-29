@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "A Hero's Woes",
+      "choice_2_if_energy_shortage_gte": 5
+    },
+    {
+      "name": "Preparing My Special Move",
+      "choice": 2
+    }
+  ]
+}

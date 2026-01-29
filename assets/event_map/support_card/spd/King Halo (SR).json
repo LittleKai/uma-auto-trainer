@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "name": "You May Socialize With Me!",
+      "choice": 1
+    },
+    {
+      "name": "You May Advise Me!",
+      "choice": 1
+    }
+  ]
+}

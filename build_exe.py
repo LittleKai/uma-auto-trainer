@@ -329,6 +329,14 @@ def create_default_config():
         print_error(f"Failed to create bot_settings_default.json: {e}")
         return False
 
+def get_output_dir():
+    """Get output directory outside of project folder"""
+    # Get project directory (where this script is located)
+    project_dir = Path(__file__).parent.resolve()
+    # Output to parent directory (D:\Dev\Python\Uma_Musume_Auto_Train)
+    output_dir = project_dir.parent / "Uma_Musume_Auto_Train"
+    return output_dir
+
 def build_executable():
     """Build the executable using PyInstaller"""
     print_header("Building Executable")
@@ -365,7 +373,11 @@ def create_distribution_package():
     """Create a distribution package with all necessary files"""
     print_header("Creating Distribution Package")
 
-    dist_dir = "Uma_Musume_Auto_Train"
+    # Get output directory outside of project
+    output_dir = get_output_dir()
+    dist_dir = str(output_dir)
+
+    print_info(f"Output directory: {dist_dir}")
 
     if os.path.exists(dist_dir):
         shutil.rmtree(dist_dir)
@@ -376,15 +388,22 @@ def create_distribution_package():
         # Copy the entire build folder
         build_folder = "dist/Uma_Musume_Auto_Train"
         if os.path.exists(build_folder):
-            shutil.copytree(build_folder, os.path.join(dist_dir, "Uma_Musume_Auto_Train"))
-            print_success("Copied executable folder")
+            # Copy contents directly to output dir (not nested)
+            for item in os.listdir(build_folder):
+                src = os.path.join(build_folder, item)
+                dst = os.path.join(dist_dir, item)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy2(src, dst)
+            print_success("Copied executable files")
         else:
             print_error("Executable folder not found in dist")
             return False
 
-        # Copy assets folder to same level as exe (inside the distribution folder)
+        # Copy assets folder to same level as exe
         if os.path.exists("assets"):
-            assets_dest = os.path.join(dist_dir, "Uma_Musume_Auto_Train", "assets")
+            assets_dest = os.path.join(dist_dir, "assets")
             shutil.copytree("assets", assets_dest)
             print_success("Copied assets folder")
         else:
@@ -400,13 +419,13 @@ def create_distribution_package():
         # Copy default config
         if os.path.exists("bot_settings_default.json"):
             shutil.copy2("bot_settings_default.json",
-                         os.path.join(dist_dir, "Uma_Musume_Auto_Train", "bot_settings.json"))
+                         os.path.join(dist_dir, "bot_settings.json"))
             print_success("Copied default bot_settings.json")
 
         # Copy config.json if exists
         if os.path.exists("config.json"):
             shutil.copy2("config.json",
-                         os.path.join(dist_dir, "Uma_Musume_Auto_Train", "config.json"))
+                         os.path.join(dist_dir, "config.json"))
             print_success("Copied config.json")
 
         print_success(f"Distribution package created in: {dist_dir}")
@@ -422,6 +441,7 @@ def cleanup_build_files():
 
     cleanup_items = [
         "build",
+        "dist",
         "uma_auto_train.spec",
         "bot_settings_default.json"
     ]
@@ -478,18 +498,21 @@ def main():
         print_error(f"Build failed at step: {failed_steps[0]}")
         print_info("Please fix the issue and try again")
     else:
+        output_dir = get_output_dir()
         print_success("🎉 Executable build completed successfully!")
 
         print_colored("\n📦 Distribution Package Created:", Colors.BOLD)
-        print_info("Folder: Uma_Musume_Auto_Train_Distribution/")
+        print_info(f"Folder: {output_dir}")
         print_info("Contains:")
-        print_info("  - Uma_Musume_Auto_Train/ (executable folder)")
+        print_info("  - Uma_Musume_Auto_Train.exe (executable)")
+        print_info("  - assets/ (game assets)")
+        print_info("  - config.json, bot_settings.json")
         print_info("  - README.txt (user instructions)")
 
         print_colored("\n🚀 How to Distribute:", Colors.BOLD)
-        print_info("1. Zip the 'Uma_Musume_Auto_Train_Distribution' folder")
+        print_info(f"1. Zip the '{output_dir.name}' folder")
         print_info("2. Send the zip file to users")
-        print_info("3. Users extract and run Uma_Musume_Auto_Train.exe in the folder")
+        print_info("3. Users extract and run Uma_Musume_Auto_Train.exe")
         print_info("4. Users need to install Tesseract OCR separately")
 
     cleanup_build_files()

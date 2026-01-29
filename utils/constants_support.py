@@ -5,16 +5,16 @@ Contains detailed configurations, patterns, and helper data for the main constan
 
 # Default regions for settings reset
 DEFAULT_REGIONS = {
-    'SUPPORT_CARD_ICON_REGION': (820, 155, 180, 700),
+    'SUPPORT_CARD_ICON_REGION': (820, 155, 120, 700),
     'MOOD_REGION': (700, 123, 120, 27),
-    'ENERGY_BAR': (440, 136, 705, 136),
+    'ENERGY_BAR': (440, 136, 710, 136),
     'RACE_REGION': (260, 588, 580, 266),
-    'TURN_REGION': (260, 84, 108, 47),
+    'TURN_REGION': (260, 84, 112, 47),
     'YEAR_REGION': (255, 35, 165, 22),
     'UNITY_CUP_TURN_REGION': (265, 57, 60, 47),
     'UNITY_CUP_YEAR_REGION': (390, 37, 165, 16),
     'FAILURE_REGION': (275, 780, 551, 33),
-    'CRITERIA_REGION': (455, 85, 170, 26),
+    'CRITERIA_REGION': (223, 290, 150, 770),
     'STAT_REGIONS': {
         "spd": (310, 723, 55, 20),
         "sta": (405, 723, 55, 20),
@@ -24,7 +24,7 @@ DEFAULT_REGIONS = {
     },
     'EVENT_REGIONS': {
         "EVENT_REGION": (240, 173, 240, 25),
-        "EVENT_NAME_REGION": (240, 200, 400, 40)
+        "EVENT_NAME_REGION": (240, 200, 360, 40)
     }
 }
 

@@ -258,6 +258,66 @@ class EventChoiceTab:
         # Update preset dropdown to show current selection
         self._update_preset_dropdown_selection()
 
+    # Card type colors - SSR (darker) and SR (lighter)
+    CARD_TYPE_COLORS = {
+        'spd': {'ssr': '#0055AA', 'sr': '#66AADD', 'name': 'SPEED'},
+        'sta': {'ssr': '#AA0055', 'sr': '#DD66AA', 'name': 'STAMINA'},
+        'pow': {'ssr': '#CC5500', 'sr': '#FFAA66', 'name': 'POWER'},
+        'gut': {'ssr': '#CC8800', 'sr': '#FFCC66', 'name': 'GUTS'},
+        'wit': {'ssr': '#007733', 'sr': '#66BB99', 'name': 'WISDOM'},
+        'frd': {'ssr': '#AA8800', 'sr': '#DDCC66', 'name': 'FRIEND'}
+    }
+
+    def _get_card_type_info(self, card_value, index):
+        """Get display text and color for card type label"""
+        default_color = "#006600"
+        default_text = f"Support {index + 1}"
+
+        if not card_value or card_value == "None" or ":" not in card_value:
+            return default_text, default_color, "#f0f0f0"
+
+        card_type = card_value.split(":")[0].strip().lower()
+
+        if card_type not in self.CARD_TYPE_COLORS:
+            return default_text, default_color, "#f0f0f0"
+
+        type_info = self.CARD_TYPE_COLORS[card_type]
+        type_name = type_info['name']
+
+        # Detect rarity from card name
+        card_name_part = card_value.split(":", 1)[1] if ":" in card_value else card_value
+        is_ssr = "(SSR)" in card_name_part.upper()
+
+        if is_ssr:
+            color = type_info['ssr']
+            bg_color = self._lighten_color(color, 0.85)
+        else:
+            color = type_info['sr']
+            bg_color = self._lighten_color(color, 0.9)
+
+        return type_name, color, bg_color
+
+    def _lighten_color(self, hex_color, factor):
+        """Lighten a hex color by a factor (0-1)"""
+        try:
+            hex_color = hex_color.lstrip('#')
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+
+            r = int(r + (255 - r) * factor)
+            g = int(g + (255 - g) * factor)
+            b = int(b + (255 - b) * factor)
+
+            return f"#{r:02x}{g:02x}{b:02x}"
+        except:
+            return "#f0f0f0"
+
+    def _get_card_type_display(self, card_value, index):
+        """Get display text for card type label (backward compatibility)"""
+        type_name, _, _ = self._get_card_type_info(card_value, index)
+        return type_name
+
     def _create_support_card_box(self, parent, index):
         """Create individual support card selection box"""
         box_frame = tk.Frame(
@@ -268,7 +328,7 @@ class EventChoiceTab:
             cursor="hand2"
         )
 
-        # Label
+        # Label - will be updated based on card type
         label = tk.Label(
             box_frame,
             text=f"Support {index + 1}",
@@ -296,8 +356,10 @@ class EventChoiceTab:
         label.bind('<Button-1>', lambda e, idx=index: self._open_support_card_dialog(idx))
         card_display.bind('<Button-1>', lambda e, idx=index: self._open_support_card_dialog(idx))
 
-        # Store card display label for updates
+        # Store references for updates
         box_frame.card_display = card_display
+        box_frame.type_label = label
+        box_frame.index = index
 
         # Update initial display
         self._update_card_display(box_frame, self.support_cards[index].get())
@@ -309,17 +371,38 @@ class EventChoiceTab:
         return box_frame
 
     def _update_card_display(self, box_frame, card_value):
-        """Update card display label"""
+        """Update card display label, type label, and colors"""
+        # Get type info including colors
+        if hasattr(box_frame, 'type_label') and hasattr(box_frame, 'index'):
+            type_text, type_color, bg_color = self._get_card_type_info(card_value, box_frame.index)
+
+            # Update type label with color
+            box_frame.type_label.config(text=type_text, fg=type_color, bg=bg_color)
+
+            # Update box frame background
+            box_frame.config(bg=bg_color)
+
+        # Update card name display
         if card_value == "None" or not card_value:
             display_text = "None"
             box_frame.card_display.config(text=display_text, fg="gray")
+            # Reset to default colors
+            if hasattr(box_frame, 'type_label'):
+                box_frame.type_label.config(bg="#f0f0f0")
+                box_frame.config(bg="#f0f0f0")
         else:
             # Extract card name (remove type prefix if present)
             if ":" in card_value:
                 display_text = card_value.split(":", 1)[1].strip()
             else:
                 display_text = card_value
-            box_frame.card_display.config(text=display_text, fg="black")
+
+            # Detect SSR for text styling
+            is_ssr = "(SSR)" in card_value.upper()
+            text_color = "black" if is_ssr else "#333333"
+            font_weight = ("Arial", 9, "bold") if is_ssr else ("Arial", 9)
+
+            box_frame.card_display.config(text=display_text, fg=text_color, font=font_weight)
 
     def _open_support_card_dialog(self, index):
         """Open support card selection dialog"""

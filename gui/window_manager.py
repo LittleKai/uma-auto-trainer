@@ -10,10 +10,10 @@ class WindowManager:
 
         # Default window settings
         self.window_settings = {
-            'width': 700,
+            'width': 750,
             'height': 900,
-            'x': 100,
-            'y': 20
+            'x': 1000,
+            'y': 1
         }
 
     def load_initial_settings(self):
@@ -40,23 +40,30 @@ class WindowManager:
         """Setup window with loaded settings"""
         settings = self.window_settings
 
-        width = max(700, settings.get('width', 700))
-        height = max(850, settings.get('height', 900))
-
-        # Get saved position or use default
+        # Get screen dimensions
         screen_width = self.main_window.root.winfo_screenwidth()
         screen_height = self.main_window.root.winfo_screenheight()
+
+        # Use saved size or default
+        width = settings.get('width', 750)
+        height = settings.get('height', 900)
+
+        # Ensure reasonable size
+        width = max(700, min(width, screen_width - 100))
+        height = max(700, min(height, screen_height - 100))
 
         # Use saved position if available, otherwise use default
         if 'x' in settings and 'y' in settings:
             x = settings['x']
             y = settings['y']
         else:
-            # Default position: right half of screen + 20px, y = 20
-            default_x = max(20, screen_width // 2) + 20
-            default_y = 20
-            x = default_x
-            y = default_y
+            # Default position: x=1000, y=1
+            x = 1000
+            y = 1
+
+        # Ensure position is valid
+        x = max(0, x)
+        y = max(0, y)
 
         # Ensure window fits on screen
         if x + width > screen_width:
@@ -64,12 +71,8 @@ class WindowManager:
         if y + height > screen_height:
             y = max(0, screen_height - height)
 
-        # Ensure minimum position values
-        x = max(0, x)
-        y = max(0, y)
-
         # Set window properties
-        self.main_window.root.minsize(650, 850)
+        self.main_window.root.minsize(700, 700)
         self.main_window.root.geometry(f"{width}x{height}+{x}+{y}")
         self.main_window.root.resizable(True, True)
         self.main_window.root.attributes('-topmost', True)

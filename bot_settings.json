@@ -159,7 +159,7 @@
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Silence Suzuka (SSR)",
-          "pow: Smart Falcon (SSR)",
+          "wit: Curren Chan (SSR)",
           "wit: Mihono Bourbon (SSR)",
           "wit: Marvelous Sunday (SR)",
           "wit: Fuji Kiseki (SR)"
@@ -297,8 +297,8 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 818,
-    "height": 948,
+    "width": 777,
+    "height": 946,
     "x": 1036,
     "y": 1
   },

@@ -6,7 +6,7 @@
   "distance": {
     "sprint": true,
     "mile": true,
-    "medium": true,
+    "medium": false,
     "long": false
   },
   "grade": {
@@ -17,13 +17,13 @@
   "minimum_mood": "GOOD",
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
-  "manual_event_handling": true,
+  "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
-  "stop_mood_threshold": "GOOD",
+  "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
@@ -32,17 +32,17 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Maruzensky (Summer)",
+    "uma_musume": "Sakura Bakushin O",
     "support_cards": [
       "spd: Kitasan Black (SSR)",
-      "spd: Silence Suzuka (SSR)",
+      "spd: King Halo (SR)",
       "wit: Curren Chan (SSR)",
-      "wit: Mihono Bourbon (SSR)",
-      "wit: Marvelous Sunday (SR)",
-      "wit: Fuji Kiseki (SR)"
+      "wit: Daiwa Scarlet (SR)",
+      "wit: Fine Motion (SSR)",
+      "wit: Marvelous Sunday (SR)"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 9,
+    "current_set": 11,
     "preset_names": {
       "1": "FRONT POWER",
       "2": "PACE POWER",
@@ -111,13 +111,13 @@
         ]
       },
       "5": {
-        "uma_musume": "El Condor Pasa (Fantasy)",
+        "uma_musume": "King Halo",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
           "spd: Eishin Flash (SR)",
           "gut: Haru Urara (SSR)",
           "frd: Riko Kashimoto (SSR)",
-          "gut: Yukino Bijin (SSR)",
+          "gut: Seeking the Pearl (SR)",
           "gut: Special Week (SSR)"
         ]
       },
@@ -169,7 +169,7 @@
         "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
           "spd: Kitasan Black (SSR)",
-          "wit: Fuji Kiseki (SR)",
+          "frd: Riko Kashimoto (SSR)",
           "spd: Silence Suzuka (SSR)",
           "wit: Marvelous Sunday (SR)",
           "wit: Mihono Bourbon (SSR)",

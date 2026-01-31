@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "name": "Full-Power Passion!",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_1_if_energy_shortage_gte": 8,
+      "default_choice": 2
+    },
+    {
+      "name": "Full-Power Thinking!",
+      "choice": 1
+    },
+    {
+      "name": "No More Words ♪ Use Body Language!",
+      "choice_3_if_energy_shortage_gte": 18,
+      "default_choice": 2
+    }
+  ]
+}

@@ -55,52 +55,34 @@ class SupportCardDialog:
             # Define card types
             card_types = ["spd", "sta", "pow", "gut", "wit", "frd"]
 
-            def get_rarity_order(filename):
-                if "(SSR)" in filename:
-                    return 0
-                elif "(SR)" in filename:
-                    return 1
-                elif "(R)" in filename:
-                    return 2
-                else:
-                    return 3
-
-            def get_clean_name(filename):
-                import re
-                return re.sub(r'\s*\((SSR|SR|R)\)', '', filename).lower()
-
             # Load cards by type
             for card_type in card_types:
                 type_folder = os.path.join(support_folder, card_type)
                 if os.path.exists(type_folder):
                     json_files = glob.glob(os.path.join(type_folder, "*.json"))
 
-                    files_with_sort_key = []
+                    filenames = []
                     for file_path in json_files:
                         filename = os.path.basename(file_path).replace('.json', '')
-                        rarity_order = get_rarity_order(filename)
-                        clean_name = get_clean_name(filename)
-                        files_with_sort_key.append((filename, rarity_order, clean_name))
+                        filenames.append(filename)
 
-                    # Sort by rarity first, then alphabetically
-                    files_with_sort_key.sort(key=lambda x: (x[1], x[2]))
+                    # Sort alphabetically
+                    filenames.sort(key=lambda x: x.lower())
 
-                    for filename, _, _ in files_with_sort_key:
+                    for filename in filenames:
                         display_name = f"{card_type}: {filename}"
                         cards_by_type[card_type].append(display_name)
                         cards_by_type['all'].append(display_name)
 
             # Also check for direct JSON files
             direct_json_files = glob.glob(os.path.join(support_folder, "*.json"))
-            direct_files_data = []
+            direct_filenames = []
             for file_path in direct_json_files:
                 filename = os.path.basename(file_path).replace('.json', '')
-                rarity_order = get_rarity_order(filename)
-                clean_name = get_clean_name(filename)
-                direct_files_data.append((filename, rarity_order, clean_name))
+                direct_filenames.append(filename)
 
-            direct_files_data.sort(key=lambda x: (x[1], x[2]))
-            for filename, _, _ in direct_files_data:
+            direct_filenames.sort(key=lambda x: x.lower())
+            for filename in direct_filenames:
                 cards_by_type['all'].append(filename)
 
         except Exception as e:

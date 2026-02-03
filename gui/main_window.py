@@ -115,7 +115,7 @@ class UmaAutoGUI:
         self.root.after(100, lambda: canvas.configure(scrollregion=canvas.bbox("all")))
 
     def create_header_section(self, parent, row):
-        """Create header section with title and region settings button"""
+        """Create header section with title and settings buttons"""
         header_frame = ttk.Frame(parent)
         header_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
         header_frame.columnconfigure(0, weight=1)
@@ -128,12 +128,15 @@ class UmaAutoGUI:
                                 font=("Arial", 14, "bold"))
         title_label.pack(anchor=tk.W)
 
-        # Settings button
+        # Settings buttons container
         settings_container = ttk.Frame(header_frame)
         settings_container.pack(side=tk.RIGHT)
 
+        ttk.Button(settings_container, text="⚙ Config",
+                   command=self.open_config_settings).pack(side=tk.LEFT, padx=(0, 5))
+
         ttk.Button(settings_container, text="⚙ Region Settings",
-                   command=self.open_region_settings).pack()
+                   command=self.open_region_settings).pack(side=tk.LEFT)
 
     def create_tabbed_section(self, parent, row):
         """Create tabbed section with Strategy, Event Choice, and Team Trials tabs"""
@@ -233,6 +236,18 @@ class UmaAutoGUI:
         except Exception as e:
             self.log_message(f"Error opening region settings: {e}")
             messagebox.showerror("Error", f"Failed to open region settings: {e}")
+
+    def open_config_settings(self):
+        """Open config settings dialog"""
+        try:
+            from gui.dialogs.config_dialog import ConfigDialog
+            ConfigDialog(self.root)
+        except ImportError as e:
+            self.log_message(f"Error: Could not import config dialog: {e}")
+            messagebox.showerror("Error", "Config dialog module not found.")
+        except Exception as e:
+            self.log_message(f"Error opening config settings: {e}")
+            messagebox.showerror("Error", f"Failed to open config settings: {e}")
 
 
     # Settings methods

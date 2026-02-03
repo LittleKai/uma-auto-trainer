@@ -6,7 +6,7 @@
   "distance": {
     "sprint": true,
     "mile": true,
-    "medium": false,
+    "medium": true,
     "long": false
   },
   "grade": {
@@ -20,11 +20,11 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
   "stop_on_ura_final": false,
@@ -32,17 +32,24 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Sakura Bakushin O",
+    "uma_musume": "King Halo",
     "support_cards": [
-      "spd: Kitasan Black (SSR)",
-      "spd: King Halo (SR)",
-      "wit: Curren Chan (SSR)",
-      "wit: Daiwa Scarlet (SR)",
-      "wit: Fine Motion (SSR)",
-      "wit: Marvelous Sunday (SR)"
+      "spd: Kitasan Black",
+      "spd: Eishin Flash",
+      "gut: Haru Urara",
+      "frd: Tazuna Hayakawa",
+      "gut: Seeking the Pearl",
+      "gut: Special Week"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 11,
+    "current_set": 5,
+    "stat_caps": {
+      "spd": 1130,
+      "sta": 500,
+      "pwr": 1080,
+      "guts": 1100,
+      "wit": 1130
+    },
     "preset_names": {
       "1": "FRONT POWER",
       "2": "PACE POWER",
@@ -69,134 +76,218 @@
       "1": {
         "uma_musume": "Smart Falcon",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Mihono Bourbon (SR)",
-          "pow: Vodka (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Silence Suzuka",
+          "spd: Sweep Tosho",
+          "frd: Riko Kashimoto",
+          "pow: Mihono Bourbon",
+          "pow: Vodka"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "2": {
         "uma_musume": "Oguri Cap",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Special Week (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Daitaku Helios (SR)",
-          "pow: El Condor Pasa (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Sweep Tosho",
+          "spd: Special Week",
+          "frd: Riko Kashimoto",
+          "pow: Daitaku Helios",
+          "pow: El Condor Pasa"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "3": {
         "uma_musume": "Symboli Rudolf",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Eishin Flash (SR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Vodka (SSR)",
-          "pow: Winning Ticket (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Eishin Flash",
+          "frd: Tazuna Hayakawa",
+          "frd: Riko Kashimoto",
+          "pow: Vodka",
+          "pow: Winning Ticket"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "4": {
         "uma_musume": "Gold Ship",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SSR)",
-          "spd: Narita Taishin (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Hishi Amazon (SR)",
-          "frd: Tazuna Hayakawa (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Sweep Tosho",
+          "spd: Narita Taishin",
+          "frd: Riko Kashimoto",
+          "pow: Hishi Amazon",
+          "frd: Tazuna Hayakawa"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "5": {
         "uma_musume": "King Halo",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Eishin Flash (SR)",
-          "gut: Haru Urara (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "gut: Seeking the Pearl (SR)",
-          "gut: Special Week (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Eishin Flash",
+          "gut: Haru Urara",
+          "frd: Riko Kashimoto",
+          "gut: Seeking the Pearl",
+          "gut: Special Week"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 500,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "6": {
         "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "gut: Air Groove (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "gut: Yukino Bijin (SSR)",
-          "gut: Haru Urara (SSR)",
-          "gut: Special Week (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "gut: Air Groove",
+          "frd: Riko Kashimoto",
+          "gut: Yukino Bijin",
+          "gut: Haru Urara",
+          "gut: Special Week"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "7": {
         "uma_musume": "Maruzensky",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SR)",
-          "spd: Twin Turbo (SSR)",
-          "pow: Hishi Amazon (SR)",
-          "pow: Rice Shower (SSR)",
-          "pow: Smart Falcon (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Sweep Tosho",
+          "spd: Twin Turbo",
+          "pow: Hishi Amazon",
+          "pow: Rice Shower",
+          "pow: Smart Falcon"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "8": {
         "uma_musume": "Taiki Shuttle",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Twin Turbo (SSR)",
-          "spd: Gold Ship (SSR)",
-          "pow: Smart Falcon (SSR)",
-          "pow: Oguri Cap (SSR)",
-          "pow: Rice Shower (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Twin Turbo",
+          "spd: Gold Ship",
+          "pow: Smart Falcon",
+          "pow: Oguri Cap",
+          "pow: Rice Shower"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "9": {
         "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "wit: Curren Chan (SSR)",
-          "wit: Mihono Bourbon (SSR)",
-          "wit: Marvelous Sunday (SR)",
-          "wit: Fuji Kiseki (SR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Silence Suzuka",
+          "wit: Curren Chan",
+          "wit: Mihono Bourbon",
+          "wit: Marvelous Sunday",
+          "wit: Fuji Kiseki"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "10": {
         "uma_musume": "Maruzensky (Summer)",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "spd: Silence Suzuka (SSR)",
-          "wit: Marvelous Sunday (SR)",
-          "wit: Mihono Bourbon (SSR)",
-          "wit: Curren Chan (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "wit: Fuji Kiseki",
+          "spd: Silence Suzuka",
+          "wit: Marvelous Sunday",
+          "wit: Mihono Bourbon",
+          "wit: Curren Chan"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 500,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "11": {
         "uma_musume": "Sakura Bakushin O",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: King Halo (SR)",
-          "wit: Curren Chan (SSR)",
-          "wit: Daiwa Scarlet (SR)",
-          "wit: Fine Motion (SSR)",
-          "wit: Marvelous Sunday (SR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: King Halo",
+          "wit: Curren Chan",
+          "wit: Daiwa Scarlet",
+          "wit: Fine Motion",
+          "wit: Marvelous Sunday"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 300,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "12": {
         "uma_musume": "Agnes Digital",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "wit: Nice Nature (SSR)",
-          "pow: Winning Ticket (SSR)",
-          "wit: Marvelous Sunday (SR)",
-          "wit: Matikanefukukitaru (SR)",
-          "frd: Riko Kashimoto (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "wit: Nice Nature",
+          "pow: Winning Ticket",
+          "wit: Marvelous Sunday",
+          "wit: Matikanefukukitaru",
+          "frd: Riko Kashimoto"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "13": {
         "uma_musume": "None",
@@ -207,7 +298,14 @@
           "None",
           "None",
           "None"
-        ]
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "14": {
         "uma_musume": "None",
@@ -218,7 +316,14 @@
           "None",
           "None",
           "None"
-        ]
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "15": {
         "uma_musume": "None",
@@ -229,62 +334,104 @@
           "None",
           "None",
           "None"
-        ]
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "16": {
         "uma_musume": "Symboli Rudolf",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Eishin Flash (SR)",
-          "sta: Mayano Top Gun (SR)",
-          "sta: Nakayama Festa (SSR)",
-          "frd: Riko Kashimoto (SSR)",
-          "frd: Tazuna Hayakawa (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Eishin Flash",
+          "sta: Mayano Top Gun",
+          "sta: Nakayama Festa",
+          "frd: Riko Kashimoto",
+          "frd: Tazuna Hayakawa"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "17": {
         "uma_musume": "Mayano Top Gun",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Narita Taishin (SR)",
-          "spd: Sweep Tosho (SSR)",
-          "sta: Mejiro McQueen (SSR)",
-          "frd: Tazuna Hayakawa (SSR)",
-          "frd: Riko Kashimoto (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Narita Taishin",
+          "spd: Sweep Tosho",
+          "sta: Mejiro McQueen",
+          "frd: Tazuna Hayakawa",
+          "frd: Riko Kashimoto"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "18": {
         "uma_musume": "Mayano Top Gun",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Narita Taishin (SR)",
-          "spd: Sweep Tosho (SR)",
-          "frd: Riko Kashimoto (SSR)",
-          "pow: Hishi Amazon (SR)",
-          "pow: Vodka (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Narita Taishin",
+          "spd: Sweep Tosho",
+          "frd: Riko Kashimoto",
+          "pow: Hishi Amazon",
+          "pow: Vodka"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "19": {
         "uma_musume": "Seiun Sky",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Sweep Tosho (SSR)",
-          "spd: Twin Turbo (SSR)",
-          "pow: Smart Falcon (SSR)",
-          "pow: Hishi Amazon (SR)",
-          "pow: Marvelous Sunday (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Sweep Tosho",
+          "spd: Twin Turbo",
+          "pow: Smart Falcon",
+          "pow: Hishi Amazon",
+          "pow: Marvelous Sunday"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       },
       "20": {
         "uma_musume": "Seiun Sky",
         "support_cards": [
-          "spd: Kitasan Black (SSR)",
-          "spd: Gold Ship (SSR)",
-          "spd: Sweep Tosho (SSR)",
-          "pow: Smart Falcon (SSR)",
-          "sta: Silence Suzuka (SSR)",
-          "sta: Mejiro McQueen (SSR)"
-        ]
+          "spd: Kitasan Black",
+          "spd: Gold Ship",
+          "spd: Sweep Tosho",
+          "pow: Smart Falcon",
+          "sta: Silence Suzuka",
+          "sta: Mejiro McQueen"
+        ],
+        "stat_caps": {
+          "spd": 1130,
+          "sta": 1100,
+          "pwr": 1080,
+          "guts": 1100,
+          "wit": 1130
+        }
       }
     }
   },
@@ -297,10 +444,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 777,
+    "width": 814,
     "height": 946,
-    "x": 1036,
-    "y": 1
+    "x": 984,
+    "y": 5
   },
   "scenario": "Unity Cup"
 }

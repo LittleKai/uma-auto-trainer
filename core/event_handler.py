@@ -514,6 +514,59 @@ class EventChoiceHandler:
                 return True
         return False
 
+    def _check_deck_condition(self, event_config: Dict, choice_num: int) -> Optional[int]:
+        """Check deck-based conditions for event choice
+
+        Supports conditions like:
+        - "choice_1_if_deck_has_2_spd": choice 1 if deck has 2+ speed cards
+        - "choice_2_if_deck_has_3_wit": choice 2 if deck has 3+ wisdom cards
+
+        Card types: spd, sta, pwr, guts, wit, frd (or aliases: pow, gut, friend)
+
+        Args:
+            event_config: Event configuration dictionary
+            choice_num: Choice number to check (1-5)
+
+        Returns:
+            choice_num if condition is met, None otherwise
+        """
+        try:
+            from utils.constants import get_deck_card_count
+
+            # Check for deck_has condition keys
+            # Format: choice_X_if_deck_has_Y_Z (Y = count, Z = card type)
+            card_types = ["spd", "sta", "pwr", "pow", "guts", "gut", "wit", "frd", "friend"]
+
+            for card_type in card_types:
+                for count in range(1, 7):  # Check counts 1-6
+                    key = f"choice_{choice_num}_if_deck_has_{count}_{card_type}"
+                    if key in event_config:
+                        required_count = count
+                        actual_count = get_deck_card_count(card_type)
+
+                        if actual_count >= required_count:
+                            self.log(f"[DEBUG] Choice {choice_num} selected: deck has {actual_count} {card_type} cards (required: {required_count}+)")
+                            return choice_num
+                        else:
+                            self.log(f"[DEBUG] Deck condition not met: has {actual_count} {card_type} cards, need {required_count}+")
+
+            # Also support simpler format: "choice_X_if_deck_has_TYPE" (requires at least 1)
+            for card_type in card_types:
+                key = f"choice_{choice_num}_if_deck_has_{card_type}"
+                if key in event_config:
+                    required_count = event_config[key]
+                    if isinstance(required_count, int):
+                        actual_count = get_deck_card_count(card_type)
+                        if actual_count >= required_count:
+                            self.log(f"[DEBUG] Choice {choice_num} selected: deck has {actual_count} {card_type} cards (required: {required_count}+)")
+                            return choice_num
+
+            return None
+
+        except Exception as e:
+            self.log(f"[WARNING] Error checking deck condition: {e}")
+            return None
+
     def find_event_choice(self, event_type: str, event_name: str, uma_musume: str, support_cards: List[str]) -> Optional[int]:
         """Find appropriate event choice based on event type and configuration"""
         try:
@@ -673,7 +726,16 @@ class EventChoiceHandler:
 
     def evaluate_event_conditions(self, event_config: Dict, current_energy: Optional[float],
                                   current_mood: Optional[str], uma_musume: str) -> int:
-        """Evaluate event conditions and return appropriate choice number"""
+        """Evaluate event conditions and return appropriate choice number
+
+        Priority order (highest to lowest):
+        1. Deck conditions (deck_has)
+        2. Mood conditions (mood_lt, mood_gte)
+        3. Energy conditions (energy_shortage_gte)
+        4. Day conditions (day_lt, day_gte)
+        5. Uma conditions (if_uma)
+        6. Default choice
+        """
         try:
             mood_priority = ["AWFUL", "BAD", "NORMAL", "GOOD", "GREAT"]
             current_mood_index = None
@@ -683,6 +745,7 @@ class EventChoiceHandler:
             current_energy_val, max_energy_val = self.get_current_energy_with_max()
             energy_shortage = max_energy_val - current_energy_val
             print(f'evaluate_event_conditions - e: {energy_shortage}')
+
             current_date = None
             try:
                 from core.state import get_current_date_info
@@ -690,31 +753,18 @@ class EventChoiceHandler:
             except Exception as e:
                 self.log(f"[WARNING] Failed to get current date: {e}")
 
+            # ============================================================
+            # PRIORITY 1: DECK CONDITIONS (highest priority)
+            # ============================================================
             for i in range(1, 6):
-                day_lt_key = f"choice_{i}_if_day_lt"
-                if day_lt_key in event_config and current_date is not None:
-                    threshold_day = event_config[day_lt_key]
-                    current_day = current_date.get('absolute_day', 0)
-                    if current_day < threshold_day:
-                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} < {threshold_day}")
-                        return i
+                deck_condition = self._check_deck_condition(event_config, i)
+                if deck_condition is not None:
+                    return deck_condition
 
-                day_gte_key = f"choice_{i}_if_day_gte"
-                if day_gte_key in event_config and current_date is not None:
-                    threshold_day = event_config[day_gte_key]
-                    current_day = current_date.get('absolute_day', 0)
-                    if current_day >= threshold_day:
-                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
-                        return i
-
-                energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
-
-                if energy_shortage_gte_key in event_config:
-                    threshold_shortage = event_config[energy_shortage_gte_key]
-                    if energy_shortage >= threshold_shortage:
-                        self.log(f"[DEBUG] Choice {i} selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
-                        return i
-
+            # ============================================================
+            # PRIORITY 2: MOOD CONDITIONS
+            # ============================================================
+            for i in range(1, 6):
                 mood_lt_key = f"choice_{i}_if_mood_lt"
                 if mood_lt_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_lt_key]
@@ -733,6 +783,41 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} >= {threshold_mood}")
                             return i
 
+            # ============================================================
+            # PRIORITY 3: ENERGY CONDITIONS
+            # ============================================================
+            for i in range(1, 6):
+                energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
+                if energy_shortage_gte_key in event_config:
+                    threshold_shortage = event_config[energy_shortage_gte_key]
+                    if energy_shortage >= threshold_shortage:
+                        self.log(f"[DEBUG] Choice {i} selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
+                        return i
+
+            # ============================================================
+            # PRIORITY 4: DAY CONDITIONS (lowest priority)
+            # ============================================================
+            for i in range(1, 6):
+                day_lt_key = f"choice_{i}_if_day_lt"
+                if day_lt_key in event_config and current_date is not None:
+                    threshold_day = event_config[day_lt_key]
+                    current_day = current_date.get('absolute_day', 0)
+                    if current_day < threshold_day:
+                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} < {threshold_day}")
+                        return i
+
+                day_gte_key = f"choice_{i}_if_day_gte"
+                if day_gte_key in event_config and current_date is not None:
+                    threshold_day = event_config[day_gte_key]
+                    current_day = current_date.get('absolute_day', 0)
+                    if current_day >= threshold_day:
+                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
+                        return i
+
+            # ============================================================
+            # PRIORITY 5: UMA CONDITIONS
+            # ============================================================
+            for i in range(1, 6):
                 uma_key = f"choice_{i}_if_uma"
                 if uma_key in event_config:
                     uma_condition = event_config[uma_key]
@@ -745,6 +830,9 @@ class EventChoiceHandler:
                             self.log(f"[DEBUG] Choice {i} selected: uma musume {uma_musume} in {uma_condition}")
                             return i
 
+            # ============================================================
+            # PRIORITY 6: DEFAULT CHOICE
+            # ============================================================
             if "default_choice" in event_config:
                 default_choice = event_config["default_choice"]
                 if isinstance(default_choice, int) and 1 <= default_choice <= 5:

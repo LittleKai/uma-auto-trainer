@@ -1,11 +1,11 @@
 {
   "events": [
     {
-      "name": "Fickle Genius Magical Girl Sweepy ☆",
+      "name": "Some Very Green Friends",
       "choice": 1
     },
     {
-      "name": "A Drop of Black Magic ☆",
+      "name": "Premeditated Mischief",
       "choice": 1
     },
     {
@@ -16,6 +16,14 @@
     {
       "name": "Wonderful ☆ Mistake!",
       "choice_2_if_day_lt": 30
+    },
+    {
+      "name": "Fickle Genius Magical Girl Sweepy ☆",
+      "choice": 1
+    },
+    {
+      "name": "A Drop of Black Magic ☆",
+      "choice": 1
     }
   ]
 }

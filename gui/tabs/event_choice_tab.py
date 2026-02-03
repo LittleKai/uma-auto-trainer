@@ -5,7 +5,8 @@ import glob
 import csv
 
 from gui.dialogs.support_card_dialog import SupportCardDialog
-from gui.dialogs.preset_name_dialog import PresetNameDialog
+from gui.dialogs.preset_dialog import PresetDialog
+from gui.dialogs.uma_musume_dialog import UmaMusumeDialog
 
 
 class EventChoiceTab:
@@ -21,8 +22,6 @@ class EventChoiceTab:
         # Load Uma Musume data from CSV
         self.uma_musume_data = self.load_uma_musume_data()
 
-        # Store reference to unknown event action dropdown
-        self.action_dropdown = None
 
         # Store support card selection boxes
         self.support_card_boxes = []
@@ -41,6 +40,15 @@ class EventChoiceTab:
         self.support_cards = [tk.StringVar(value="None") for _ in range(6)]
         self.unknown_event_action = tk.StringVar(value="Auto select first choice")
 
+        # Default stat caps
+        self.default_stat_caps = {
+            "spd": 1130,
+            "sta": 1100,
+            "pwr": 1080,
+            "guts": 1100,
+            "wit": 1130
+        }
+
         # Variables for 20 preset sets with custom names
         self.current_set = tk.IntVar(value=1)
         self.preset_names = {}
@@ -50,7 +58,14 @@ class EventChoiceTab:
             self.preset_names[i] = tk.StringVar(value=f"Preset {i}")
             self.preset_sets[i] = {
                 'uma_musume': tk.StringVar(value="None"),
-                'support_cards': [tk.StringVar(value="None") for _ in range(6)]
+                'support_cards': [tk.StringVar(value="None") for _ in range(6)],
+                'stat_caps': {
+                    'spd': tk.IntVar(value=1130),
+                    'sta': tk.IntVar(value=1100),
+                    'pwr': tk.IntVar(value=1080),
+                    'guts': tk.IntVar(value=1100),
+                    'wit': tk.IntVar(value=1130)
+                }
             }
 
     def load_uma_musume_data(self):
@@ -125,61 +140,10 @@ class EventChoiceTab:
 
         # Create sections
         self.create_support_selection(content_frame, row=0)
-        self.create_mode_selection(content_frame, row=1)
 
         # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-
-    def create_mode_selection(self, parent, row):
-        """Create mode selection section"""
-        mode_frame = ttk.LabelFrame(parent, text="Event Choice Mode", padding="8")
-        mode_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(8, 0))
-
-        # Checkboxes container
-        checkbox_container = ttk.Frame(mode_frame)
-        checkbox_container.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
-
-        # Auto Event Map mode
-        self.auto_event_check = ttk.Checkbutton(
-            checkbox_container,
-            text="Auto Event Map",
-            variable=self.auto_event_map_var,
-            command=self.on_mode_change
-        )
-        self.auto_event_check.pack(side=tk.LEFT, padx=(0, 20))
-
-        # Auto First Choice mode
-        auto_first_check = ttk.Checkbutton(
-            checkbox_container,
-            text="Auto First Choice",
-            variable=self.auto_first_choice_var,
-            command=self.on_mode_change
-        )
-        auto_first_check.pack(side=tk.LEFT)
-
-        # Unknown Event Action
-        action_container = ttk.Frame(mode_frame)
-        action_container.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=0)
-
-        ttk.Label(
-            action_container,
-            text="Unknown Event Action:",
-            font=("Arial", 9)
-        ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
-
-        self.action_dropdown = ttk.Combobox(
-            action_container,
-            textvariable=self.unknown_event_action,
-            values=["Auto select first choice", "Wait for user selection", "Search in other special events"],
-            state="readonly",
-            font=("Arial", 9),
-            width=30
-        )
-        self.action_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
-
-        # Set initial visibility state
-        self.update_action_dropdown_visibility()
 
     def create_support_selection(self, parent, row):
         """Create enhanced support card selection with dropdown presets and card boxes"""
@@ -193,7 +157,7 @@ class EventChoiceTab:
         selection_container.columnconfigure(0, weight=0)  # 1/3 width for Uma
         selection_container.columnconfigure(1, weight=1)  # 2/3 width for Preset
 
-        # Left side - Uma Musume
+        # Left side - Uma Musume (clickable box)
         uma_container = ttk.Frame(selection_container)
         uma_container.grid(row=0, column=0, sticky=(tk.W, tk.E), padx=(0, 20))
 
@@ -204,17 +168,26 @@ class EventChoiceTab:
             foreground="#CC0066"
         ).pack(side=tk.LEFT, padx=(0, 10))
 
-        self.uma_dropdown = ttk.Combobox(
+        # Clickable box for Uma Musume selection
+        self.uma_selection_box = tk.Label(
             uma_container,
-            textvariable=self.selected_uma_musume,
-            values=self.get_uma_musume_list(),
-            state="readonly",
-            font=("Arial", 9),
-            width=20
+            text="None",
+            font=("Arial", 9, "bold"),
+            bg="white",
+            fg="#CC0066",
+            relief=tk.SUNKEN,
+            padx=10,
+            pady=5,
+            width=22,
+            cursor="hand2"
         )
-        self.uma_dropdown.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.uma_selection_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.uma_selection_box.bind('<Button-1>', lambda e: self._open_uma_musume_dialog())
 
-        # Right side - Preset
+        # Update display when variable changes
+        self.selected_uma_musume.trace('w', lambda *args: self._update_uma_display())
+
+        # Right side - Preset (clickable box)
         preset_container = ttk.Frame(selection_container)
         preset_container.grid(row=0, column=1, sticky=(tk.W, tk.E))
 
@@ -225,24 +198,21 @@ class EventChoiceTab:
             foreground="#0066CC"
         ).pack(side=tk.LEFT, padx=(0, 10))
 
-        self.preset_dropdown = ttk.Combobox(
+        # Clickable box for preset selection
+        self.preset_selection_box = tk.Label(
             preset_container,
-            values=self._get_preset_names(),
-            state="readonly",
-            font=("Arial", 9),
-            width=20
+            text="Preset 1",
+            font=("Arial", 9, "bold"),
+            bg="white",
+            fg="#0066CC",
+            relief=tk.SUNKEN,
+            padx=10,
+            pady=5,
+            width=25,
+            cursor="hand2"
         )
-        self.preset_dropdown.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
-        self.preset_dropdown.bind('<<ComboboxSelected>>', self._on_preset_selected)
-
-        # Edit button
-        edit_button = ttk.Button(
-            preset_container,
-            text="✏",
-            width=3,
-            command=self._edit_preset_name
-        )
-        edit_button.pack(side=tk.LEFT)
+        self.preset_selection_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.preset_selection_box.bind('<Button-1>', lambda e: self._open_preset_dialog())
 
         # Support card boxes (6 boxes in 1 row)
         support_container = ttk.Frame(support_frame)
@@ -255,17 +225,120 @@ class EventChoiceTab:
             self.support_card_boxes.append(box)
             support_container.columnconfigure(i, weight=1)
 
-        # Update preset dropdown to show current selection
-        self._update_preset_dropdown_selection()
+        # Stat Caps section
+        self.create_stat_caps_section(support_frame, row=2)
 
-    # Card type colors - SSR (darker) and SR (lighter)
+        # Update preset display to show current selection
+        self._update_preset_display()
+
+    def create_stat_caps_section(self, parent, row):
+        """Create stat caps configuration section"""
+        stat_caps_frame = ttk.Frame(parent)
+        stat_caps_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(8, 0))
+
+        # Label
+        ttk.Label(
+            stat_caps_frame,
+            text="Stat Caps:",
+            font=("Arial", 9, "bold"),
+            foreground="#666666"
+        ).pack(side=tk.LEFT, padx=(0, 10))
+
+        # Stat cap inputs in a row
+        self.stat_cap_entries = {}
+        stat_labels = [
+            ('spd', 'SPD', '#0066CC'),
+            ('sta', 'STA', '#CC0066'),
+            ('pwr', 'PWR', '#CC6600'),
+            ('guts', 'GUTS', '#CC8800'),
+            ('wit', 'WIT', '#007733')
+        ]
+
+        for stat_key, stat_label, color in stat_labels:
+            stat_container = ttk.Frame(stat_caps_frame)
+            stat_container.pack(side=tk.LEFT, padx=(0, 8))
+
+            ttk.Label(
+                stat_container,
+                text=stat_label + ":",
+                font=("Arial", 8),
+                foreground=color
+            ).pack(side=tk.LEFT, padx=(0, 2))
+
+            # Get current preset's stat cap variable
+            current_preset = self.current_set.get()
+            stat_var = self.preset_sets[current_preset]['stat_caps'][stat_key]
+
+            entry = ttk.Entry(
+                stat_container,
+                textvariable=stat_var,
+                width=5,
+                font=("Arial", 9),
+                justify=tk.CENTER
+            )
+            entry.pack(side=tk.LEFT)
+            self.stat_cap_entries[stat_key] = entry
+
+            # Bind to auto-save and update logic
+            stat_var.trace('w', lambda *args, sk=stat_key: self._on_stat_cap_change(sk))
+
+    def _on_stat_cap_change(self, stat_key):
+        """Handle stat cap value change"""
+        try:
+            # Update the logic module with new stat caps
+            self._update_logic_stat_caps()
+            # Auto-save settings
+            self.main_window.save_settings()
+        except Exception as e:
+            print(f"Error updating stat cap: {e}")
+
+    def _update_logic_stat_caps(self):
+        """Update the logic module and constants with current preset's stat caps"""
+        try:
+            from core.logic import set_stat_caps
+            from utils.constants import set_deck_info
+
+            current_preset = self.current_set.get()
+
+            # Get stat caps
+            stat_caps = {}
+            for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
+                stat_caps[stat_key] = self.preset_sets[current_preset]['stat_caps'][stat_key].get()
+
+            # Get support cards
+            support_cards = [card.get() for card in self.support_cards]
+
+            # Get uma musume
+            uma_musume = self.selected_uma_musume.get()
+
+            # Update logic module
+            set_stat_caps(stat_caps)
+
+            # Update global constants (for event handler deck conditions)
+            set_deck_info(uma_musume, support_cards, stat_caps)
+
+        except Exception as e:
+            print(f"Error updating logic stat caps: {e}")
+
+    def _update_stat_cap_entries(self):
+        """Update stat cap entry widgets to show current preset's values"""
+        if not hasattr(self, 'stat_cap_entries'):
+            return
+        current_preset = self.current_set.get()
+        for stat_key, entry in self.stat_cap_entries.items():
+            # Update the entry's textvariable to point to current preset's stat cap
+            entry.configure(textvariable=self.preset_sets[current_preset]['stat_caps'][stat_key])
+        # Update logic module
+        self._update_logic_stat_caps()
+
+    # Card type colors
     CARD_TYPE_COLORS = {
-        'spd': {'ssr': '#0055AA', 'sr': '#66AADD', 'name': 'SPEED'},
-        'sta': {'ssr': '#AA0055', 'sr': '#DD66AA', 'name': 'STAMINA'},
-        'pow': {'ssr': '#CC5500', 'sr': '#FFAA66', 'name': 'POWER'},
-        'gut': {'ssr': '#CC8800', 'sr': '#FFCC66', 'name': 'GUTS'},
-        'wit': {'ssr': '#007733', 'sr': '#66BB99', 'name': 'WISDOM'},
-        'frd': {'ssr': '#AA8800', 'sr': '#DDCC66', 'name': 'FRIEND'}
+        'spd': {'color': '#0066CC', 'name': 'SPEED'},
+        'sta': {'color': '#CC0066', 'name': 'STAMINA'},
+        'pow': {'color': '#CC6600', 'name': 'POWER'},
+        'gut': {'color': '#CC8800', 'name': 'GUTS'},
+        'wit': {'color': '#007733', 'name': 'WISDOM'},
+        'frd': {'color': '#AA8800', 'name': 'FRIEND'}
     }
 
     def _get_card_type_info(self, card_value, index):
@@ -283,17 +356,8 @@ class EventChoiceTab:
 
         type_info = self.CARD_TYPE_COLORS[card_type]
         type_name = type_info['name']
-
-        # Detect rarity from card name
-        card_name_part = card_value.split(":", 1)[1] if ":" in card_value else card_value
-        is_ssr = "(SSR)" in card_name_part.upper()
-
-        if is_ssr:
-            color = type_info['ssr']
-            bg_color = self._lighten_color(color, 0.85)
-        else:
-            color = type_info['sr']
-            bg_color = self._lighten_color(color, 0.9)
+        color = type_info['color']
+        bg_color = self._lighten_color(color, 0.85)
 
         return type_name, color, bg_color
 
@@ -397,12 +461,7 @@ class EventChoiceTab:
             else:
                 display_text = card_value
 
-            # Detect SSR for text styling
-            is_ssr = "(SSR)" in card_value.upper()
-            text_color = "black" if is_ssr else "#333333"
-            font_weight = ("Arial", 9, "bold") if is_ssr else ("Arial", 9)
-
-            box_frame.card_display.config(text=display_text, fg=text_color, font=font_weight)
+            box_frame.card_display.config(text=display_text, fg="black", font=("Arial", 9, "bold"))
 
     def _open_support_card_dialog(self, index):
         """Open support card selection dialog"""
@@ -413,41 +472,44 @@ class EventChoiceTab:
 
         SupportCardDialog(self.parent, current_selection, on_card_selected)
 
-    def _get_preset_names(self):
-        """Get list of preset names for dropdown"""
-        names = []
-        for i in range(1, 21):
-            name = self.preset_names[i].get()
-            names.append(name)
-        return names
+    def _open_uma_musume_dialog(self):
+        """Open Uma Musume selection dialog"""
+        current_selection = self.selected_uma_musume.get()
 
-    def _update_preset_dropdown_selection(self):
-        """Update preset dropdown to show current selection"""
-        current_set = self.current_set.get()
-        preset_name = self.preset_names[current_set].get()
-        self.preset_dropdown.set(preset_name)
+        def on_uma_selected(selected_uma):
+            self.selected_uma_musume.set(selected_uma)
 
-    def _on_preset_selected(self, event=None):
-        """Handle preset selection from dropdown"""
-        selected_name = self.preset_dropdown.get()
+        UmaMusumeDialog(self.parent, current_selection, on_uma_selected)
 
-        # Find preset number by name
-        for preset_num, name_var in self.preset_names.items():
-            if name_var.get() == selected_name:
-                self.switch_preset_set(preset_num)
-                break
+    def _update_uma_display(self):
+        """Update Uma Musume display box"""
+        if hasattr(self, 'uma_selection_box'):
+            uma_name = self.selected_uma_musume.get()
+            if uma_name and uma_name != "None":
+                self.uma_selection_box.config(text=uma_name, fg="#CC0066")
+            else:
+                self.uma_selection_box.config(text="None", fg="gray")
 
-    def _edit_preset_name(self):
-        """Open dialog to edit current preset name"""
-        current_set = self.current_set.get()
-        current_name = self.preset_names[current_set].get()
+    def _update_preset_display(self):
+        """Update preset selection box to show current selection"""
+        if hasattr(self, 'preset_selection_box'):
+            current_set = self.current_set.get()
+            preset_name = self.preset_names[current_set].get()
+            self.preset_selection_box.config(text=f"#{current_set}: {preset_name}")
 
-        def on_name_changed(new_name):
-            self.preset_names[current_set].set(new_name)
-            self.preset_dropdown['values'] = self._get_preset_names()
-            self._update_preset_dropdown_selection()
+    def _open_preset_dialog(self):
+        """Open preset selection dialog"""
+        def on_preset_selected(preset_num):
+            self.switch_preset_set(preset_num)
+            self._update_preset_display()
 
-        PresetNameDialog(self.parent, current_name, on_name_changed)
+        PresetDialog(
+            self.parent,
+            self.preset_names,
+            self.preset_sets,
+            self.current_set.get(),
+            on_preset_selected
+        )
 
     def switch_preset_set(self, set_number):
         """Switch to a different preset set and update strategy checkboxes"""
@@ -465,35 +527,15 @@ class EventChoiceTab:
         for i, card in enumerate(self.support_cards):
             card.set(self.preset_sets[set_number]['support_cards'][i].get())
 
-        # Update dropdown values
-        self.uma_dropdown['values'] = self.get_uma_musume_list()
-        self._update_preset_dropdown_selection()
+        # Update UI elements
+        self._update_uma_display()
+        self._update_preset_display()
+
+        # Update stat cap entries to show new preset's values
+        self._update_stat_cap_entries()
 
         # Update strategy checkboxes
         self.update_strategy_checkboxes(selected_uma)
-
-    def on_mode_change(self):
-        """Handle mode change to ensure exactly one mode is selected"""
-        if not self.auto_event_map_var.get() and not self.auto_first_choice_var.get():
-            self.auto_first_choice_var.set(True)
-            return
-
-        if self.auto_event_map_var.get() and self.auto_first_choice_var.get():
-            sender = self.parent.focus_get()
-            if sender == self.auto_event_check:
-                self.auto_first_choice_var.set(False)
-            else:
-                self.auto_event_map_var.set(False)
-
-        self.update_action_dropdown_visibility()
-
-    def update_action_dropdown_visibility(self):
-        """Update visibility of unknown event action dropdown"""
-        if hasattr(self, 'action_dropdown') and self.action_dropdown:
-            if self.auto_first_choice_var.get():
-                self.action_dropdown.configure(state="disabled")
-            else:
-                self.action_dropdown.configure(state="readonly")
 
     def get_uma_musume_list(self):
         """Get list of available Uma Musume"""
@@ -557,6 +599,11 @@ class EventChoiceTab:
 
     def get_settings(self):
         """Get current tab settings"""
+        current_preset = self.current_set.get()
+        current_stat_caps = {}
+        for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
+            current_stat_caps[stat_key] = self.preset_sets[current_preset]['stat_caps'][stat_key].get()
+
         settings = {
             'auto_event_map': self.auto_event_map_var.get(),
             'auto_first_choice': self.auto_first_choice_var.get(),
@@ -564,6 +611,7 @@ class EventChoiceTab:
             'support_cards': [card.get() for card in self.support_cards],
             'unknown_event_action': self.unknown_event_action.get(),
             'current_set': self.current_set.get(),
+            'stat_caps': current_stat_caps,
             'preset_names': {},
             'preset_sets': {}
         }
@@ -574,9 +622,14 @@ class EventChoiceTab:
 
         # Save preset sets
         for set_num, preset in self.preset_sets.items():
+            preset_stat_caps = {}
+            for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
+                preset_stat_caps[stat_key] = preset['stat_caps'][stat_key].get()
+
             settings['preset_sets'][set_num] = {
                 'uma_musume': preset['uma_musume'].get(),
-                'support_cards': [card.get() for card in preset['support_cards']]
+                'support_cards': [card.get() for card in preset['support_cards']],
+                'stat_caps': preset_stat_caps
             }
 
         return settings
@@ -627,21 +680,27 @@ class EventChoiceTab:
                         preset_support_cards = preset_data.get('support_cards', ['None'] * 6)
                         for i, card in enumerate(preset_support_cards[:6]):
                             self.preset_sets[set_num]['support_cards'][i].set(card)
+                        # Load stat caps for this preset
+                        preset_stat_caps = preset_data.get('stat_caps', self.default_stat_caps)
+                        for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
+                            cap_value = preset_stat_caps.get(stat_key, self.default_stat_caps.get(stat_key, 1200))
+                            self.preset_sets[set_num]['stat_caps'][stat_key].set(cap_value)
 
             # Load current set
             if 'current_set' in settings:
                 self.current_set.set(settings['current_set'])
 
-            # Update preset dropdown
-            if hasattr(self, 'preset_dropdown'):
-                self.preset_dropdown['values'] = self._get_preset_names()
-                self._update_preset_dropdown_selection()
+            # Update preset display
+            self._update_preset_display()
+
+            # Update Uma Musume display
+            self._update_uma_display()
+
+            # Update stat cap entries to show current preset's values
+            self._update_stat_cap_entries()
 
             # Update strategy checkboxes
             self.update_strategy_checkboxes(self.selected_uma_musume.get())
-
-            # Update dropdown visibility
-            self.update_action_dropdown_visibility()
 
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")

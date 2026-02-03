@@ -253,6 +253,128 @@ ENERGY_COLORS = {
 SCENARIO_NAME = "URA Final"  # Default value
 
 # =============================================================================
+# DECK & STAT CAPS MANAGEMENT
+# =============================================================================
+
+# Default stat caps
+DEFAULT_STAT_CAPS = {
+    "spd": 1130,
+    "sta": 1100,
+    "pwr": 1080,
+    "guts": 1100,
+    "wit": 1130
+}
+
+# Current deck information (set from GUI presets)
+CURRENT_DECK = {
+    "uma_musume": "None",
+    "support_cards": ["None"] * 6,
+    "stat_caps": DEFAULT_STAT_CAPS.copy(),
+    "card_type_counts": {
+        "spd": 0,
+        "sta": 0,
+        "pwr": 0,
+        "pow": 0,  # Alias for pwr
+        "guts": 0,
+        "gut": 0,  # Alias for guts
+        "wit": 0,
+        "frd": 0,
+        "friend": 0  # Alias for frd
+    }
+}
+
+
+def set_deck_info(uma_musume: str, support_cards: list, stat_caps: dict = None):
+    """Set current deck information from GUI preset
+
+    Args:
+        uma_musume: Name of the selected Uma Musume
+        support_cards: List of 6 support card strings (format: "type: Card Name (Rarity)")
+        stat_caps: Dictionary of stat caps {spd, sta, pwr, guts, wit}
+    """
+    global CURRENT_DECK
+
+    CURRENT_DECK["uma_musume"] = uma_musume
+    CURRENT_DECK["support_cards"] = support_cards.copy() if support_cards else ["None"] * 6
+    CURRENT_DECK["stat_caps"] = stat_caps.copy() if stat_caps else DEFAULT_STAT_CAPS.copy()
+
+    # Calculate card type counts
+    card_counts = {
+        "spd": 0, "sta": 0, "pwr": 0, "pow": 0,
+        "guts": 0, "gut": 0, "wit": 0,
+        "frd": 0, "friend": 0
+    }
+
+    for card in support_cards:
+        if card and card != "None" and ":" in card:
+            card_type = card.split(":")[0].strip().lower()
+            if card_type in card_counts:
+                card_counts[card_type] += 1
+                # Handle aliases
+                if card_type == "pow":
+                    card_counts["pwr"] += 1
+                elif card_type == "pwr":
+                    card_counts["pow"] += 1
+                elif card_type == "gut":
+                    card_counts["guts"] += 1
+                elif card_type == "guts":
+                    card_counts["gut"] += 1
+                elif card_type == "frd":
+                    card_counts["friend"] += 1
+                elif card_type == "friend":
+                    card_counts["frd"] += 1
+
+    CURRENT_DECK["card_type_counts"] = card_counts
+
+    print(f"[DECK] Updated deck info: {uma_musume}")
+    print(f"[DECK] Card counts: {card_counts}")
+    print(f"[DECK] Stat caps: {CURRENT_DECK['stat_caps']}")
+
+
+def get_deck_info() -> dict:
+    """Get current deck information
+
+    Returns:
+        Dictionary containing uma_musume, support_cards, stat_caps, card_type_counts
+    """
+    return CURRENT_DECK.copy()
+
+
+def get_deck_card_count(card_type: str) -> int:
+    """Get count of specific card type in current deck
+
+    Args:
+        card_type: Type of card (spd, sta, pwr/pow, guts/gut, wit, frd/friend)
+
+    Returns:
+        Number of cards of that type in the deck
+    """
+    card_type = card_type.lower()
+    return CURRENT_DECK["card_type_counts"].get(card_type, 0)
+
+
+def get_stat_caps() -> dict:
+    """Get current stat caps from deck
+
+    Returns:
+        Dictionary of stat caps {spd, sta, pwr, guts, wit}
+    """
+    return CURRENT_DECK["stat_caps"].copy()
+
+
+def deck_has_card_type(card_type: str, min_count: int = 1) -> bool:
+    """Check if deck has at least min_count cards of specified type
+
+    Args:
+        card_type: Type of card to check
+        min_count: Minimum number of cards required
+
+    Returns:
+        True if deck has at least min_count cards of that type
+    """
+    return get_deck_card_count(card_type) >= min_count
+
+# =============================================================================
 # PUBLIC API FUNCTIONS
 # =============================================================================
 

@@ -1,16 +1,15 @@
 {
-  "priority_stat": [ "spd", "pwr",  "sta", "wit", "guts"],
+  "priority_stat": [
+    "spd",
+    "pwr",
+    "sta",
+    "wit",
+    "guts"
+  ],
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 30,
-  "stat_caps": {
-    "spd": 1130,
-    "sta": 1100,
-    "pwr": 1080,
-    "guts": 1100,
-    "wit": 1130
-  },
   "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
     "hint_score": {
@@ -53,15 +52,29 @@
       "early_stage_bonus": 0.1,
       "medium_energy_score_requirement": {
         "stages": [
-          {"end_day": 22, "score": 2.00},
-          {"end_day": 26, "score": 2.5},
-          {"end_day": null, "score": 3.0}
+          {
+            "end_day": 22,
+            "score": 2.0
+          },
+          {
+            "end_day": 26,
+            "score": 2.5
+          },
+          {
+            "end_day": null,
+            "score": 3.0
+          }
         ]
       }
     },
     "energy_restrictions": {
       "medium_energy_shortage": 45,
       "medium_energy_max_score_threshold": 2.9
+    },
+    "stat_cap_penalty": {
+      "max_penalty_percent": 40,
+      "avg_gain_per_day": 8,
+      "training_ratio": 0.3
     }
   }
 }

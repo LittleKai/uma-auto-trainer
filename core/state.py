@@ -170,15 +170,13 @@ def extract_stat_number_enhanced(img):
 
 
 def stat_state():
-  """Get current character stats using configurable regions with improved OCR accuracy"""
+  """Get current character stats using configurable regions with improved OCR accuracy
+
+  Reads all 5 stats (spd, sta, pwr, guts, wit) to enable stat cap score calculation.
+  """
 
   current_regions = get_current_regions()
   stat_regions = current_regions['STAT_REGIONS']
-
-  # Get support card state and find the top 2 support card types
-  support_card_counts = get_support_card_state()
-  sorted_support_types = sorted(support_card_counts.items(), key=lambda x: x[1], reverse=True)
-  top_types = [stat for stat, count in sorted_support_types if stat in ['spd', 'sta', 'pwr', 'guts', 'wit']][:2]
 
   result = {}
   validation_warnings = []
@@ -187,22 +185,17 @@ def stat_state():
   stat_threshold = 200
 
   for stat, region in stat_regions.items():
-    # Only process OCR for top 2 support card types
-    if stat in top_types:
-      img = enhanced_screenshot(region)
+    img = enhanced_screenshot(region)
 
-      value = extract_stat_number(img)
-      result[stat] = value
+    value = extract_stat_number(img)
+    result[stat] = value
 
-      print(f"[DEBUG] Stat {stat.upper()}: {value}")
+    print(f"[DEBUG] Stat {stat.upper()}: {value}")
 
-      is_low, warning_msg = validate_stat_value(stat, value, stat_threshold)
-      if is_low:
-        validation_warnings.append(warning_msg)
-        reread_stats.append((stat, region, img))
-    else:
-      # For other stats not in top 2, set value to 0 without validation
-      result[stat] = 0
+    is_low, warning_msg = validate_stat_value(stat, value, stat_threshold)
+    if is_low:
+      validation_warnings.append(warning_msg)
+      reread_stats.append((stat, region, img))
 
   if reread_stats:
     print(f"\n[OCR REREAD] Detected {len(reread_stats)} stat(s) below {stat_threshold}, performing enhanced OCR...")

@@ -69,7 +69,7 @@
     },
     "energy_restrictions": {
       "medium_energy_shortage": 45,
-      "medium_energy_max_score_threshold": 2.9
+      "medium_energy_max_score_threshold": 3.4
     },
     "stat_cap_penalty": {
       "max_penalty_percent": 40,

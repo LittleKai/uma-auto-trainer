@@ -6,7 +6,7 @@
   "distance": {
     "sprint": true,
     "mile": true,
-    "medium": true,
+    "medium": false,
     "long": false
   },
   "grade": {
@@ -20,11 +20,11 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": true,
+  "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
   "stop_on_ura_final": false,
@@ -32,20 +32,20 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "King Halo",
+    "uma_musume": "Sakura Bakushin O",
     "support_cards": [
       "spd: Kitasan Black",
-      "spd: Eishin Flash",
-      "gut: Haru Urara",
-      "frd: Tazuna Hayakawa",
-      "gut: Seeking the Pearl",
-      "gut: Special Week"
+      "spd: King Halo",
+      "wit: Curren Chan",
+      "wit: Daiwa Scarlet",
+      "wit: Fine Motion",
+      "wit: Marvelous Sunday"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 5,
+    "current_set": 11,
     "stat_caps": {
       "spd": 1130,
-      "sta": 500,
+      "sta": 400,
       "pwr": 1080,
       "guts": 1100,
       "wit": 1130
@@ -151,7 +151,7 @@
           "spd: Kitasan Black",
           "spd: Eishin Flash",
           "gut: Haru Urara",
-          "frd: Riko Kashimoto",
+          "frd: Tazuna Hayakawa",
           "gut: Seeking the Pearl",
           "gut: Special Week"
         ],
@@ -265,7 +265,7 @@
         ],
         "stat_caps": {
           "spd": 1130,
-          "sta": 300,
+          "sta": 400,
           "pwr": 1080,
           "guts": 1100,
           "wit": 1130

@@ -116,8 +116,43 @@ class EventChoiceHandler:
             self.log(f"[ERROR] Failed to load Support Card events: {e}")
 
     def generate_config_hash(self, uma_musume: str, support_cards: List[str]) -> str:
-        """Generate hash for current configuration to detect changes"""
+        """Generate hash for current configuration to detect changes
+
+        Includes:
+        - Uma musume and support cards configuration
+        - Source file modification times to auto-invalidate when files change
+        """
         config_str = f"{uma_musume}|{'|'.join(sorted(support_cards))}"
+
+        # Add source file modification times for auto-invalidation
+        source_files = [
+            "assets/event_map/common.json",
+            "assets/event_map/other_sp_event.json",
+        ]
+
+        # Add uma musume specific file
+        if uma_musume and uma_musume != "None":
+            uma_file = f"assets/event_map/uma_musume/{uma_musume}.json"
+            source_files.append(uma_file)
+
+        # Add support card specific files
+        for card in support_cards:
+            if card and card != "None" and ":" in card:
+                card_type, card_name = card.split(":", 1)
+                card_type = card_type.strip().lower()
+                card_name = card_name.strip()
+                card_file = f"assets/event_map/support_card/{card_type}/{card_name}.json"
+                source_files.append(card_file)
+
+        # Append modification times of existing source files
+        for file_path in source_files:
+            if os.path.exists(file_path):
+                try:
+                    mtime = os.path.getmtime(file_path)
+                    config_str += f"|{file_path}:{mtime}"
+                except OSError:
+                    pass
+
         return hashlib.md5(config_str.encode()).hexdigest()
 
     def is_cache_valid(self, uma_musume: str, support_cards: List[str]) -> bool:
@@ -186,9 +221,11 @@ class EventChoiceHandler:
             if uma_musume != "None" and uma_musume in self.uma_musume_events:
                 uma_events = self.uma_musume_events[uma_musume].get("events", [])
                 database["train_event_uma_musume"].extend(self.normalize_events_in_list(uma_events))
+                self.log(f"[DEBUG] Added {len(uma_events)} events for Uma Musume: {uma_musume}")
 
             common_uma_events = self.common_events.get("train_event_uma_musume", [])
             database["train_event_uma_musume"].extend(self.normalize_events_in_list(common_uma_events))
+            self.log(f"[DEBUG] Added {len(common_uma_events)} common Uma Musume events")
 
             for support_card in support_cards:
                 if support_card != "None":
@@ -318,6 +355,28 @@ class EventChoiceHandler:
             processed_ref = preprocess(reference)
 
             best_score = 0.0
+
+            # No-space comparison for OCR issues (e.g., "DoNoHarm g" vs "Do No Harm")
+            no_space_target = re.sub(r'[^a-zA-Z0-9]', '', target.lower())
+            no_space_ref = re.sub(r'[^a-zA-Z0-9]', '', reference.lower())
+
+            # Check if no-space versions match closely
+            if no_space_target and no_space_ref:
+                # Exact match without spaces
+                if no_space_target == no_space_ref:
+                    return 1.0
+
+                # Check if one contains the other (handles trailing OCR noise)
+                if no_space_ref in no_space_target or no_space_target in no_space_ref:
+                    contain_score = min(len(no_space_target), len(no_space_ref)) / max(len(no_space_target), len(no_space_ref))
+                    if contain_score > 0.85:
+                        return contain_score
+
+                # High similarity without spaces
+                no_space_score = SequenceMatcher(None, no_space_target, no_space_ref).ratio()
+                if no_space_score > 0.85:
+                    return no_space_score
+                best_score = max(best_score, no_space_score * 0.9)
 
             for variation in target_variations:
                 processed_var = preprocess(variation)
@@ -893,9 +952,9 @@ class EventChoiceHandler:
                     else:
                         self.log(f"[WARNING] Event '{event_name}' not found.")
                         return False
-                else:
-                    self.log(f"[WARNING] No choice found for event '{event_name}'")
-                    return False
+                else:  # "Auto select first choice"
+                    self.log(f"[INFO] Unknown event '{event_name}' - auto selecting first choice")
+                    return self.click_choice(1)
 
         except Exception as e:
             self.log(f"[ERROR] Failed to handle event choice: {e}")

@@ -23,6 +23,7 @@ Uma_Musume_Auto_Train/
 Uma_Musume_Auto_Train_Distribution/
 dist/
 build/
+0.Temp/
 
 # Claude Code documentation
 .claude/

@@ -125,27 +125,39 @@ class StrategyTab:
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Main content frame - pack without expand
+        # Bind canvas resize to stretch scrollable_frame width
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig(window_id, width=e.width))
+
+        # Main content frame - fill horizontally
         content_frame = ttk.Frame(scrollable_frame, padding="4")
-        content_frame.pack(fill=tk.X, expand=False)  # Changed: expand=False, fill=tk.X only
-        content_frame.columnconfigure(0, weight=1, minsize=470)
+        content_frame.pack(fill=tk.X, anchor=tk.N)
+        content_frame.columnconfigure(0, weight=1)
 
         # Create sections
         self.create_strategy_settings(content_frame, row=0)
-        self.create_race_filters_section(content_frame, row=1)
-        self.create_stop_conditions_section(content_frame, row=1)
+
+        # Container for Race Filters and Stop Conditions side by side
+        filters_container = ttk.Frame(content_frame)
+        filters_container.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
+        # Race Filters takes natural width, Stop Conditions expands
+        filters_container.columnconfigure(1, weight=1)
+
+        self.create_race_filters_section(filters_container, row=0)
+        self.create_stop_conditions_section(filters_container, row=0)
 
         # Pack canvas and scrollbar
-        canvas.pack(side="left", fill="both", expand=True)
+        canvas.pack(side="left", fill=tk.BOTH, expand=True)
         scrollbar.pack(side="right", fill="y")
 
     def create_strategy_settings(self, parent, row):
         """Create strategy settings section"""
         strategy_frame = ttk.LabelFrame(parent, text="Strategy Settings", padding="5")
+        # Fill horizontally
         strategy_frame.grid(row=row, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
+        # Distribute columns evenly (weight on columns 1 and 3)
         strategy_frame.columnconfigure(1, weight=1)
         strategy_frame.columnconfigure(3, weight=1)
 
@@ -211,10 +223,8 @@ class StrategyTab:
     def create_race_filters_section(self, parent, row):
         """Create race filters section"""
         filter_frame = ttk.LabelFrame(parent, text="Race Filters", padding="10")
-        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
-        filter_frame.columnconfigure(0, weight=1)
-        filter_frame.columnconfigure(1, weight=1)
-        filter_frame.columnconfigure(2, weight=1)
+        # Use natural width, align top
+        filter_frame.grid(row=row, column=0, sticky=(tk.W, tk.N, tk.S), padx=(0, 10))
 
         # Track filters
         self.create_track_filters(filter_frame)
@@ -228,7 +238,7 @@ class StrategyTab:
     def create_track_filters(self, parent):
         """Create track type filters"""
         track_frame = ttk.LabelFrame(parent, text="Track Type", padding="5")
-        track_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 5))
+        track_frame.grid(row=0, column=0, sticky=(tk.W, tk.N), padx=(0, 10))
 
         ttk.Checkbutton(
             track_frame,
@@ -245,7 +255,7 @@ class StrategyTab:
     def create_distance_filters(self, parent):
         """Create distance filters"""
         distance_frame = ttk.LabelFrame(parent, text="Distance", padding="5")
-        distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N), padx=5)
+        distance_frame.grid(row=0, column=1, sticky=(tk.W, tk.N), padx=10)
 
         distance_inner = ttk.Frame(distance_frame)
         distance_inner.pack(fill=tk.BOTH, expand=True)
@@ -277,7 +287,7 @@ class StrategyTab:
     def create_grade_filters(self, parent):
         """Create grade filters"""
         grade_frame = ttk.LabelFrame(parent, text="Grade", padding="5")
-        grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N), padx=(5, 0))
+        grade_frame.grid(row=0, column=2, sticky=(tk.W, tk.N), padx=(10, 0))
 
         grade_inner = ttk.Frame(grade_frame)
         grade_inner.pack(fill=tk.BOTH, expand=True)
@@ -303,7 +313,8 @@ class StrategyTab:
     def create_stop_conditions_section(self, parent, row):
         """Create stop conditions section"""
         stop_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding="10")
-        stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E), pady=(0, 5))
+        # Fill column evenly
+        stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(5, 0))
 
         # Container for checkbox and button in same row
         # controls_frame = ttk.Frame(stop_frame)

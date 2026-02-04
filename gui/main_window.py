@@ -89,12 +89,15 @@ class UmaAutoGUI:
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Bind canvas resize to stretch scrollable_frame width
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig(window_id, width=e.width))
 
         # Main content frame
         main_frame = ttk.Frame(scrollable_frame, padding="5")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame.pack(fill=tk.X, expand=False)
         main_frame.columnconfigure(0, weight=1)
 
         # Create all sections

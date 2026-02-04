@@ -53,9 +53,9 @@ class TeamTrialsTab:
 
     def create_content(self):
         """Create dynamic tab content"""
-        # Main content frame
+        # Main content frame - fill horizontally
         content_frame = ttk.Frame(self.parent, padding="15")
-        content_frame.pack(fill=tk.BOTH, expand=True)
+        content_frame.pack(fill=tk.X, anchor=tk.N)
         content_frame.columnconfigure(0, weight=1)
 
         # Daily Activity Type dropdown

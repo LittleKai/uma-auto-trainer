@@ -444,10 +444,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 814,
-    "height": 946,
-    "x": 984,
-    "y": 5
+    "width": 680,
+    "height": 850,
+    "x": 982,
+    "y": 0
   },
   "scenario": "Unity Cup"
 }

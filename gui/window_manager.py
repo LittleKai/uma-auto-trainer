@@ -10,8 +10,8 @@ class WindowManager:
 
         # Default window settings
         self.window_settings = {
-            'width': 750,
-            'height': 900,
+            'width': 680,
+            'height': 850,
             'x': 1000,
             'y': 1
         }
@@ -49,7 +49,7 @@ class WindowManager:
         height = settings.get('height', 900)
 
         # Ensure reasonable size
-        width = max(700, min(width, screen_width - 100))
+        width = max(660, min(width, screen_width - 100))
         height = max(700, min(height, screen_height - 100))
 
         # Use saved position if available, otherwise use default
@@ -72,7 +72,7 @@ class WindowManager:
             y = max(0, screen_height - height)
 
         # Set window properties
-        self.main_window.root.minsize(700, 700)
+        self.main_window.root.minsize(660, 700)
         self.main_window.root.geometry(f"{width}x{height}+{x}+{y}")
         self.main_window.root.resizable(True, True)
         self.main_window.root.attributes('-topmost', True)

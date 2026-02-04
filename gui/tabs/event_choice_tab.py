@@ -130,41 +130,41 @@ class EventChoiceTab:
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Main content frame
+        # Bind canvas resize to stretch scrollable_frame width
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig(window_id, width=e.width))
+
+        # Main content frame - don't expand
         content_frame = ttk.Frame(scrollable_frame, padding="8")
-        content_frame.pack(fill=tk.BOTH, expand=True)
-        content_frame.columnconfigure(0, weight=1, minsize=720)
+        content_frame.pack(anchor=tk.NW)
 
         # Create sections
         self.create_support_selection(content_frame, row=0)
 
         # Pack canvas and scrollbar
-        canvas.pack(side="left", fill="both", expand=True)
+        canvas.pack(side="left", fill=tk.BOTH, expand=True)
         scrollbar.pack(side="right", fill="y")
 
     def create_support_selection(self, parent, row):
         """Create enhanced support card selection with dropdown presets and card boxes"""
         support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="2")
-        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), padx=(0, 25))
-        support_frame.columnconfigure(0, weight=1)
+        # Don't stretch - use natural width
+        support_frame.grid(row=row, column=0, sticky=(tk.W,), padx=(0, 5))
 
         # Uma Musume and Preset selection in same row
         selection_container = ttk.Frame(support_frame)
-        selection_container.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
-        selection_container.columnconfigure(0, weight=0)  # 1/3 width for Uma
-        selection_container.columnconfigure(1, weight=1)  # 2/3 width for Preset
+        selection_container.grid(row=0, column=0, sticky=(tk.W,), pady=(0, 5))
 
         # Left side - Uma Musume (clickable box)
         uma_container = ttk.Frame(selection_container)
-        uma_container.grid(row=0, column=0, sticky=(tk.W, tk.E), padx=(0, 20))
+        uma_container.grid(row=0, column=0, sticky=(tk.W,), padx=(0, 20))
 
         ttk.Label(
             uma_container,
             text="Uma Musume:",
-            font=("Arial", 9),
+            font=("Arial", 10),
             foreground="#CC0066"
         ).pack(side=tk.LEFT, padx=(0, 10))
 
@@ -172,16 +172,16 @@ class EventChoiceTab:
         self.uma_selection_box = tk.Label(
             uma_container,
             text="None",
-            font=("Arial", 9, "bold"),
+            font=("Arial", 10, "bold"),
             bg="white",
             fg="#CC0066",
             relief=tk.SUNKEN,
             padx=10,
             pady=5,
-            width=22,
+            width=20,
             cursor="hand2"
         )
-        self.uma_selection_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.uma_selection_box.pack(side=tk.LEFT)
         self.uma_selection_box.bind('<Button-1>', lambda e: self._open_uma_musume_dialog())
 
         # Update display when variable changes
@@ -189,12 +189,12 @@ class EventChoiceTab:
 
         # Right side - Preset (clickable box)
         preset_container = ttk.Frame(selection_container)
-        preset_container.grid(row=0, column=1, sticky=(tk.W, tk.E))
+        preset_container.grid(row=0, column=1, sticky=(tk.W,))
 
         ttk.Label(
             preset_container,
             text="Preset:",
-            font=("Arial", 9, "bold"),
+            font=("Arial", 10, "bold"),
             foreground="#0066CC"
         ).pack(side=tk.LEFT, padx=(0, 10))
 
@@ -202,28 +202,29 @@ class EventChoiceTab:
         self.preset_selection_box = tk.Label(
             preset_container,
             text="Preset 1",
-            font=("Arial", 9, "bold"),
+            font=("Arial", 10, "bold"),
             bg="white",
             fg="#0066CC",
             relief=tk.SUNKEN,
             padx=10,
             pady=5,
-            width=25,
+            width=22,
             cursor="hand2"
         )
-        self.preset_selection_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.preset_selection_box.pack(side=tk.LEFT)
         self.preset_selection_box.bind('<Button-1>', lambda e: self._open_preset_dialog())
 
-        # Support card boxes (6 boxes in 1 row)
+        # Support card boxes (6 boxes in 1 row) - fixed equal width
         support_container = ttk.Frame(support_frame)
-        support_container.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
+        support_container.grid(row=1, column=0, sticky=(tk.W,), pady=(5, 0))
 
         self.support_card_boxes = []
         for i in range(6):
             box = self._create_support_card_box(support_container, i)
-            box.grid(row=0, column=i, padx=3, pady=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+            box.grid(row=0, column=i, padx=3, pady=3, sticky=(tk.N, tk.S))
             self.support_card_boxes.append(box)
-            support_container.columnconfigure(i, weight=1)
+            # Use uniform group to make all columns equal width
+            support_container.columnconfigure(i, weight=1, uniform="card_box")
 
         # Stat Caps section
         self.create_stat_caps_section(support_frame, row=2)
@@ -234,13 +235,13 @@ class EventChoiceTab:
     def create_stat_caps_section(self, parent, row):
         """Create stat caps configuration section"""
         stat_caps_frame = ttk.Frame(parent)
-        stat_caps_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), pady=(8, 0))
+        stat_caps_frame.grid(row=row, column=0, sticky=(tk.W,), pady=(8, 0))
 
         # Label
         ttk.Label(
             stat_caps_frame,
             text="Stat Caps:",
-            font=("Arial", 9, "bold"),
+            font=("Arial", 10, "bold"),
             foreground="#666666"
         ).pack(side=tk.LEFT, padx=(0, 10))
 
@@ -261,7 +262,7 @@ class EventChoiceTab:
             ttk.Label(
                 stat_container,
                 text=stat_label + ":",
-                font=("Arial", 8),
+                font=("Arial", 10),
                 foreground=color
             ).pack(side=tk.LEFT, padx=(0, 2))
 
@@ -273,7 +274,7 @@ class EventChoiceTab:
                 stat_container,
                 textvariable=stat_var,
                 width=5,
-                font=("Arial", 9),
+                font=("Arial", 10),
                 justify=tk.CENTER
             )
             entry.pack(side=tk.LEFT)
@@ -383,37 +384,43 @@ class EventChoiceTab:
         return type_name
 
     def _create_support_card_box(self, parent, index):
-        """Create individual support card selection box"""
+        """Create individual support card selection box with fixed size"""
+        # Fixed width for each card box - font size 10
+        BOX_WIDTH = 92
+
         box_frame = tk.Frame(
             parent,
             relief=tk.RAISED,
             borderwidth=2,
             bg="#f0f0f0",
-            cursor="hand2"
+            cursor="hand2",
+            width=BOX_WIDTH,
+            height=70
         )
+        box_frame.pack_propagate(False)  # Prevent frame from shrinking to fit content
 
         # Label - will be updated based on card type
         label = tk.Label(
             box_frame,
             text=f"Support {index + 1}",
-            font=("Arial", 9, "bold"),
+            font=("Arial", 10, "bold"),
             bg="#f0f0f0",
             fg="#006600"
         )
-        label.pack(pady=(3, 2))
+        label.pack(pady=(2, 1))
 
         # Card name display
         card_display = tk.Label(
             box_frame,
             text="None",
-            font=("Arial", 9),
+            font=("Arial", 10),
             bg="white",
             relief=tk.SUNKEN,
             height=3,
-            wraplength=100,
+            wraplength=85,
             justify=tk.CENTER
         )
-        card_display.pack(padx=2, pady=(0, 2), fill=tk.BOTH, expand=True)
+        card_display.pack(padx=1, pady=(0, 2), fill=tk.BOTH, expand=True)
 
         # Bind click event
         box_frame.bind('<Button-1>', lambda e, idx=index: self._open_support_card_dialog(idx))

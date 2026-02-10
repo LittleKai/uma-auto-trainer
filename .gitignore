@@ -26,6 +26,6 @@ dist/
 build/
 0.Temp/
 
-# Claude Code documentation
-.claude/
-CLAUDE.md
+## Claude Code documentation
+#.claude/
+#CLAUDE.md

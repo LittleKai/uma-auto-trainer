@@ -300,10 +300,10 @@ class StatusLogger:
             self.controller.log_message(f"Current Date: Finale Season (Career Completed)")
         elif current_date.get('is_pre_debut', False):
             self.controller.log_message(
-                f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/72)")
+                f"Current Date: {current_date['year']} Year Pre-Debut (Day {current_date['absolute_day']}/75)")
         else:
             self.controller.log_message(
-                f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/72)")
+                f"Current Date: {current_date['year']} {current_date['month']} {current_date['period']} (Day {current_date['absolute_day']}/75)")
 
         available_races = race_manager.get_available_races(current_date)
         all_filtered_races = race_manager.get_filtered_races_for_date(current_date)

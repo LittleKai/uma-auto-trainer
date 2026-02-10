@@ -35,23 +35,23 @@
     "uma_musume": "Sakura Bakushin O",
     "support_cards": [
       "spd: Kitasan Black",
+      "spd: King Halo",
       "wit: Fuji Kiseki",
-      "spd: Silence Suzuka",
-      "wit: Marvelous Sunday",
-      "wit: Mihono Bourbon",
-      "wit: Curren Chan"
+      "wit: Daiwa Scarlet",
+      "wit: Fine Motion",
+      "wit: Marvelous Sunday"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 10,
+    "current_set": 11,
     "stat_caps": {
       "spd": 1130,
-      "sta": 500,
+      "sta": 400,
       "pwr": 1080,
       "guts": 1100,
       "wit": 1130
     },
     "debut_style": {
-      "style": "Front"
+      "style": "None"
     },
     "preset_names": {
       "1": "FRONT POWER",
@@ -239,7 +239,7 @@
         }
       },
       "10": {
-        "uma_musume": "Maruzensky (Summer)",
+        "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black",
           "wit: Fuji Kiseki",

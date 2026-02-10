@@ -147,7 +147,7 @@ class DateManager:
 
                         print(f"[DEBUG] Successfully parsed: {result}")
                         print(
-                            f"[DEBUG] Date details: {year} {month} {period} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month]}")
+                            f"[DEBUG] Date details: {year} {month} {period} = Day {absolute_day}/75, Month #{DateManager.MONTHS[month]}")
                         return result
 
                 print(f"[WARNING] Date parse attempt {attempt + 1} failed for: '{year_text}' -> '{cleaned_text}'")
@@ -203,7 +203,7 @@ class DateManager:
 
                 print(f"[DEBUG] Emergency fallback result: {result}")
                 print(
-                    f"[DEBUG] Fallback date details: {year_found} {month_found} {period_found} = Day {absolute_day}/72, Month #{DateManager.MONTHS[month_found]}")
+                    f"[DEBUG] Fallback date details: {year_found} {month_found} {period_found} = Day {absolute_day}/75, Month #{DateManager.MONTHS[month_found]}")
                 return result
 
         except Exception as e:

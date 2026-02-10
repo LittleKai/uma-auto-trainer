@@ -9,7 +9,7 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 30,
+  "stat_cap_threshold_day": 40,
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,

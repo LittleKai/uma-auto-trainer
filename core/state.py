@@ -500,11 +500,12 @@ def validate_region_coordinates(region):
 
 def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, current_date=None, energy_shortage=0.0):
   """Check support card in each training with unified score calculation and support card bonus"""
-  from utils.constants import SCENARIO_NAME
+  from utils.constants import SCENARIO_NAME, deck_has_card_type, get_deck_info
 
   current_regions = get_current_regions()
   support_region = current_regions['SUPPORT_CARD_ICON_REGION']
 
+  # Only check support icons for card types in the deck
   SUPPORT_ICONS = {
     "spd": "assets/icons/support_card_type_spd.png",
     "sta": "assets/icons/support_card_type_sta.png",
@@ -513,11 +514,26 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     "wit": "assets/icons/support_card_type_wit.png",
     "friend": "assets/icons/support_card_type_friend.png"
   }
+  # Remove card types not in deck to reduce template matching
+  for card_type in ["spd", "sta", "pwr", "guts", "wit", "friend"]:
+    if card_type == "friend":
+      if not deck_has_card_type("frd"):
+        SUPPORT_ICONS.pop(card_type, None)
+    elif not deck_has_card_type(card_type):
+      SUPPORT_ICONS.pop(card_type, None)
+
+  # Check if deck has Riko Kashimoto as friend card
+  deck_info = get_deck_info()
+
   if SCENARIO_NAME == "Unity Cup":
+    # Check if deck has Riko Kashimoto as friend card
+    has_riko_card = any("riko kashimoto" in card.lower() for card in deck_info.get("support_cards", []) if card and card != "None")
     NPC_ICONS = {
-      # "riko": "assets/icons/support_npc_riko.png",
       "etsuko": "assets/icons/support_npc_etsuko.png"
     }
+    # Riko appears as NPC only if not in deck as friend card
+    if not has_riko_card:
+      NPC_ICONS["riko"] = "assets/icons/support_npc_riko.png"
   else:
     NPC_ICONS = {
       "akikawa": "assets/icons/support_npc_akikawa.png",
@@ -702,6 +718,62 @@ def check_criteria():
   img = enhanced_screenshot(criteria_region)
   text = extract_text(img)
   return text
+
+
+def detect_finale_stage():
+  """Detect Finale stage from CRITERIA_REGION text.
+
+  Returns absolute_day (73, 74, 75) or None if not in Finale.
+
+  OCR may produce variants, so we use fuzzy matching:
+  - 'Finale Qualifier' -> 73
+  - 'Finale Semifinal' -> 74
+  - 'Finale Finals' -> 75
+  """
+  try:
+    text = check_criteria()
+    if not text:
+      return None
+
+    text_lower = text.lower().strip()
+    text_nospace = text_lower.replace(" ", "")
+
+    # Check semifinal first (contains 'final' as substring, must match before 'finals')
+    semifinal_patterns = [
+      'semifinal', 'semfinal', 'semlfinal', 'semifina', 'semifinai',
+      'semitinal', 'semlfina', 'sem1final', 'sem1fina', 'semifinat',
+      'semlfinal', 'semiflnal', 'semlflnal'
+    ]
+    for pattern in semifinal_patterns:
+      if pattern in text_nospace:
+        print(f"[FINALE] Detected Semifinal from CRITERIA_REGION: '{text}'")
+        return 74
+
+    # Check finals (stage 3) - after semifinal check to avoid false match
+    finals_patterns = [
+      'finals', 'finais', 'fmals', 'f1nals', 'flnals', 'finats',
+      'finalefinals', 'finalfinals', 'finaiefinais', 'finafs'
+    ]
+    for pattern in finals_patterns:
+      if pattern in text_nospace:
+        print(f"[FINALE] Detected Finals from CRITERIA_REGION: '{text}'")
+        return 75
+
+    # Check qualifier (stage 1)
+    qualifier_patterns = [
+      'qualifier', 'qualifer', 'quaiifier', 'quallfier', 'quallfer',
+      'qua1ifier', 'qual1fier', 'qualif1er', 'qualiifer', 'quatifier',
+      'quatifer', 'qualifler', 'quallfler'
+    ]
+    for pattern in qualifier_patterns:
+      if pattern in text_nospace:
+        print(f"[FINALE] Detected Qualifier from CRITERIA_REGION: '{text}'")
+        return 73
+
+    return None
+  except Exception as e:
+    print(f"[WARNING] Finale stage detection failed: {e}")
+    return None
 
 
 def set_support_card_state(support_counts):

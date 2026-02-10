@@ -106,9 +106,9 @@ class StatusSection:
         """Update current date display"""
         if date_info:
             if date_info.get('is_pre_debut', False):
-                date_str = f"{date_info['year']} Year Pre-Debut (Day {date_info['absolute_day']}/72)"
+                date_str = f"{date_info['year']} Year Pre-Debut (Day {date_info['absolute_day']}/75)"
             else:
-                date_str = f"{date_info['year']} {date_info['month']} {date_info['period']} (Day {date_info['absolute_day']}/72)"
+                date_str = f"{date_info['year']} {date_info['month']} {date_info['period']} (Day {date_info['absolute_day']}/75)"
             self.date_label.config(text=date_str, foreground="blue")
         else:
             self.date_label.config(text="Unknown", foreground="red")

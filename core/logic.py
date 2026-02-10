@@ -154,23 +154,26 @@ def _calculate_single_stat_penalty(current_stat, stat_cap, absolute_day, stat_ca
   """
   Calculate penalty percentage for a single stat approaching its target.
 
-  Based on fill_factor: how close stat is to target (0 at start_penalty_percent, 1 at 100%).
-  No penalty on the last day (no more training to redirect).
+  - fill_factor: how close stat is to target (0 at start_penalty_percent, 1 at 100%)
+  - time_factor: tapers off in the last 5 days (full penalty before that)
 
   Returns: penalty_percent (0 to max_penalty_percent)
   """
   max_penalty_percent = penalty_config['max_penalty_percent']
   start_penalty_percent = penalty_config['start_penalty_percent']
 
-  # No penalty on last day (no more training after this)
-  max_day = 73
+  # Time factor: full penalty until last 5 days, then taper off
+  # Day 73 (0 remaining) = 0, Day 72 (1) = 0.2, ... Day 68+ (5+) = 1.0
+  max_day = 76
+  taper_days = 5
   remaining_days = max(0, max_day - absolute_day)
   if remaining_days == 0:
     return 0.0
+  time_factor = min(remaining_days, taper_days) / taper_days
 
-  # If already at or above target, max penalty
+  # If already at or above target, penalty scaled by time
   if current_stat >= stat_cap:
-    return max_penalty_percent
+    return max_penalty_percent * time_factor
 
   # Calculate fill ratio
   fill_ratio = current_stat / stat_cap if stat_cap > 0 else 1.0
@@ -180,10 +183,10 @@ def _calculate_single_stat_penalty(current_stat, stat_cap, absolute_day, stat_ca
   if fill_ratio < start_ratio:
     return 0.0
 
-  # Fill factor: 0 at start_ratio, 1 at 100%
-  fill_factor = (fill_ratio - start_ratio) / (1.0 - start_ratio)
+  # Fill factor: 0 at start_ratio, 1 at 100% (quadratic: penalize harder near cap)
+  fill_factor = ((fill_ratio - start_ratio) / (1.0 - start_ratio)) ** 2
 
-  penalty_percent = fill_factor * max_penalty_percent
+  penalty_percent = fill_factor * time_factor * max_penalty_percent
   return min(max_penalty_percent, max(0, penalty_percent))
 
 def get_career_stage_info(current_date):

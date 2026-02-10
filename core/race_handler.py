@@ -1,10 +1,13 @@
 import pyautogui
 import time
-from typing import Callable, Optional, Dict, List, Tuple
+from typing import Callable, Optional, Dict, List, Tuple, Any
 from core.recognizer import find_template_position
 
-from core.click_handler import enhanced_click, random_click_in_region, find_and_click, random_screen_click
+from core.click_handler import find_and_click, random_click_in_region, random_screen_click
 from utils.constants import RACE_REGION
+
+# Style assets folder
+STYLE_ASSETS_FOLDER = 'assets/buttons/style'
 
 
 class RaceHandler:
@@ -80,13 +83,9 @@ class RaceHandler:
             return False
 
         # Click races button
-        if not enhanced_click(
-                "assets/buttons/races_btn.png",
-                minSearch=10,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-        ):
+        if not find_and_click(
+                "assets/buttons/races_btn.png", max_attempts=3, delay_between=2,
+                check_stop_func=self.check_stop):
             return False
 
         if self.check_stop():
@@ -95,24 +94,16 @@ class RaceHandler:
         # Check for OK button (indicates more than 3 races recently)
         ok_btn_found = False
         if not self.check_stop():
-            ok_btn_found = enhanced_click(
-                "assets/buttons/ok_btn.png",
-                minSearch=0.7,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-            )
+            ok_btn_found = find_and_click(
+                "assets/buttons/ok_btn.png", max_attempts=3, delay_between=2,
+                check_stop_func=self.check_stop)
 
         if ok_btn_found and not allow_continuous_racing:
             self.log("Continuous racing disabled - canceling race due to recent racing limit")
             if not self.check_stop():
-                enhanced_click(
-                    "assets/buttons/cancel_btn.png",
-                    minSearch=0.2,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=self.log
-                )
+                find_and_click(
+                    "assets/buttons/cancel_btn.png", max_attempts=3, delay_between=2,
+                    check_stop_func=self.check_stop)
             return False
 
         if self.check_stop():
@@ -370,92 +361,99 @@ class RaceHandler:
             if self.check_stop():
                 return False
 
-            race_btn = pyautogui.locateCenterOnScreen(
-                "assets/buttons/race_btn.png",
-                confidence=0.8,
-                minSearchTime=2
-            )
-
-            if race_btn:
-                pyautogui.moveTo(race_btn, duration=0.2)
-                pyautogui.click(race_btn)
-                time.sleep(0.5)
-            else:
+            if not find_and_click(
+                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=2,
+                    check_stop_func=self.check_stop):
                 break
 
         return True
 
-    def prepare_race(self) -> bool:
-        """Prepare for race using original timing"""
+    def prepare_race(self, style_settings: Dict[str, Any] = None, is_pre_debut: bool = False) -> bool:
+        """Prepare for race - handle style selection for pre-debut, then wait for results"""
         if self.check_stop():
             return False
 
         if not self.check_window():
             return False
 
-        view_result_btn_region = pyautogui.locateOnScreen(
-            "assets/buttons/view_results.png",
-            confidence=0.8,
-            minSearchTime=20
-        )
+        # Handle style selection during pre-debut race day
+        if is_pre_debut and style_settings and style_settings.get('style', 'none') != 'none':
+            target_style = style_settings.get('style')
+            self.log(f"Pre-debut race - selecting style: {target_style}")
 
-        if view_result_btn_region:
+            # Click style_selection button first
+            if find_and_click(f"{STYLE_ASSETS_FOLDER}/style_selection.png", max_attempts=3, delay_between=2,
+                              check_stop_func=self.check_stop):
+                time.sleep(0.5)
+                # Click target style button
+                if find_and_click(f"{STYLE_ASSETS_FOLDER}/{target_style}.png", max_attempts=3, delay_between=2,
+                                  check_stop_func=self.check_stop):
+                    # Click confirm button
+                    find_and_click(f"{STYLE_ASSETS_FOLDER}/confirm.png", max_attempts=3, delay_between=2,
+                                   check_stop_func=self.check_stop)
+
+        # Wait for view results button (race animation takes time)
+        view_result = find_and_click(
+            "assets/buttons/view_results.png", max_attempts=10, delay_between=2,
+            check_stop_func=self.check_stop)
+
+        if view_result:
             if self.check_stop():
                 return False
 
-            random_click_in_region(
-                view_result_btn_region.left, view_result_btn_region.top,
-                view_result_btn_region.width, view_result_btn_region.height
-            )
-
             time.sleep(5)
 
-            for i in range(3):
+            for i in range(5):
                 if self.check_stop():
                     return False
 
                 random_screen_click(offset_range=0)
-                time.sleep(0.5)
+                time.sleep(1)
 
         return True
 
     def handle_after_race(self) -> bool:
-        """Handle post-race using original timing"""
+        """Handle post-race - find next buttons with random screen clicks between checks"""
         if self.check_stop():
             return False
 
         if not self.check_window():
             return False
 
-        if not enhanced_click(
-                "assets/buttons/next_btn.png",
-                minSearch=5,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-        ):
+        # Find next_btn, with random_screen_click each attempt
+        found_next = False
+        for i in range(5):
+            if self.check_stop():
+                return False
+            if find_and_click(
+                    "assets/buttons/next_btn.png", max_attempts=1, delay_between=1,
+                    check_stop_func=self.check_stop):
+                found_next = True
+                break
+            random_screen_click(offset_range=100)
+            time.sleep(1)
+
+        if not found_next:
             return False
 
         if self.check_stop():
             return False
 
-        time.sleep(0.3)
-        random_screen_click(offset_range=100)
-
-        if self.check_stop():
-            return False
-
-        enhanced_click(
-            "assets/buttons/next2_btn.png",
-            minSearch=5,
-            check_stop_func=self.check_stop,
-            check_window_func=self.check_window,
-            log_func=self.log
-        )
+        # Find next2_btn, with random_screen_click each attempt
+        for i in range(5):
+            if self.check_stop():
+                return False
+            if find_and_click(
+                    "assets/buttons/next2_btn.png", max_attempts=1, delay_between=1,
+                    check_stop_func=self.check_stop):
+                break
+            random_screen_click(offset_range=100)
 
         return True
 
-    def handle_race_day(self, is_ura_final: bool = False) -> bool:
+    def handle_race_day(self, is_ura_final: bool = False,
+                        style_settings: Dict[str, Any] = None,
+                        is_pre_debut: bool = False) -> bool:
         """Handle race day or URA finale race day"""
         if self.check_stop():
             self.log("[STOP] Race day cancelled due to F3 press")
@@ -467,48 +465,33 @@ class RaceHandler:
         else:
             race_day_btn = "assets/buttons/race_day_btn.png"
 
-        if not enhanced_click(
-                race_day_btn,
-                minSearch=10,
-                check_stop_func=self.check_stop,
-                check_window_func=self.check_window,
-                log_func=self.log
-        ):
+        if not find_and_click(
+                race_day_btn, max_attempts=3, delay_between=2,
+                check_stop_func=self.check_stop):
             return False
 
         if self.check_stop():
             return False
 
-        enhanced_click(
-            "assets/buttons/ok_btn.png",
-            minSearch=0.7,
-            check_stop_func=self.check_stop,
-            check_window_func=self.check_window,
-            log_func=self.log
-        )
-        time.sleep(1)
+        find_and_click(
+            "assets/buttons/ok_btn.png", max_attempts=3, delay_between=2,
+            check_stop_func=self.check_stop)
 
         for i in range(2):
             if self.check_stop():
                 return False
 
-            if not enhanced_click(
-                    "assets/buttons/race_btn.png",
-                    minSearch=2,
-                    check_stop_func=self.check_stop,
-                    check_window_func=self.check_window,
-                    log_func=self.log
-            ):
+            if not find_and_click(
+                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=2,
+                    check_stop_func=self.check_stop):
                 break
-            time.sleep(1)
 
         if self.check_stop():
             return False
 
-        if not self.prepare_race():
+        if not self.prepare_race(style_settings=style_settings, is_pre_debut=is_pre_debut):
             return False
 
-        time.sleep(1)
 
         if not self.handle_after_race():
             return False

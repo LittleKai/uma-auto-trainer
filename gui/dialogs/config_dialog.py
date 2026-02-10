@@ -368,9 +368,9 @@ class ConfigDialog:
         self.medium_energy_max_score_var = tk.DoubleVar()
 
         # Scoring config - Stat Cap Penalty
+        self.cap_penalty_enabled_var = tk.BooleanVar()
         self.cap_penalty_max_var = tk.IntVar()
-        self.cap_penalty_avg_gain_var = tk.IntVar()
-        self.cap_penalty_ratio_var = tk.DoubleVar()
+        self.cap_penalty_start_var = tk.IntVar()
 
         # Event Choice Mode settings (from bot_settings.json)
         self.auto_event_map_var = tk.BooleanVar()
@@ -593,14 +593,15 @@ class ConfigDialog:
         cap_penalty_frame = ttk.LabelFrame(scrollable_frame, text="Stat Cap Penalty", padding="8")
         cap_penalty_frame.pack(fill=tk.X, pady=(0, 10))
 
+        ttk.Checkbutton(cap_penalty_frame, text="Enable Stat Cap Penalty",
+                        variable=self.cap_penalty_enabled_var).pack(anchor=tk.W, pady=(0, 5))
+
         self.create_labeled_entry(cap_penalty_frame, "Max Penalty %:", self.cap_penalty_max_var,
-                                  "Maximum penalty percentage for stats approaching cap (0-100). "
+                                  "Maximum penalty percentage for stats approaching target (0-100). "
                                   "Training score will be reduced by up to this amount.")
-        self.create_labeled_entry(cap_penalty_frame, "Avg Gain Per Day:", self.cap_penalty_avg_gain_var,
-                                  "Average stat gain per training day. Used to estimate if stat is ahead of schedule.")
-        self.create_labeled_entry(cap_penalty_frame, "Training Ratio:", self.cap_penalty_ratio_var,
-                                  "Ratio of days that will train this stat (0.0-1.0). "
-                                  "E.g., 0.3 means ~30% of remaining days will train each stat.")
+        self.create_labeled_entry(cap_penalty_frame, "Start Penalty %:", self.cap_penalty_start_var,
+                                  "Start applying penalty when stat reaches this percentage of target (0-100). "
+                                  "E.g., 60 means penalty starts when stat reaches 60% of its target.")
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
@@ -754,9 +755,9 @@ class ConfigDialog:
 
         # Stat cap penalty
         cap_penalty = scoring.get("stat_cap_penalty", {})
+        self.cap_penalty_enabled_var.set(cap_penalty.get("enabled", True))
         self.cap_penalty_max_var.set(cap_penalty.get("max_penalty_percent", 40))
-        self.cap_penalty_avg_gain_var.set(cap_penalty.get("avg_gain_per_day", 8))
-        self.cap_penalty_ratio_var.set(cap_penalty.get("training_ratio", 0.3))
+        self.cap_penalty_start_var.set(cap_penalty.get("start_penalty_percent", 80))
 
         # Event Choice Mode (from bot_settings.json)
         event_choice = self.bot_settings.get("event_choice", {})
@@ -850,9 +851,9 @@ class ConfigDialog:
 
             # Stat cap penalty
             scoring["stat_cap_penalty"] = {
+                "enabled": self.cap_penalty_enabled_var.get(),
                 "max_penalty_percent": self.cap_penalty_max_var.get(),
-                "avg_gain_per_day": self.cap_penalty_avg_gain_var.get(),
-                "training_ratio": self.cap_penalty_ratio_var.get()
+                "start_penalty_percent": self.cap_penalty_start_var.get()
             }
 
             # Save Event Choice Mode to bot_settings
@@ -915,9 +916,9 @@ class ConfigDialog:
             self.medium_energy_max_score_var.set(2.9)
 
             # Stat cap penalty defaults
+            self.cap_penalty_enabled_var.set(True)
             self.cap_penalty_max_var.set(40)
-            self.cap_penalty_avg_gain_var.set(8)
-            self.cap_penalty_ratio_var.set(0.3)
+            self.cap_penalty_start_var.set(80)
 
             # Event Choice Mode defaults
             self.auto_event_map_var.set(False)

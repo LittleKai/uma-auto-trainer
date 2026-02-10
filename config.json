@@ -10,7 +10,6 @@
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
   "stat_cap_threshold_day": 30,
-  "key": "jJ10uNHDwuPW9LGNWWZ2",
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,
@@ -72,9 +71,9 @@
       "medium_energy_max_score_threshold": 3.4
     },
     "stat_cap_penalty": {
+      "enabled": true,
       "max_penalty_percent": 40,
-      "avg_gain_per_day": 8,
-      "training_ratio": 0.3
+      "start_penalty_percent": 60
     }
   }
 }

@@ -63,7 +63,7 @@ class StatusSection:
         self.energy_max_label.grid(row=0, column=2, sticky=tk.W)
 
     def create_right_column(self):
-        """Create right column with game window and key status"""
+        """Create right column with game window and scenario"""
         right_column = ttk.Frame(self.frame)
         right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
         right_column.columnconfigure(1, weight=1)
@@ -74,15 +74,9 @@ class StatusSection:
         self.game_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
         self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-        # Key Status
-        ttk.Label(right_column, text="Key Status:", font=("Arial", 10, "bold")).grid(
-            row=1, column=0, sticky=tk.W, pady=3)
-        self.key_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
-        self.key_status_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
-
         # Scenario Selection
         ttk.Label(right_column, text="Scenario:", font=("Arial", 10, "bold")).grid(
-            row=2, column=0, sticky=tk.W, pady=3)
+            row=1, column=0, sticky=tk.W, pady=3)
         self.scenario_dropdown = ttk.Combobox(
             right_column,
             textvariable=self.main_window.scenario_selection,
@@ -90,7 +84,7 @@ class StatusSection:
             state="readonly",
             width=15
         )
-        self.scenario_dropdown.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=3)
+        self.scenario_dropdown.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
         self.scenario_dropdown.set("URA Final")
         self.scenario_dropdown.bind('<<ComboboxSelected>>', self.on_scenario_change)
 
@@ -194,9 +188,3 @@ class StatusSection:
         """Update game window status display"""
         self.game_status_label.config(text=status, foreground=color)
 
-    def update_key_status(self, is_valid, message):
-        """Update key validation status display"""
-        if is_valid:
-            self.key_status_label.config(text="Valid ✓", foreground="green")
-        else:
-            self.key_status_label.config(text="Invalid ✗", foreground="red")

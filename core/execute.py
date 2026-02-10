@@ -417,7 +417,19 @@ class DecisionEngine:
             self.controller.log_message("Race Day.")
             if self.controller.check_should_stop():
                 return False
-            return self.controller.race_handler.handle_race_day(is_ura_final=False)
+
+            # Get style settings for pre-debut style selection
+            style_settings = {'style': 'none'}
+            is_pre_debut = current_date.get('is_pre_debut', False)
+            if is_pre_debut and gui:
+                event_settings = gui.get_event_choice_settings()
+                style_settings = event_settings.get('debut_style', {'style': 'none'})
+
+            return self.controller.race_handler.handle_race_day(
+                is_ura_final=False,
+                style_settings=style_settings,
+                is_pre_debut=is_pre_debut
+            )
 
         if self.controller.check_should_stop():
             return False

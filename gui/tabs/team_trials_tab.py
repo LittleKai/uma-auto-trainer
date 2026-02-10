@@ -49,7 +49,20 @@ class TeamTrialsTab:
         ]
 
         for var in variables:
-            var.trace('w', lambda *args: self.main_window.save_settings())
+            var.trace('w', lambda *args: self._safe_save_settings())
+
+    def _safe_save_settings(self):
+        """Safely save settings, checking if main_window is fully initialized"""
+        try:
+            # Check if main_window has all required attributes before saving
+            if (hasattr(self.main_window, 'event_choice_tab') and
+                hasattr(self.main_window, 'strategy_tab') and
+                hasattr(self.main_window, 'team_trials_tab') and
+                hasattr(self.main_window, 'log_section')):
+                self.main_window.save_settings()
+        except Exception:
+            # Silently ignore errors during initialization
+            pass
 
     def create_content(self):
         """Create dynamic tab content"""

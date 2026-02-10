@@ -140,56 +140,51 @@ class TrainingHandler:
 
         return result
 
-    def _log_training_result(self, key: str, training_result: Dict, energy_percentage: float,
-                             is_early_stage: bool) -> None:
-        """Log training result with unified score information including support card bonus"""
+    def _log_training_result(self, key: str, data: Dict) -> None:
+        """Log a single training result with penalty info inline."""
         bonus_components = []
 
-        if training_result.get('support_card_bonus', 0) > 0:
-            bonus_components.append(f"Support Bonus +{training_result['support_card_bonus']}")
+        if data.get('support_card_bonus', 0) > 0:
+            bonus_components.append(f"Support Bonus +{data['support_card_bonus']}")
+        if data.get('hint_count', 0) > 0:
+            bonus_components.append(f"hints +{data['hint_score']}")
+        if data.get('npc_count', 0) > 0:
+            bonus_components.append(f"NPCs +{data['npc_score']}")
+        if data.get('special_training_count', 0) > 0:
+            bonus_components.append(f"Special Training +{data['special_training_score']}")
+        if data.get('spirit_explosion_count', 0) > 0:
+            bonus_components.append(f"Spirit Explosion +{data['spirit_explosion_score']}")
 
-        if training_result.get('hint_count', 0) > 0:
-            bonus_components.append(f"hints +{training_result['hint_score']}")
-
-        if training_result.get('npc_count', 0) > 0:
-            bonus_components.append(f"NPCs +{training_result['npc_score']}")
-
-        if training_result.get('special_training_count', 0) > 0:
-            bonus_components.append(f"Special Training +{training_result['special_training_score']}")
-
-        if training_result.get('spirit_explosion_count', 0) > 0:
-            bonus_components.append(f"Spirit Explosion +{training_result['spirit_explosion_score']}")
-
-        from core.state import get_current_date_info, get_stage_thresholds
-        current_date = get_current_date_info()
         is_early_stage = False
-
+        current_date = get_current_date_info()
         if current_date and key == "wit":
             stage_thresholds = get_stage_thresholds()
             absolute_day = current_date.get('absolute_day', 0)
             is_early_stage = absolute_day <= stage_thresholds.get("early_stage", 24)
-
             if is_early_stage:
                 from core.logic import get_wit_early_stage_bonus
-                bonus = get_wit_early_stage_bonus()
-                bonus_components.append(f"early WIT +{bonus}")
+                bonus_components.append(f"early WIT +{get_wit_early_stage_bonus()}")
 
-        total_score = round(training_result.get('total_score', 0), 3)
+        total_score = round(data.get('total_score', 0), 2)
 
-        base_message = f"[{key.upper()}] → {training_result['support']} score: {total_score}"
+        # Build score display with penalty info inline (only show if >= 1% and score > 0)
+        original_score = data.get("original_score")
+        cap_penalty_info = data.get("cap_penalty_info", "")
+        multiplier = data.get("cap_penalty_multiplier", 1.0)
+        penalty_pct = (1.0 - multiplier) * 100
+        if original_score is not None and cap_penalty_info and penalty_pct >= 1.0 and original_score > 0:
+            score_display = f"{total_score} (was {round(original_score, 2)}{cap_penalty_info})"
+        else:
+            score_display = str(total_score)
+
+        base_message = f"[{key.upper()}] → {data['support']} score: {score_display}"
 
         if bonus_components:
-            bonus_info = " (" + ", ".join(bonus_components) + ")"
-            base_message += bonus_info
-
+            base_message += " (" + ", ".join(bonus_components) + ")"
         if is_early_stage:
             base_message += " (Early-Stage)"
 
         self.log(base_message)
-
-        # if key == "wit" and training_result['support'].get('friend', 0) > 0:
-        #     friend_count = training_result['support']['friend']
-        #     expected_score = friend_count * 0.5
 
     def check_all_training(self, energy_percentage: float = 100, energy_max: float = 100) -> Dict[str, Any]:
         """Check all available training options with unified score calculation"""
@@ -247,8 +242,11 @@ class TrainingHandler:
 
                 results[key] = training_result
 
-                # Enhanced logging with unified score information
-                self._log_training_result(key, training_result, energy_percentage, is_pre_debut)
+                # Apply penalty and log immediately
+                from core.logic import apply_single_training_penalty
+                current_date = get_current_date_info()
+                apply_single_training_penalty(key, training_result, current_date)
+                self._log_training_result(key, training_result)
                 time.sleep(0.1)
 
         # Move mouse to specific position before releasing if only one training type to avoid accidental clicks

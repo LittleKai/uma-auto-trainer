@@ -23,7 +23,7 @@
   "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
-  "stop_mood_threshold": "GREAT",
+  "stop_mood_threshold": "GOOD",
   "stop_before_summer": false,
   "stop_at_month": false,
   "target_month": "Junior Year Dec 1",
@@ -35,20 +35,23 @@
     "uma_musume": "Sakura Bakushin O",
     "support_cards": [
       "spd: Kitasan Black",
-      "spd: King Halo",
-      "wit: Curren Chan",
-      "wit: Daiwa Scarlet",
-      "wit: Fine Motion",
-      "wit: Marvelous Sunday"
+      "wit: Fuji Kiseki",
+      "spd: Silence Suzuka",
+      "wit: Marvelous Sunday",
+      "wit: Mihono Bourbon",
+      "wit: Curren Chan"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 11,
+    "current_set": 10,
     "stat_caps": {
       "spd": 1130,
-      "sta": 400,
+      "sta": 500,
       "pwr": 1080,
       "guts": 1100,
       "wit": 1130
+    },
+    "debut_style": {
+      "style": "Front"
     },
     "preset_names": {
       "1": "FRONT POWER",
@@ -258,7 +261,7 @@
         "support_cards": [
           "spd: Kitasan Black",
           "spd: King Halo",
-          "wit: Curren Chan",
+          "wit: Fuji Kiseki",
           "wit: Daiwa Scarlet",
           "wit: Fine Motion",
           "wit: Marvelous Sunday"

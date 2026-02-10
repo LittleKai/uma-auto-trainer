@@ -14,7 +14,6 @@ from gui.utils.game_window_monitor import GameWindowMonitor
 
 from core.execute import set_log_callback
 from core.race_manager import RaceManager
-from key_validator import validate_application_key
 
 
 class UmaAutoGUI:
@@ -56,8 +55,6 @@ class UmaAutoGUI:
         # Bot state
         self.is_running = False
         self.bot_thread = None
-        self.key_valid = False
-        self.initial_key_validation_done = False
         self.scenario_selection = tk.StringVar(value="URA Final")
         # All settings will be handled by tab modules
         self.all_settings = {}
@@ -212,21 +209,6 @@ class UmaAutoGUI:
     def start_monitoring(self):
         """Start background monitoring"""
         self.game_monitor.start()
-        self.check_key_validation()
-
-    def check_key_validation(self):
-        """Check key validation status on startup"""
-        def check_in_background():
-            try:
-                is_valid, message = validate_application_key()
-                self.key_valid = is_valid
-                self.initial_key_validation_done = True
-                self.root.after(0, self.status_section.update_key_status, is_valid, message)
-            except Exception as e:
-                self.initial_key_validation_done = True
-                self.root.after(0, self.status_section.update_key_status, False, f"Validation error: {e}")
-
-        threading.Thread(target=check_in_background, daemon=True).start()
 
     def open_region_settings(self):
         """Open region settings window"""

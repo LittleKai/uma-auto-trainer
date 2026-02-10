@@ -25,15 +25,6 @@ class BotController:
         if self.main_window.is_running:
             return
 
-        if not self.main_window.initial_key_validation_done:
-            self.main_window.log_message("Waiting for key validation to complete...")
-            return
-
-        if not self.main_window.key_valid:
-            messagebox.showerror("Key Validation Failed", "Invalid key. Cannot start bot.")
-            self.main_window.log_message("Bot start failed: Invalid key")
-            return
-
         if not self.main_window.game_monitor.focus_game_window():
             self.main_window.log_message("Cannot start bot: Game window not found or cannot be focused")
             return

@@ -8,6 +8,8 @@ from gui.dialogs.support_card_dialog import SupportCardDialog
 from gui.dialogs.preset_dialog import PresetDialog
 from gui.dialogs.uma_musume_dialog import UmaMusumeDialog
 
+from core.style_handler import get_style_options, get_style_display_name
+
 
 class EventChoiceTab:
     """Event choice configuration tab with enhanced UI - dropdown presets and card boxes"""
@@ -39,6 +41,9 @@ class EventChoiceTab:
         self.selected_uma_musume = tk.StringVar(value="None")
         self.support_cards = [tk.StringVar(value="None") for _ in range(6)]
         self.unknown_event_action = tk.StringVar(value="Auto select first choice")
+
+        # Debut style selection variable (none = disabled)
+        self.debut_style = tk.StringVar(value="none")
 
         # Default stat caps
         self.default_stat_caps = {
@@ -99,6 +104,7 @@ class EventChoiceTab:
             self.auto_event_map_var,
             self.auto_first_choice_var,
             self.unknown_event_action,
+            self.debut_style,
             *self.support_cards,
             self.current_set
         ]
@@ -112,11 +118,23 @@ class EventChoiceTab:
             variables.append(preset_name)
 
         for var in variables:
-            var.trace('w', lambda *args: self.main_window.save_settings())
+            var.trace('w', lambda *args: self._safe_save_settings())
 
         # Special handling for Uma Musume selection to update strategy
         self.selected_uma_musume.trace('w', self.on_uma_musume_change)
-        self.selected_uma_musume.trace('w', lambda *args: self.main_window.save_settings())
+        self.selected_uma_musume.trace('w', lambda *args: self._safe_save_settings())
+
+    def _safe_save_settings(self):
+        """Safely save settings, checking if main_window is fully initialized"""
+        try:
+            # Check if main_window has all required attributes before saving
+            if (hasattr(self.main_window, 'event_choice_tab') and
+                hasattr(self.main_window, 'strategy_tab') and
+                hasattr(self.main_window, 'log_section')):
+                self.main_window.save_settings()
+        except Exception as e:
+            # Silently ignore errors during initialization
+            pass
 
     def create_content(self):
         """Create tab content with enhanced UI"""
@@ -229,6 +247,9 @@ class EventChoiceTab:
         # Stat Caps section
         self.create_stat_caps_section(support_frame, row=2)
 
+        # Debut Style section
+        self.create_debut_style_section(support_frame, row=3)
+
         # Update preset display to show current selection
         self._update_preset_display()
 
@@ -292,6 +313,56 @@ class EventChoiceTab:
             self.main_window.save_settings()
         except Exception as e:
             print(f"Error updating stat cap: {e}")
+
+    def create_debut_style_section(self, parent, row):
+        """Create debut style selection section"""
+        style_frame = ttk.Frame(parent)
+        style_frame.grid(row=row, column=0, sticky=(tk.W,), pady=(8, 0))
+
+        # Style dropdown label
+        ttk.Label(
+            style_frame,
+            text="Debut Style:",
+            font=("Arial", 10, "bold"),
+            foreground="#0066CC"
+        ).pack(side=tk.LEFT, padx=(0, 5))
+
+        # Get style options
+        style_options = get_style_options()
+        style_values = [opt[1] for opt in style_options]
+
+        # Style dropdown
+        self.style_combobox = ttk.Combobox(
+            style_frame,
+            textvariable=self.debut_style,
+            values=style_values,
+            state="readonly",
+            width=18
+        )
+        self.style_combobox.pack(side=tk.LEFT)
+
+        # Set initial display value
+        self._update_style_display()
+
+        # Bind selection change
+        self.style_combobox.bind('<<ComboboxSelected>>', self._on_style_combobox_change)
+
+    def _update_style_display(self):
+        """Update style combobox to show current selection"""
+        if hasattr(self, 'style_combobox'):
+            current_style = self.debut_style.get()
+            display_name = get_style_display_name(current_style)
+            self.style_combobox.set(display_name)
+
+    def _on_style_combobox_change(self, event):
+        """Handle style combobox selection change"""
+        selected_display = self.style_combobox.get()
+        # Convert display name back to style ID
+        style_options = get_style_options()
+        for style_id, display_name in style_options:
+            if display_name == selected_display:
+                self.debut_style.set(style_id)
+                break
 
     def _update_logic_stat_caps(self):
         """Update the logic module and constants with current preset's stat caps"""
@@ -604,6 +675,10 @@ class EventChoiceTab:
         selected_uma = self.selected_uma_musume.get()
         self.update_strategy_checkboxes(selected_uma)
 
+        # Reset debut style to 'none' when Uma Musume changes
+        self.debut_style.set('none')
+        self._update_style_display()
+
     def get_settings(self):
         """Get current tab settings"""
         current_preset = self.current_set.get()
@@ -619,6 +694,9 @@ class EventChoiceTab:
             'unknown_event_action': self.unknown_event_action.get(),
             'current_set': self.current_set.get(),
             'stat_caps': current_stat_caps,
+            'debut_style': {
+                'style': self.debut_style.get()
+            },
             'preset_names': {},
             'preset_sets': {}
         }
@@ -658,8 +736,8 @@ class EventChoiceTab:
             self.auto_first_choice_var.set(auto_first_choice)
 
             # Re-enable trace
-            self.auto_event_map_var.trace('w', lambda *args: self.main_window.save_settings())
-            self.auto_first_choice_var.trace('w', lambda *args: self.main_window.save_settings())
+            self.auto_event_map_var.trace('w', lambda *args: self._safe_save_settings())
+            self.auto_first_choice_var.trace('w', lambda *args: self._safe_save_settings())
 
             # Load current selections
             if 'uma_musume' in settings:
@@ -670,6 +748,13 @@ class EventChoiceTab:
             support_cards = settings.get('support_cards', ['None'] * 6)
             for i, card in enumerate(support_cards[:6]):
                 self.support_cards[i].set(card)
+
+            # Load debut style settings
+            debut_style_settings = settings.get('debut_style', {})
+            self.debut_style.set(debut_style_settings.get('style', 'none'))
+
+            # Update style display if UI elements exist
+            self._update_style_display()
 
             # Load preset names
             if 'preset_names' in settings:

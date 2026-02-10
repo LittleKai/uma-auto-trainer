@@ -528,6 +528,7 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
   if SCENARIO_NAME == "Unity Cup":
     # Check if deck has Riko Kashimoto as friend card
     has_riko_card = any("riko kashimoto" in card.lower() for card in deck_info.get("support_cards", []) if card and card != "None")
+    print(f'has_riko_card: {has_riko_card}')
     NPC_ICONS = {
       "etsuko": "assets/icons/support_npc_etsuko.png"
     }

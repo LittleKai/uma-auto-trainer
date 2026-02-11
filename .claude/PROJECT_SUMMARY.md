@@ -1,6 +1,6 @@
 # Project Summary
 
-**Last Updated:** 2026-02-10 12:00
+**Last Updated:** 2026-02-12 18:00
 **Updated By:** Claude Code
 
 ---
@@ -42,7 +42,8 @@ uma-auto-trainer/
 │   ├── training_handler.py  # Training selection and execution
 │   ├── race_handler.py      # Race navigation and filtering
 │   ├── rest_handler.py      # Rest/recreation operations
-│   └── event_handler.py     # Event choice automation
+│   ├── event_handler.py     # Event choice automation
+│   └── updater.py           # Auto-update via GitHub Releases
 │
 ├── gui/                     # Tkinter GUI interface
 │   ├── main_window.py       # Main application window (UmaAutoGUI)
@@ -58,7 +59,8 @@ uma-auto-trainer/
 │   │   ├── preset_dialog.py
 │   │   ├── stop_conditions_dialog.py
 │   │   ├── uma_musume_dialog.py
-│   │   └── config_dialog.py
+│   │   ├── config_dialog.py
+│   │   └── update_dialog.py
 │   ├── components/          # GUI components
 │   │   ├── status_section.py    # Status display panel
 │   │   └── log_section.py       # Scrollable log output
@@ -84,6 +86,7 @@ uma-auto-trainer/
 │   └── race_list.json       # Race database
 │
 ├── main.py                  # Entry point
+├── version.py               # Version constant (APP_VERSION, GITHUB_REPO)
 ├── build_exe.py             # PyInstaller build script
 ├── key_validator.py         # License key validation
 ├── region_settings.py       # OCR region tuning utility
@@ -192,6 +195,7 @@ score = base_score × stage_multiplier
 | Deck-Based Events | ✅ Done | `core/event_handler.py` | Event choice based on deck composition |
 | Uma Musume Dialog | ✅ Done | `gui/dialogs/uma_musume_dialog.py` | Search-enabled Uma Musume selection |
 | Preset Dialog | ✅ Done | `gui/dialogs/preset_dialog.py` | Preset selection with deck summary |
+| Auto-Update | ✅ Done | `core/updater.py`, `gui/dialogs/update_dialog.py`, `version.py` | GitHub Releases auto-update |
 | Shop Preferences | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase shop items |
 | Skills to Buy | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase skills |
 | Race Scheduler Enhanced | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Value-based race filtering |
@@ -242,6 +246,52 @@ score = base_score × stage_multiplier
 ---
 
 ## 7. Recent Changes (Last 5 Sessions)
+
+### 2026-02-12 - GitHub Release Auto-Update System
+- Created `version.py` with APP_VERSION, APP_NAME, GITHUB_REPO constants
+- Created `core/updater.py` with check_for_update, download_update, apply_update functions
+- Created `gui/dialogs/update_dialog.py` with UpdateDialog class
+- Modified `gui/main_window.py`: version in title bar, "Check Update" button, auto-check on startup
+- Modified `build_exe.py`: added create_release_zip() to build pipeline
+- Updated `gui/dialogs/__init__.py` to export UpdateDialog
+- Update flow: auto-check → dialog → download → batch script → restart (preserves user settings)
+- Protected files: bot_settings.json, config.json, region_settings.json
+- Files created: `version.py`, `core/updater.py`, `gui/dialogs/update_dialog.py`
+- Files modified: `gui/main_window.py`, `build_exe.py`, `gui/dialogs/__init__.py`
+
+### 2026-02-12 - Preset Reorder (Move Up/Down) in Preset Dialog
+- Added arrow buttons (▲ ▼) on the right side of each preset item for reordering
+- Arrows have hover effect (gray → blue) for visual feedback
+- Buttons swap all preset data between adjacent positions (name, uma_musume, support_cards, stat_caps, debut_style, stop_conditions)
+- Current preset indicator follows the swap correctly
+- If presets are reordered and user cancels, changes are still saved
+- Scroll follows the moved preset for visual continuity
+- Refactored `_select_preset` to use recursive `_set_frame_bg` for deeper widget nesting
+- Changed edit pencil icon color from blue (#0066CC) to gray (#888888)
+- Files modified: `gui/dialogs/preset_dialog.py`, `gui/tabs/event_choice_tab.py`
+
+### 2026-02-10 - Stat Cap Penalty Hybrid Formula + Day-based Adjustments
+- Replaced ratio-based penalty with hybrid formula (% OR absolute gap)
+- **Hybrid trigger**: penalty starts when EITHER condition met:
+  - Stat reaches 80% of effective cap, OR
+  - Stat is within 200 points of effective cap
+- **Removed taper**: penalty no longer reduces in last days
+- **Day-based effective caps**: base cap adjusted by day
+  - Day ≤73: cap - 60
+  - Day 74: cap - 45
+  - Day 75: cap - 30
+- **New default stat caps**: spd=1200, sta=1100, pwr=1200, guts=1200, wit=1200
+- Activity log shows effective caps for days 73, 74, 75
+- New functions: `get_effective_stat_cap()`, `get_all_effective_stat_caps()`
+- Config params: `start_penalty_percent`, `start_penalty_gap`, `day_cap_adjustments`
+- Files modified: `core/logic.py`, `config.json`, `utils/constants.py`, `bot_settings.json`
+
+### 2026-02-10 - Fix stat_state() redundant OCR reads
+- `stat_state()` was being called up to 7 times per training cycle (once per training type in penalty loop + training_decision + fallback_training), causing ~35 OCR reads for unchanged stats
+- Now reads stats only once in `check_all_training()` and passes `current_stats` through the entire call chain
+- `check_all_training()` returns `(results, current_stats)` tuple
+- `apply_single_training_penalty()`, `training_decision()`, `fallback_training()` accept optional `current_stats` param (fallback to `stat_state()` if None)
+- Files modified: `core/training_handler.py`, `core/logic.py`, `core/execute.py`
 
 ### 2026-02-10 - DecisionEngine Refactor (Reusable Helpers)
 - Extracted 6 helper methods in `DecisionEngine` to eliminate code duplication:

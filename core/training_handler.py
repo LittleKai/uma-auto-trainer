@@ -3,7 +3,7 @@ import time
 import json
 from typing import Dict, Optional, Callable, Any
 
-from core.state import check_support_card, get_current_date_info, get_stage_thresholds
+from core.state import check_support_card, get_current_date_info, get_stage_thresholds, stat_state
 from core.click_handler import enhanced_click, random_click_in_region, triple_click_random
 from utils.constants import MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE
 
@@ -186,13 +186,15 @@ class TrainingHandler:
 
         self.log(base_message)
 
-    def check_all_training(self, energy_percentage: float = 100, energy_max: float = 100) -> Dict[str, Any]:
-        """Check all available training options with unified score calculation"""
+    def check_all_training(self, energy_percentage: float = 100, energy_max: float = 100):
+        """Check all available training options with unified score calculation.
+        Returns (results_dict, current_stats) tuple.
+        """
         if self.check_stop():
-            return {}
+            return {}, None
 
         if not self.check_window():
-            return {}
+            return {}, None
 
         # Check stage with configurable definitions
         current_date = get_current_date_info()
@@ -204,7 +206,7 @@ class TrainingHandler:
         if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
             # Critical energy: no training check at all
             self.log(f"Critical energy ({energy_percentage}%), skipping all training checks")
-            return {}
+            return {}, None
         elif energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
             # Low energy: only check WIT
             training_types = {
@@ -222,6 +224,14 @@ class TrainingHandler:
             }
 
         results = {}
+
+        # Only read stats when needed for stat cap penalty (after threshold day)
+        try:
+            with open("config.json", "r", encoding="utf-8") as f:
+                stat_cap_threshold_day = json.load(f).get("stat_cap_threshold_day", 30)
+        except Exception:
+            stat_cap_threshold_day = 30
+        current_stats = stat_state() if absolute_day >= stat_cap_threshold_day else None
 
         # Execute mouse handling logic for each training type
         for key, icon_path in training_types.items():
@@ -245,7 +255,7 @@ class TrainingHandler:
                 # Apply penalty and log immediately
                 from core.logic import apply_single_training_penalty
                 current_date = get_current_date_info()
-                apply_single_training_penalty(key, training_result, current_date)
+                apply_single_training_penalty(key, training_result, current_date, current_stats=current_stats)
                 self._log_training_result(key, training_result)
                 time.sleep(0.1)
 
@@ -265,7 +275,7 @@ class TrainingHandler:
                 log_func=self.log
             )
 
-        return results
+        return results, current_stats
 
     def execute_training(self, training_type: str) -> bool:
         """Execute the specified training with triple click logic"""

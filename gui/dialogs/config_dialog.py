@@ -371,6 +371,7 @@ class ConfigDialog:
         self.cap_penalty_enabled_var = tk.BooleanVar()
         self.cap_penalty_max_var = tk.IntVar()
         self.cap_penalty_start_var = tk.IntVar()
+        self.cap_penalty_gap_var = tk.IntVar()
 
         # Event Choice Mode settings (from bot_settings.json)
         self.auto_event_map_var = tk.BooleanVar()
@@ -441,8 +442,6 @@ class ConfigDialog:
         other_frame = ttk.LabelFrame(parent, text="Other Settings", padding="8")
         other_frame.pack(fill=tk.X, pady=(0, 10))
 
-        self.create_labeled_entry(other_frame, "Stat Cap Threshold Day:", self.stat_cap_threshold_day_var,
-                                  "Day after which stat caps are considered in scoring. Before this day, stat caps are ignored.")
         self.create_labeled_entry(other_frame, "Maximum Failure:", self.maximum_failure_var,
                                   "Maximum number of consecutive failures allowed before bot stops or takes alternative action.")
 
@@ -593,15 +592,38 @@ class ConfigDialog:
         cap_penalty_frame = ttk.LabelFrame(scrollable_frame, text="Stat Cap Penalty", padding="8")
         cap_penalty_frame.pack(fill=tk.X, pady=(0, 10))
 
+        # Enable checkbox
         ttk.Checkbutton(cap_penalty_frame, text="Enable Stat Cap Penalty",
                         variable=self.cap_penalty_enabled_var).pack(anchor=tk.W, pady=(0, 5))
 
+        # Threshold Day
+        self.create_labeled_entry(cap_penalty_frame, "Threshold Day:", self.stat_cap_threshold_day_var,
+                                  "Day after which stat cap penalty is applied. Before this day, stat caps are ignored.")
+
+        # Max Penalty
         self.create_labeled_entry(cap_penalty_frame, "Max Penalty %:", self.cap_penalty_max_var,
                                   "Maximum penalty percentage for stats approaching target (0-100). "
                                   "Training score will be reduced by up to this amount.")
-        self.create_labeled_entry(cap_penalty_frame, "Start Penalty %:", self.cap_penalty_start_var,
-                                  "Start applying penalty when stat reaches this percentage of target (0-100). "
-                                  "E.g., 60 means penalty starts when stat reaches 60% of its target.")
+
+        # Start Penalty % and Start Penalty Gap on same row
+        start_row = ttk.Frame(cap_penalty_frame)
+        start_row.pack(fill=tk.X, pady=2)
+
+        # Start Penalty %
+        ttk.Label(start_row, text="Start Penalty %:", width=15).pack(side=tk.LEFT)
+        ttk.Entry(start_row, textvariable=self.cap_penalty_start_var, width=6).pack(side=tk.LEFT, padx=(5, 0))
+        help_start = tk.Label(start_row, text="?", font=("Arial", 9, "bold"),
+                              fg="white", bg="#888888", width=2, cursor="question_arrow")
+        help_start.pack(side=tk.LEFT, padx=(5, 15))
+        ToolTip(help_start, "Penalty starts when stat reaches this % of effective cap.\nE.g., 80 = penalty starts at 80% of cap.")
+
+        # Start Penalty Gap
+        ttk.Label(start_row, text="Gap:", width=4).pack(side=tk.LEFT)
+        ttk.Entry(start_row, textvariable=self.cap_penalty_gap_var, width=6).pack(side=tk.LEFT, padx=(5, 0))
+        help_gap = tk.Label(start_row, text="?", font=("Arial", 9, "bold"),
+                            fg="white", bg="#888888", width=2, cursor="question_arrow")
+        help_gap.pack(side=tk.LEFT, padx=(5, 0))
+        ToolTip(help_gap, "Penalty also starts when stat is within this many points of cap.\nHybrid trigger: uses whichever condition is met first.")
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
@@ -758,6 +780,7 @@ class ConfigDialog:
         self.cap_penalty_enabled_var.set(cap_penalty.get("enabled", True))
         self.cap_penalty_max_var.set(cap_penalty.get("max_penalty_percent", 40))
         self.cap_penalty_start_var.set(cap_penalty.get("start_penalty_percent", 80))
+        self.cap_penalty_gap_var.set(cap_penalty.get("start_penalty_gap", 200))
 
         # Event Choice Mode (from bot_settings.json)
         event_choice = self.bot_settings.get("event_choice", {})
@@ -849,11 +872,19 @@ class ConfigDialog:
                 "medium_energy_max_score_threshold": self.medium_energy_max_score_var.get()
             }
 
-            # Stat cap penalty
+            # Stat cap penalty - preserve day_cap_adjustments
+            existing_cap_penalty = scoring.get("stat_cap_penalty", {})
+            day_adjustments = existing_cap_penalty.get("day_cap_adjustments", {
+                "day_75": 30,
+                "day_74": 45,
+                "day_73_and_below": 60
+            })
             scoring["stat_cap_penalty"] = {
                 "enabled": self.cap_penalty_enabled_var.get(),
                 "max_penalty_percent": self.cap_penalty_max_var.get(),
-                "start_penalty_percent": self.cap_penalty_start_var.get()
+                "start_penalty_percent": self.cap_penalty_start_var.get(),
+                "start_penalty_gap": self.cap_penalty_gap_var.get(),
+                "day_cap_adjustments": day_adjustments
             }
 
             # Save Event Choice Mode to bot_settings
@@ -869,7 +900,14 @@ class ConfigDialog:
             bot_settings_saved = self.save_bot_settings()
 
             if config_saved and bot_settings_saved:
-                messagebox.showinfo("Success", "Configuration saved successfully!\nNote: Some changes may require restarting the application.")
+                # Reload config in logic module (hot reload - no restart needed)
+                try:
+                    from core.logic import reload_config
+                    reload_config()
+                except Exception as e:
+                    print(f"Warning: Could not reload config: {e}")
+
+                messagebox.showinfo("Success", "Configuration saved and applied!")
                 self.window.destroy()
             else:
                 messagebox.showerror("Error", "Failed to save configuration.")
@@ -919,6 +957,7 @@ class ConfigDialog:
             self.cap_penalty_enabled_var.set(True)
             self.cap_penalty_max_var.set(40)
             self.cap_penalty_start_var.set(80)
+            self.cap_penalty_gap_var.set(200)
 
             # Event Choice Mode defaults
             self.auto_event_map_var.set(False)

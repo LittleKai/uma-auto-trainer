@@ -28,6 +28,9 @@ class EventChoiceTab:
         # Store support card selection boxes
         self.support_card_boxes = []
 
+        # Debounce timers for wraplength updates
+        self._wraplength_timers = {}
+
         # Bind variable changes to auto-save and strategy updates
         self.bind_variable_changes()
 
@@ -47,11 +50,26 @@ class EventChoiceTab:
 
         # Default stat caps
         self.default_stat_caps = {
-            "spd": 1130,
+            "spd": 1200,
             "sta": 1100,
-            "pwr": 1080,
-            "guts": 1100,
-            "wit": 1130
+            "pwr": 1200,
+            "guts": 1200,
+            "wit": 1200
+        }
+
+        # Default stop conditions
+        self.default_stop_conditions = {
+            'enable_stop_conditions': False,
+            'stop_on_infirmary': False,
+            'stop_on_need_rest': False,
+            'stop_on_low_mood': False,
+            'stop_on_race_day': False,
+            'stop_mood_threshold': 'BAD',
+            'stop_before_summer': False,
+            'stop_at_month': False,
+            'target_month': 'Classic Year Jun 1',
+            'stop_on_ura_final': False,
+            'stop_on_warning': False,
         }
 
         # Variables for 20 preset sets with custom names
@@ -65,12 +83,14 @@ class EventChoiceTab:
                 'uma_musume': tk.StringVar(value="None"),
                 'support_cards': [tk.StringVar(value="None") for _ in range(6)],
                 'stat_caps': {
-                    'spd': tk.IntVar(value=1130),
+                    'spd': tk.IntVar(value=1200),
                     'sta': tk.IntVar(value=1100),
-                    'pwr': tk.IntVar(value=1080),
-                    'guts': tk.IntVar(value=1100),
-                    'wit': tk.IntVar(value=1130)
-                }
+                    'pwr': tk.IntVar(value=1200),
+                    'guts': tk.IntVar(value=1200),
+                    'wit': tk.IntVar(value=1200)
+                },
+                'debut_style': 'none',
+                'stop_conditions': dict(self.default_stop_conditions)
             }
 
     def load_uma_musume_data(self):
@@ -127,6 +147,10 @@ class EventChoiceTab:
     def _safe_save_settings(self):
         """Safely save settings, checking if main_window is fully initialized"""
         try:
+            # Skip auto-save during preset switching to avoid corrupting data
+            if getattr(self, '_switching_preset', False):
+                print(f"[DEBUG SAVE] _safe_save_settings BLOCKED (switching)")
+                return
             # Check if main_window has all required attributes before saving
             if (hasattr(self.main_window, 'event_choice_tab') and
                 hasattr(self.main_window, 'strategy_tab') and
@@ -154,9 +178,9 @@ class EventChoiceTab:
         # Bind canvas resize to stretch scrollable_frame width
         canvas.bind('<Configure>', lambda e: canvas.itemconfig(window_id, width=e.width))
 
-        # Main content frame - don't expand
+        # Main content frame - expand horizontally
         content_frame = ttk.Frame(scrollable_frame, padding="8")
-        content_frame.pack(anchor=tk.NW)
+        content_frame.pack(fill=tk.X, anchor=tk.NW)
 
         # Create sections
         self.create_support_selection(content_frame, row=0)
@@ -168,8 +192,8 @@ class EventChoiceTab:
     def create_support_selection(self, parent, row):
         """Create enhanced support card selection with dropdown presets and card boxes"""
         support_frame = ttk.LabelFrame(parent, text="Support Card Selection", padding="2")
-        # Don't stretch - use natural width
-        support_frame.grid(row=row, column=0, sticky=(tk.W,), padx=(0, 5))
+        support_frame.grid(row=row, column=0, sticky=(tk.W, tk.E), padx=(0, 5))
+        parent.columnconfigure(0, weight=1)
 
         # Uma Musume and Preset selection in same row
         selection_container = ttk.Frame(support_frame)
@@ -181,7 +205,7 @@ class EventChoiceTab:
 
         ttk.Label(
             uma_container,
-            text="Uma Musume:",
+            text="Uma:",
             font=("Arial", 10),
             foreground="#CC0066"
         ).pack(side=tk.LEFT, padx=(0, 10))
@@ -226,20 +250,32 @@ class EventChoiceTab:
             relief=tk.SUNKEN,
             padx=10,
             pady=5,
-            width=22,
+            width=18,
             cursor="hand2"
         )
         self.preset_selection_box.pack(side=tk.LEFT)
         self.preset_selection_box.bind('<Button-1>', lambda e: self._open_preset_dialog())
 
-        # Support card boxes (6 boxes in 1 row) - fixed equal width
+        # Edit preset name button (pencil icon)
+        edit_name_btn = tk.Label(
+            preset_container,
+            text="\u270E",
+            font=("Arial", 12),
+            fg="#888888",
+            cursor="hand2"
+        )
+        edit_name_btn.pack(side=tk.LEFT, padx=(4, 0))
+        edit_name_btn.bind('<Button-1>', lambda e: self._edit_preset_name())
+
+        # Support card boxes (6 boxes in 1 row) - distributed evenly
         support_container = ttk.Frame(support_frame)
-        support_container.grid(row=1, column=0, sticky=(tk.W,), pady=(5, 0))
+        support_container.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
+        support_frame.columnconfigure(0, weight=1)
 
         self.support_card_boxes = []
         for i in range(6):
             box = self._create_support_card_box(support_container, i)
-            box.grid(row=0, column=i, padx=3, pady=3, sticky=(tk.N, tk.S))
+            box.grid(row=0, column=i, padx=3, pady=3, sticky=(tk.W, tk.E, tk.N, tk.S))
             self.support_card_boxes.append(box)
             # Use uniform group to make all columns equal width
             support_container.columnconfigure(i, weight=1, uniform="card_box")
@@ -309,8 +345,8 @@ class EventChoiceTab:
         try:
             # Update the logic module with new stat caps
             self._update_logic_stat_caps()
-            # Auto-save settings
-            self.main_window.save_settings()
+            # Auto-save settings (respects _switching_preset flag)
+            self._safe_save_settings()
         except Exception as e:
             print(f"Error updating stat cap: {e}")
 
@@ -331,10 +367,11 @@ class EventChoiceTab:
         style_options = get_style_options()
         style_values = [opt[1] for opt in style_options]
 
-        # Style dropdown
+        # Style dropdown (separate display var to avoid overwriting debut_style with display name)
+        self._style_display = tk.StringVar()
         self.style_combobox = ttk.Combobox(
             style_frame,
-            textvariable=self.debut_style,
+            textvariable=self._style_display,
             values=style_values,
             state="readonly",
             width=18
@@ -352,11 +389,11 @@ class EventChoiceTab:
         if hasattr(self, 'style_combobox'):
             current_style = self.debut_style.get()
             display_name = get_style_display_name(current_style)
-            self.style_combobox.set(display_name)
+            self._style_display.set(display_name)
 
     def _on_style_combobox_change(self, event):
         """Handle style combobox selection change"""
-        selected_display = self.style_combobox.get()
+        selected_display = self._style_display.get()
         # Convert display name back to style ID
         style_options = get_style_options()
         for style_id, display_name in style_options:
@@ -455,20 +492,15 @@ class EventChoiceTab:
         return type_name
 
     def _create_support_card_box(self, parent, index):
-        """Create individual support card selection box with fixed size"""
-        # Fixed width for each card box - font size 10
-        BOX_WIDTH = 92
-
+        """Create individual support card selection box"""
         box_frame = tk.Frame(
             parent,
             relief=tk.RAISED,
             borderwidth=2,
             bg="#f0f0f0",
             cursor="hand2",
-            width=BOX_WIDTH,
             height=70
         )
-        box_frame.pack_propagate(False)  # Prevent frame from shrinking to fit content
 
         # Label - will be updated based on card type
         label = tk.Label(
@@ -488,10 +520,12 @@ class EventChoiceTab:
             bg="white",
             relief=tk.SUNKEN,
             height=3,
-            wraplength=85,
             justify=tk.CENTER
         )
         card_display.pack(padx=1, pady=(0, 2), fill=tk.BOTH, expand=True)
+
+        # Dynamically update wraplength based on actual width (debounced)
+        card_display.bind('<Configure>', lambda e, cd=card_display, idx=index: self._schedule_wraplength_update(cd, idx, e.width))
 
         # Bind click event
         box_frame.bind('<Button-1>', lambda e, idx=index: self._open_support_card_dialog(idx))
@@ -511,6 +545,14 @@ class EventChoiceTab:
         self._update_card_display(frame, self.support_cards[idx].get()))
 
         return box_frame
+
+    def _schedule_wraplength_update(self, card_display, index, width):
+        """Debounced wraplength update to avoid layout thrashing"""
+        if index in self._wraplength_timers:
+            card_display.after_cancel(self._wraplength_timers[index])
+        self._wraplength_timers[index] = card_display.after(
+            150, lambda: card_display.configure(wraplength=max(width - 6, 30))
+        )
 
     def _update_card_display(self, box_frame, card_value):
         """Update card display label, type label, and colors"""
@@ -541,12 +583,35 @@ class EventChoiceTab:
 
             box_frame.card_display.config(text=display_text, fg="black", font=("Arial", 9, "bold"))
 
+    # Card type sort order
+    CARD_TYPE_ORDER = ['spd', 'sta', 'pow', 'gut', 'wit', 'frd']
+
+    def _sort_support_cards(self):
+        """Sort support cards by type so same types are grouped together"""
+        values = [card.get() for card in self.support_cards]
+
+        def sort_key(card_value):
+            if not card_value or card_value == "None" or ":" not in card_value:
+                return (len(self.CARD_TYPE_ORDER), card_value)
+            card_type = card_value.split(":")[0].strip().lower()
+            if card_type in self.CARD_TYPE_ORDER:
+                return (self.CARD_TYPE_ORDER.index(card_type), card_value)
+            return (len(self.CARD_TYPE_ORDER), card_value)
+
+        sorted_values = sorted(values, key=sort_key)
+
+        # Only update if order actually changed
+        if sorted_values != values:
+            for i, val in enumerate(sorted_values):
+                self.support_cards[i].set(val)
+
     def _open_support_card_dialog(self, index):
         """Open support card selection dialog"""
         current_selection = self.support_cards[index].get()
 
         def on_card_selected(selected_card):
             self.support_cards[index].set(selected_card)
+            self._sort_support_cards()
 
         SupportCardDialog(self.parent, current_selection, on_card_selected)
 
@@ -575,6 +640,53 @@ class EventChoiceTab:
             preset_name = self.preset_names[current_set].get()
             self.preset_selection_box.config(text=f"#{current_set}: {preset_name}")
 
+    def _edit_preset_name(self):
+        """Open a small dialog to edit the current preset name"""
+        current_set = self.current_set.get()
+        current_name = self.preset_names[current_set].get()
+
+        dialog = tk.Toplevel(self.parent)
+        dialog.title(f"Edit Preset #{current_set} Name")
+        dialog.resizable(False, False)
+        dialog.transient(self.parent)
+        dialog.grab_set()
+
+        frame = ttk.Frame(dialog, padding="10")
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(frame, text="Preset name:").pack(anchor=tk.W)
+
+        name_var = tk.StringVar(value=current_name)
+        entry = ttk.Entry(frame, textvariable=name_var, width=30, font=("Arial", 10))
+        entry.pack(fill=tk.X, pady=(5, 10))
+        entry.select_range(0, tk.END)
+        entry.focus_set()
+
+        def save():
+            new_name = name_var.get().strip()
+            if new_name:
+                self.preset_names[current_set].set(new_name)
+                self._update_preset_display()
+            dialog.destroy()
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(fill=tk.X)
+        ttk.Button(btn_frame, text="OK", command=save, width=8).pack(side=tk.RIGHT, padx=(5, 0))
+        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy, width=8).pack(side=tk.RIGHT)
+
+        entry.bind('<Return>', lambda e: save())
+        entry.bind('<Escape>', lambda e: dialog.destroy())
+
+        # Center on parent
+        dialog.update_idletasks()
+        px = self.parent.winfo_rootx()
+        py = self.parent.winfo_rooty()
+        pw = self.parent.winfo_width()
+        ph = self.parent.winfo_height()
+        dw = dialog.winfo_width()
+        dh = dialog.winfo_height()
+        dialog.geometry(f"+{px + (pw - dw) // 2}+{py + (ph - dh) // 2}")
+
     def _open_preset_dialog(self):
         """Open preset selection dialog"""
         def on_preset_selected(preset_num):
@@ -591,29 +703,150 @@ class EventChoiceTab:
 
     def switch_preset_set(self, set_number):
         """Switch to a different preset set and update strategy checkboxes"""
-        # Save current values to current set
+        # Suppress auto-save and debut_style reset during switching
+        self._switching_preset = True
         current = self.current_set.get()
-        self.preset_sets[current]['uma_musume'].set(self.selected_uma_musume.get())
-        for i, card in enumerate(self.support_cards):
-            self.preset_sets[current]['support_cards'][i].set(card.get())
+        print(f"[DEBUG SWITCH] === Switching from preset {current} to {set_number} ===")
 
-        # Load values from new set
-        self.current_set.set(set_number)
-        selected_uma = self.preset_sets[set_number]['uma_musume'].get()
-        self.selected_uma_musume.set(selected_uma)
+        try:
+            # Save current values to current set (in memory)
+            self.preset_sets[current]['uma_musume'].set(self.selected_uma_musume.get())
+            for i, card in enumerate(self.support_cards):
+                self.preset_sets[current]['support_cards'][i].set(card.get())
+            self.preset_sets[current]['debut_style'] = self.debut_style.get()
+            self._save_stop_conditions_to_preset(current)
+            print(f"[DEBUG SWITCH] Saved to preset {current}: debut_style={self.preset_sets[current]['debut_style']}, stop_conditions={self.preset_sets[current]['stop_conditions']}")
 
-        for i, card in enumerate(self.support_cards):
-            card.set(self.preset_sets[set_number]['support_cards'][i].get())
+            # Save to file BEFORE changing current_set (so get_settings syncs to old preset correctly)
+            self.main_window.save_settings()
+            print(f"[DEBUG SWITCH] Saved to file (current_set still={self.current_set.get()})")
 
-        # Update UI elements
-        self._update_uma_display()
-        self._update_preset_display()
+            # Now switch current_set and reload new preset from file
+            self.current_set.set(set_number)
+            self._reload_preset_from_file(set_number)
+            print(f"[DEBUG SWITCH] After reload from file: debut_style={self.preset_sets[set_number].get('debut_style', '???')}, stop_conditions={self.preset_sets[set_number].get('stop_conditions', '???')}")
 
-        # Update stat cap entries to show new preset's values
-        self._update_stat_cap_entries()
+            # Load working values from new preset
+            selected_uma = self.preset_sets[set_number]['uma_musume'].get()
+            self.selected_uma_musume.set(selected_uma)
 
-        # Update strategy checkboxes
-        self.update_strategy_checkboxes(selected_uma)
+            for i, card in enumerate(self.support_cards):
+                card.set(self.preset_sets[set_number]['support_cards'][i].get())
+
+            # Load debut style from new preset
+            new_debut = self.preset_sets[set_number].get('debut_style', 'none')
+            print(f"[DEBUG SWITCH] Setting debut_style to: {new_debut}")
+            self.debut_style.set(new_debut)
+            self._update_style_display()
+            print(f"[DEBUG SWITCH] After set, debut_style.get()={self.debut_style.get()}")
+
+            # Load stop conditions from new preset to strategy_tab
+            self._load_stop_conditions_from_preset(set_number)
+
+            # Update UI elements
+            self._update_uma_display()
+            self._update_preset_display()
+
+            # Update stat cap entries to show new preset's values
+            self._update_stat_cap_entries()
+
+            # Update strategy checkboxes
+            self.update_strategy_checkboxes(selected_uma)
+        finally:
+            self._switching_preset = False
+            print(f"[DEBUG SWITCH] _switching_preset = False")
+
+        # Save once with the new preset fully loaded
+        self._safe_save_settings()
+        print(f"[DEBUG SWITCH] === Switch complete ===")
+
+    def _reload_preset_from_file(self, set_number):
+        """Re-read bot_settings.json and update in-memory data for a specific preset"""
+        try:
+            import json
+            if not os.path.exists('bot_settings.json'):
+                return
+            with open('bot_settings.json', 'r') as f:
+                settings = json.load(f)
+
+            event_settings = settings.get('event_choice', {})
+            preset_sets_data = event_settings.get('preset_sets', {})
+            preset_data = preset_sets_data.get(str(set_number), None)
+
+            if not preset_data:
+                print(f"[DEBUG RELOAD] No preset data found for set {set_number} in file")
+                return
+
+            print(f"[DEBUG RELOAD] File data for preset {set_number}: debut_style={preset_data.get('debut_style', 'MISSING')}, stop_conditions={preset_data.get('stop_conditions', 'MISSING')}")
+
+            preset = self.preset_sets[set_number]
+
+            # Update uma_musume
+            preset['uma_musume'].set(preset_data.get('uma_musume', 'None'))
+
+            # Update support cards
+            preset_support_cards = preset_data.get('support_cards', ['None'] * 6)
+            for i, card in enumerate(preset_support_cards[:6]):
+                preset['support_cards'][i].set(card)
+
+            # Update stat caps
+            preset_stat_caps = preset_data.get('stat_caps', self.default_stat_caps)
+            for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
+                cap_value = preset_stat_caps.get(stat_key, self.default_stat_caps.get(stat_key, 1200))
+                preset['stat_caps'][stat_key].set(cap_value)
+
+            # Update debut style
+            preset['debut_style'] = preset_data.get('debut_style', 'none')
+
+            # Update stop conditions
+            preset['stop_conditions'] = dict(
+                preset_data.get('stop_conditions', self.default_stop_conditions)
+            )
+
+            # Update preset name
+            preset_names_data = event_settings.get('preset_names', {})
+            name = preset_names_data.get(str(set_number), None)
+            if name and set_number in self.preset_names:
+                self.preset_names[set_number].set(name)
+
+        except Exception as e:
+            print(f"Warning: Could not reload preset from file: {e}")
+
+    def _save_stop_conditions_to_preset(self, preset_num):
+        """Save current stop conditions from strategy_tab to a preset"""
+        strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+        if not strategy_tab:
+            return
+        sc = {}
+        for key in self.default_stop_conditions:
+            var = getattr(strategy_tab, key, None)
+            if var is not None:
+                sc[key] = var.get()
+        self.preset_sets[preset_num]['stop_conditions'] = sc
+
+    def _load_stop_conditions_from_preset(self, preset_num):
+        """Load stop conditions from a preset to strategy_tab"""
+        strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+        if not strategy_tab:
+            print(f"[DEBUG LOAD_SC] No strategy_tab found!")
+            return
+        sc = self.preset_sets[preset_num].get('stop_conditions', self.default_stop_conditions)
+        print(f"[DEBUG LOAD_SC] Loading stop conditions for preset {preset_num}: {sc}")
+        for key, default_val in self.default_stop_conditions.items():
+            var = getattr(strategy_tab, key, None)
+            if var is not None:
+                var.set(sc.get(key, default_val))
+
+    def _read_stop_conditions_from_strategy_tab(self):
+        """Read current stop conditions values from strategy_tab (without modifying anything)"""
+        strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+        if not strategy_tab:
+            return dict(self.default_stop_conditions)
+        sc = {}
+        for key, default_val in self.default_stop_conditions.items():
+            var = getattr(strategy_tab, key, None)
+            sc[key] = var.get() if var is not None else default_val
+        return sc
 
     def get_uma_musume_list(self):
         """Get list of available Uma Musume"""
@@ -675,13 +908,23 @@ class EventChoiceTab:
         selected_uma = self.selected_uma_musume.get()
         self.update_strategy_checkboxes(selected_uma)
 
-        # Reset debut style to 'none' when Uma Musume changes
-        self.debut_style.set('none')
-        self._update_style_display()
+        # Reset debut style to 'none' when Uma Musume changes (but not during preset switch)
+        switching = getattr(self, '_switching_preset', False)
+        print(f"[DEBUG] on_uma_musume_change: uma={selected_uma}, _switching_preset={switching}")
+        if not switching:
+            self.debut_style.set('none')
+            self._update_style_display()
 
     def get_settings(self):
         """Get current tab settings"""
         current_preset = self.current_set.get()
+
+        # Only sync working values to preset when NOT switching
+        # During switching, preset data is managed by switch_preset_set directly
+        if not getattr(self, '_switching_preset', False):
+            self.preset_sets[current_preset]['debut_style'] = self.debut_style.get()
+            self._save_stop_conditions_to_preset(current_preset)
+
         current_stat_caps = {}
         for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
             current_stat_caps[stat_key] = self.preset_sets[current_preset]['stat_caps'][stat_key].get()
@@ -714,7 +957,9 @@ class EventChoiceTab:
             settings['preset_sets'][set_num] = {
                 'uma_musume': preset['uma_musume'].get(),
                 'support_cards': [card.get() for card in preset['support_cards']],
-                'stat_caps': preset_stat_caps
+                'stat_caps': preset_stat_caps,
+                'debut_style': preset.get('debut_style', 'none'),
+                'stop_conditions': dict(preset.get('stop_conditions', self.default_stop_conditions))
             }
 
         return settings
@@ -763,6 +1008,9 @@ class EventChoiceTab:
                     if set_num in self.preset_names:
                         self.preset_names[set_num].set(name)
 
+            # Build fallback stop conditions from strategy_tab (already loaded from global settings)
+            global_stop_conditions = self._read_stop_conditions_from_strategy_tab()
+
             # Load preset sets
             if 'preset_sets' in settings:
                 for set_num, preset_data in settings['preset_sets'].items():
@@ -777,10 +1025,22 @@ class EventChoiceTab:
                         for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
                             cap_value = preset_stat_caps.get(stat_key, self.default_stat_caps.get(stat_key, 1200))
                             self.preset_sets[set_num]['stat_caps'][stat_key].set(cap_value)
+                        # Load debut style for this preset (fallback: global debut_style)
+                        self.preset_sets[set_num]['debut_style'] = preset_data.get(
+                            'debut_style', self.debut_style.get()
+                        )
+                        # Load stop conditions for this preset (fallback: global stop conditions)
+                        self.preset_sets[set_num]['stop_conditions'] = dict(
+                            preset_data.get('stop_conditions', global_stop_conditions)
+                        )
 
             # Load current set
             if 'current_set' in settings:
                 self.current_set.set(settings['current_set'])
+
+            # Apply current preset's debut style
+            current_preset = self.current_set.get()
+            self.debut_style.set(self.preset_sets[current_preset].get('debut_style', 'none'))
 
             # Update preset display
             self._update_preset_display()
@@ -788,8 +1048,14 @@ class EventChoiceTab:
             # Update Uma Musume display
             self._update_uma_display()
 
+            # Update style display
+            self._update_style_display()
+
             # Update stat cap entries to show current preset's values
             self._update_stat_cap_entries()
+
+            # Load current preset's stop conditions to strategy_tab
+            self._load_stop_conditions_from_preset(current_preset)
 
             # Update strategy checkboxes
             self.update_strategy_checkboxes(self.selected_uma_musume.get())

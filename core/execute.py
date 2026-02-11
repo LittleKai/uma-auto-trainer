@@ -313,7 +313,7 @@ class DecisionEngine:
             return False
 
         time.sleep(0.5)
-        results_training = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
+        results_training, current_stats = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
 
         if self._stopped():
             return False
@@ -322,17 +322,20 @@ class DecisionEngine:
             results_training,
             energy_percentage, energy_max,
             strategy_settings,
-            current_date
+            current_date,
+            current_stats=current_stats
         )
         print(f'best_training: {best_training}')
         return self._handle_training_decision(
             best_training, results_training, energy_percentage,
-            strategy_settings, current_date, race_manager, gui
+            strategy_settings, current_date, race_manager, gui,
+            current_stats=current_stats
         )
 
     def _handle_training_decision(self, best_training: str, results_training: Dict,
                                   energy_percentage: int, strategy_settings: Dict[str, Any],
-                                  current_date: Dict[str, Any], race_manager, gui=None) -> bool:
+                                  current_date: Dict[str, Any], race_manager, gui=None,
+                                  current_stats=None) -> bool:
         """Handle the training decision result - execute training, rest, or race"""
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
@@ -346,7 +349,8 @@ class DecisionEngine:
         # best_training is None or STRATEGY_NOT_MET - no suitable training found
         return self._handle_no_suitable_training(
             results_training, energy_percentage, strategy_settings,
-            current_date, race_manager, gui
+            current_date, race_manager, gui,
+            current_stats=current_stats
         )
 
     def _execute_selected_training(self, best_training: str) -> bool:
@@ -382,7 +386,7 @@ class DecisionEngine:
 
     def _handle_no_suitable_training(self, results_training: Dict, energy_percentage: int,
                                      strategy_settings: Dict[str, Any], current_date: Dict[str, Any],
-                                     race_manager, gui=None) -> bool:
+                                     race_manager, gui=None, current_stats=None) -> bool:
         """Handle when no suitable training found - check race first, then fallback training or rest"""
         is_pre_debut = current_date and current_date.get('absolute_day', 0) <= 16
         priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
@@ -419,7 +423,7 @@ class DecisionEngine:
 
         # Try fallback training if we have normal energy and no race (or race failed)
         if energy_percentage >= MINIMUM_ENERGY_PERCENTAGE and results_training:
-            fallback_result = fallback_training(results_training, current_date)
+            fallback_result = fallback_training(results_training, current_date, current_stats=current_stats)
             if fallback_result:
                 best_key, score_info = fallback_result
                 return self._navigate_and_train(best_key, "Fallback Training")
@@ -602,7 +606,7 @@ class DecisionEngine:
         if self._stopped():
             return False
 
-        results_training = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
+        results_training, _ = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
 
         if self._stopped():
             return False

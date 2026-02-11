@@ -34,32 +34,32 @@
     "auto_first_choice": false,
     "uma_musume": "Sakura Bakushin O",
     "support_cards": [
-      "spd: Kitasan Black",
       "spd: King Halo",
-      "wit: Fuji Kiseki",
+      "spd: Kitasan Black",
       "wit: Daiwa Scarlet",
       "wit: Fine Motion",
+      "wit: Mihono Bourbon",
       "wit: Marvelous Sunday"
     ],
     "unknown_event_action": "Search in other special events",
     "current_set": 11,
     "stat_caps": {
-      "spd": 1130,
-      "sta": 400,
-      "pwr": 1080,
-      "guts": 1100,
-      "wit": 1130
+      "spd": 1200,
+      "sta": 450,
+      "pwr": 1200,
+      "guts": 1200,
+      "wit": 1200
     },
     "debut_style": {
-      "style": "None"
+      "style": "none"
     },
     "preset_names": {
       "1": "FRONT POWER",
       "2": "PACE POWER",
       "3": "LATE POWER",
       "4": "END POWER",
-      "5": "LATE GUTS",
-      "6": "Pace Guts",
+      "5": "Pace Guts",
+      "6": "LATE GUTS",
       "7": "Preset 7",
       "8": "Preset 8",
       "9": "Front Wit 2",
@@ -87,11 +87,25 @@
           "pow: Vodka"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GOOD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
         }
       },
       "2": {
@@ -105,11 +119,25 @@
           "pow: El Condor Pasa"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "3": {
@@ -123,11 +151,25 @@
           "pow: Winning Ticket"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "4": {
@@ -141,32 +183,28 @@
           "frd: Tazuna Hayakawa"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "None",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GREAT",
+          "stop_before_summer": true,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
         }
       },
       "5": {
-        "uma_musume": "King Halo",
-        "support_cards": [
-          "spd: Kitasan Black",
-          "spd: Eishin Flash",
-          "gut: Haru Urara",
-          "frd: Riko Kashimoto",
-          "gut: Seeking the Pearl",
-          "gut: Special Week"
-        ],
-        "stat_caps": {
-          "spd": 1130,
-          "sta": 500,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
-        }
-      },
-      "6": {
         "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
           "spd: Kitasan Black",
@@ -177,11 +215,57 @@
           "gut: Special Week"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "None",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GREAT",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
+        }
+      },
+      "6": {
+        "uma_musume": "King Halo",
+        "support_cards": [
+          "spd: Eishin Flash",
+          "spd: Kitasan Black",
+          "gut: Haru Urara",
+          "gut: Seeking the Pearl",
+          "gut: Special Week",
+          "frd: Riko Kashimoto"
+        ],
+        "stat_caps": {
+          "spd": 1200,
+          "sta": 650,
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "late",
+        "stop_conditions": {
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GREAT",
+          "stop_before_summer": true,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
         }
       },
       "7": {
@@ -195,11 +279,25 @@
           "pow: Smart Falcon"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "8": {
@@ -213,11 +311,25 @@
           "pow: Rice Shower"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "9": {
@@ -231,11 +343,25 @@
           "wit: Fuji Kiseki"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "10": {
@@ -249,47 +375,89 @@
           "wit: Curren Chan"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 500,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "front",
+        "stop_conditions": {
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GOOD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
         }
       },
       "11": {
         "uma_musume": "Sakura Bakushin O",
         "support_cards": [
-          "spd: Kitasan Black",
           "spd: King Halo",
-          "wit: Fuji Kiseki",
+          "spd: Kitasan Black",
           "wit: Daiwa Scarlet",
           "wit: Fine Motion",
+          "wit: Mihono Bourbon",
           "wit: Marvelous Sunday"
         ],
         "stat_caps": {
-          "spd": 1130,
-          "sta": 400,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "spd": 1200,
+          "sta": 450,
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GOOD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
         }
       },
       "12": {
         "uma_musume": "Agnes Digital",
         "support_cards": [
           "spd: Kitasan Black",
-          "wit: Nice Nature",
           "pow: Winning Ticket",
           "wit: Marvelous Sunday",
           "wit: Matikanefukukitaru",
+          "wit: Nice Nature",
           "frd: Riko Kashimoto"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "13": {
@@ -303,11 +471,25 @@
           "None"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "14": {
@@ -321,11 +503,25 @@
           "None"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "15": {
@@ -339,11 +535,25 @@
           "None"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "16": {
@@ -357,11 +567,25 @@
           "frd: Tazuna Hayakawa"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "17": {
@@ -375,11 +599,25 @@
           "frd: Riko Kashimoto"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "18": {
@@ -393,11 +631,25 @@
           "pow: Vodka"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "19": {
@@ -411,11 +663,25 @@
           "pow: Marvelous Sunday"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       },
       "20": {
@@ -429,11 +695,25 @@
           "sta: Mejiro McQueen"
         ],
         "stat_caps": {
-          "spd": 1130,
+          "spd": 1200,
           "sta": 1100,
-          "pwr": 1080,
-          "guts": 1100,
-          "wit": 1130
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": false,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "BAD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": false
         }
       }
     }
@@ -447,10 +727,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 680,
-    "height": 850,
-    "x": 982,
-    "y": 0
+    "width": 791,
+    "height": 980,
+    "x": 1081,
+    "y": 6
   },
   "scenario": "Unity Cup"
 }

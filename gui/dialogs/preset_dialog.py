@@ -32,6 +32,7 @@ class PresetDialog:
         self.current_set = current_set
         self.callback = callback
         self.selected_preset = None
+        self._swaps_performed = False
 
         # Create dialog window
         self.window = tk.Toplevel(parent)
@@ -109,6 +110,9 @@ class PresetDialog:
         # Populate presets
         self._populate_presets()
 
+        # Scroll to current preset after layout is ready
+        self.window.after(50, self._scroll_to_current_preset)
+
         # Button frame
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(fill=tk.X)
@@ -169,8 +173,46 @@ class PresetDialog:
             cursor="hand2"
         )
 
+        # Content area (left) + Move buttons (right)
+        content_frame = tk.Frame(frame, bg=frame.cget('bg'))
+        content_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Move buttons frame (right side, vertically centered)
+        move_frame = tk.Frame(frame, bg=frame.cget('bg'))
+        move_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 6), pady=6)
+
+        # Up arrow button
+        up_btn = tk.Label(
+            move_frame,
+            text="\u25B2",
+            font=("Arial", 9),
+            fg="#888888",
+            bg=frame.cget('bg'),
+            cursor="hand2",
+            padx=4
+        )
+        up_btn.pack(side=tk.TOP, pady=(0, 2))
+        up_btn.bind('<Button-1>', lambda e, pn=preset_num: self._move_preset_up_by_num(pn))
+        up_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#0066CC"))
+        up_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#888888"))
+
+        # Down arrow button
+        down_btn = tk.Label(
+            move_frame,
+            text="\u25BC",
+            font=("Arial", 9),
+            fg="#888888",
+            bg=frame.cget('bg'),
+            cursor="hand2",
+            padx=4
+        )
+        down_btn.pack(side=tk.TOP)
+        down_btn.bind('<Button-1>', lambda e, pn=preset_num: self._move_preset_down_by_num(pn))
+        down_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#0066CC"))
+        down_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#888888"))
+
         # Header row: preset number + name entry + edit indicator
-        header_frame = tk.Frame(frame, bg=frame.cget('bg'))
+        header_frame = tk.Frame(content_frame, bg=frame.cget('bg'))
         header_frame.pack(fill=tk.X, padx=8, pady=(8, 4))
 
         # Preset number label
@@ -207,7 +249,7 @@ class PresetDialog:
             current_label.pack(side=tk.LEFT)
 
         # Info row: Uma Musume + Support Cards summary
-        info_frame = tk.Frame(frame, bg=frame.cget('bg'))
+        info_frame = tk.Frame(content_frame, bg=frame.cget('bg'))
         info_frame.pack(fill=tk.X, padx=8, pady=(0, 4))
 
         # Uma Musume
@@ -235,7 +277,7 @@ class PresetDialog:
             cards_label.pack(side=tk.LEFT)
 
         # Stat caps row
-        caps_frame = tk.Frame(frame, bg=frame.cget('bg'))
+        caps_frame = tk.Frame(content_frame, bg=frame.cget('bg'))
         caps_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
 
         caps_text = self._get_stat_caps_summary(preset_data['stat_caps'])
@@ -249,7 +291,9 @@ class PresetDialog:
         caps_label.pack(side=tk.LEFT)
 
         # Bind click events to select this preset
-        for widget in [frame, header_frame, info_frame, caps_frame, num_label, uma_label]:
+        clickable_widgets = [frame, content_frame, header_frame, info_frame,
+                             caps_frame, num_label, uma_label]
+        for widget in clickable_widgets:
             widget.bind('<Button-1>', lambda e, pn=preset_num: self._select_preset(pn))
             widget.bind('<Double-Button-1>', lambda e, pn=preset_num: self._double_click_preset(pn))
 
@@ -296,6 +340,16 @@ class PresetDialog:
 
         return " | ".join(parts)
 
+    def _set_frame_bg(self, widget, bg):
+        """Recursively set background color for a widget and its children"""
+        if isinstance(widget, (tk.Frame, tk.Label)):
+            try:
+                widget.configure(bg=bg)
+            except tk.TclError:
+                pass
+        for child in widget.winfo_children():
+            self._set_frame_bg(child, bg)
+
     def _select_preset(self, preset_num):
         """Handle preset selection (single click)"""
         self.selected_preset = preset_num
@@ -304,22 +358,12 @@ class PresetDialog:
         for pn, frame in self.preset_frames.items():
             if pn == preset_num:
                 frame.configure(bg="#d0e0ff", relief=tk.RAISED)
-                for child in frame.winfo_children():
-                    if isinstance(child, tk.Frame):
-                        child.configure(bg="#d0e0ff")
-                        for subchild in child.winfo_children():
-                            if isinstance(subchild, tk.Label):
-                                subchild.configure(bg="#d0e0ff")
+                self._set_frame_bg(frame, "#d0e0ff")
             else:
                 is_current = pn == self.current_set
                 bg = "#e6f0ff" if is_current else "#f8f8f8"
                 frame.configure(bg=bg, relief=tk.RAISED if is_current else tk.GROOVE)
-                for child in frame.winfo_children():
-                    if isinstance(child, tk.Frame):
-                        child.configure(bg=bg)
-                        for subchild in child.winfo_children():
-                            if isinstance(subchild, tk.Label):
-                                subchild.configure(bg=bg)
+                self._set_frame_bg(frame, bg)
 
     def _double_click_preset(self, preset_num):
         """Handle preset double-click (select and close)"""
@@ -330,6 +374,103 @@ class PresetDialog:
         """Handle search text change"""
         search_text = self.search_var.get()
         self._populate_presets(search_text)
+
+    def _move_preset_up_by_num(self, preset_num):
+        """Move a preset up one position"""
+        if preset_num <= 1:
+            return
+        self._swap_presets(preset_num, preset_num - 1)
+        # Update current_set if it was involved in the swap
+        if self.current_set == preset_num:
+            self.current_set = preset_num - 1
+        elif self.current_set == preset_num - 1:
+            self.current_set = preset_num
+        # Track selection to the moved preset
+        self.selected_preset = preset_num - 1
+        self._populate_presets(self.search_var.get())
+        self._select_preset(self.selected_preset)
+        self._scroll_to_preset(self.selected_preset)
+
+    def _move_preset_down_by_num(self, preset_num):
+        """Move a preset down one position"""
+        if preset_num >= 20:
+            return
+        self._swap_presets(preset_num, preset_num + 1)
+        # Update current_set if it was involved in the swap
+        if self.current_set == preset_num:
+            self.current_set = preset_num + 1
+        elif self.current_set == preset_num + 1:
+            self.current_set = preset_num
+        # Track selection to the moved preset
+        self.selected_preset = preset_num + 1
+        self._populate_presets(self.search_var.get())
+        self._select_preset(self.selected_preset)
+        self._scroll_to_preset(self.selected_preset)
+
+    def _swap_presets(self, num_a, num_b):
+        """Swap all data between two preset positions"""
+        self._swaps_performed = True
+
+        # Swap preset names
+        name_a = self.preset_names[num_a].get()
+        name_b = self.preset_names[num_b].get()
+        self.preset_names[num_a].set(name_b)
+        self.preset_names[num_b].set(name_a)
+
+        # Swap preset data (uma_musume, support_cards, stat_caps, debut_style, stop_conditions)
+        preset_a = self.preset_sets[num_a]
+        preset_b = self.preset_sets[num_b]
+
+        # Swap uma_musume
+        uma_a = preset_a['uma_musume'].get()
+        uma_b = preset_b['uma_musume'].get()
+        preset_a['uma_musume'].set(uma_b)
+        preset_b['uma_musume'].set(uma_a)
+
+        # Swap support_cards
+        for i in range(len(preset_a['support_cards'])):
+            card_a = preset_a['support_cards'][i].get()
+            card_b = preset_b['support_cards'][i].get()
+            preset_a['support_cards'][i].set(card_b)
+            preset_b['support_cards'][i].set(card_a)
+
+        # Swap stat_caps
+        for stat_key in preset_a['stat_caps']:
+            cap_a = preset_a['stat_caps'][stat_key].get()
+            cap_b = preset_b['stat_caps'][stat_key].get()
+            preset_a['stat_caps'][stat_key].set(cap_b)
+            preset_b['stat_caps'][stat_key].set(cap_a)
+
+        # Swap debut_style
+        style_a = preset_a.get('debut_style', 'none')
+        style_b = preset_b.get('debut_style', 'none')
+        preset_a['debut_style'] = style_b
+        preset_b['debut_style'] = style_a
+
+        # Swap stop_conditions
+        sc_a = dict(preset_a.get('stop_conditions', {}))
+        sc_b = dict(preset_b.get('stop_conditions', {}))
+        preset_a['stop_conditions'] = sc_b
+        preset_b['stop_conditions'] = sc_a
+
+    def _scroll_to_preset(self, preset_num):
+        """Scroll to make a specific preset visible"""
+        if preset_num not in self.preset_frames:
+            return
+
+        self.canvas.update_idletasks()
+        frame = self.preset_frames[preset_num]
+        frame_y = frame.winfo_y()
+        frame_height = frame.winfo_height()
+        canvas_height = self.canvas.winfo_height()
+        scroll_height = self.scrollable_frame.winfo_height()
+
+        if scroll_height <= canvas_height:
+            return
+
+        target_y = frame_y - (canvas_height - frame_height) // 2
+        target_y = max(0, min(target_y, scroll_height - canvas_height))
+        self.canvas.yview_moveto(target_y / scroll_height)
 
     def _on_select(self):
         """Handle select button"""
@@ -351,9 +492,35 @@ class PresetDialog:
 
     def _on_cancel(self):
         """Handle cancel"""
+        # If presets were reordered, notify parent to save and refresh
+        if self._swaps_performed and self.callback:
+            self.callback(self.current_set)
+
         # Unbind mousewheel before destroying
         self.canvas.unbind_all("<MouseWheel>")
         self.window.destroy()
+
+    def _scroll_to_current_preset(self):
+        """Scroll to make the current preset visible"""
+        if self.current_set not in self.preset_frames:
+            return
+
+        frame = self.preset_frames[self.current_set]
+        self.canvas.update_idletasks()
+
+        # Get frame position relative to scrollable area
+        frame_y = frame.winfo_y()
+        frame_height = frame.winfo_height()
+        canvas_height = self.canvas.winfo_height()
+        scroll_height = self.scrollable_frame.winfo_height()
+
+        if scroll_height <= canvas_height:
+            return
+
+        # Center the current preset in the visible area
+        target_y = frame_y - (canvas_height - frame_height) // 2
+        target_y = max(0, min(target_y, scroll_height - canvas_height))
+        self.canvas.yview_moveto(target_y / scroll_height)
 
     def _center_window(self):
         """Center window on parent"""

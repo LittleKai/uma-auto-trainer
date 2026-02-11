@@ -9,7 +9,7 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 35,
+  "stat_cap_threshold_day": 32,
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,
@@ -72,8 +72,14 @@
     },
     "stat_cap_penalty": {
       "enabled": true,
-      "max_penalty_percent": 40,
-      "start_penalty_percent": 50
+      "max_penalty_percent": 50,
+      "start_penalty_percent": 50,
+      "start_penalty_gap": 300,
+      "day_cap_adjustments": {
+        "day_75": 30,
+        "day_74": 45,
+        "day_73_and_below": 60
+      }
     }
   }
 }

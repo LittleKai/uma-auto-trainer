@@ -362,7 +362,7 @@ class RaceHandler:
                 return False
 
             if not find_and_click(
-                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=2,
+                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=1,
                     check_stop_func=self.check_stop):
                 break
 
@@ -380,21 +380,21 @@ class RaceHandler:
         if is_pre_debut and style_settings and style_settings.get('style', 'none') != 'none':
             target_style = style_settings.get('style')
             self.log(f"Pre-debut race - selecting style: {target_style}")
-
+            time.sleep(1.0)
             # Click style_selection button first
-            if find_and_click(f"{STYLE_ASSETS_FOLDER}/style_selection.png", max_attempts=3, delay_between=2,
+            if find_and_click(f"{STYLE_ASSETS_FOLDER}/style_selection.png", max_attempts=3, delay_between=1,
                               check_stop_func=self.check_stop):
                 time.sleep(0.5)
                 # Click target style button
-                if find_and_click(f"{STYLE_ASSETS_FOLDER}/{target_style}.png", max_attempts=3, delay_between=2,
+                if find_and_click(f"{STYLE_ASSETS_FOLDER}/{target_style}.png", max_attempts=3, delay_between=1,
                                   check_stop_func=self.check_stop):
                     # Click confirm button
-                    find_and_click(f"{STYLE_ASSETS_FOLDER}/confirm.png", max_attempts=3, delay_between=2,
+                    find_and_click(f"{STYLE_ASSETS_FOLDER}/confirm.png", max_attempts=3, delay_between=1,
                                    check_stop_func=self.check_stop)
 
         # Wait for view results button (race animation takes time)
         view_result = find_and_click(
-            "assets/buttons/view_results.png", max_attempts=10, delay_between=2,
+            "assets/buttons/view_results.png", max_attempts=10, delay_between=1,
             check_stop_func=self.check_stop)
 
         if view_result:
@@ -466,7 +466,7 @@ class RaceHandler:
             race_day_btn = "assets/buttons/race_day_btn.png"
 
         if not find_and_click(
-                race_day_btn, max_attempts=3, delay_between=2,
+                race_day_btn, max_attempts=3, delay_between=1,
                 check_stop_func=self.check_stop):
             return False
 
@@ -474,7 +474,7 @@ class RaceHandler:
             return False
 
         find_and_click(
-            "assets/buttons/ok_btn.png", max_attempts=3, delay_between=2,
+            "assets/buttons/ok_btn.png", max_attempts=3, delay_between=1,
             check_stop_func=self.check_stop)
 
         for i in range(2):
@@ -482,7 +482,7 @@ class RaceHandler:
                 return False
 
             if not find_and_click(
-                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=2,
+                    "assets/buttons/race_btn.png", max_attempts=3, delay_between=1,
                     check_stop_func=self.check_stop):
                 break
 

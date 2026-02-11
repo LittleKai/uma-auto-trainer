@@ -14,6 +14,7 @@ from gui.utils.game_window_monitor import GameWindowMonitor
 
 from core.execute import set_log_callback
 from core.race_manager import RaceManager
+from version import APP_VERSION
 
 
 class UmaAutoGUI:
@@ -21,7 +22,7 @@ class UmaAutoGUI:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Uma Musume Auto Train - Developed by LittleKai!")
+        self.root.title(f"Uma Musume Auto Train v{APP_VERSION} - Developed by LittleKai!")
 
         from utils.constants import load_scenario_from_settings
         load_scenario_from_settings()
@@ -49,6 +50,9 @@ class UmaAutoGUI:
         # Setup events and monitoring
         self.setup_events()
         self.start_monitoring()
+
+        # Auto-check for updates after 2 seconds
+        self.root.after(2000, self._check_for_updates)
 
     def init_variables(self):
         """Initialize all GUI variables"""
@@ -128,9 +132,16 @@ class UmaAutoGUI:
                                 font=("Arial", 14, "bold"))
         title_label.pack(anchor=tk.W)
 
+        version_label = ttk.Label(title_container, text=f"v{APP_VERSION}",
+                                  font=("Arial", 9), foreground="#888888")
+        version_label.pack(anchor=tk.W)
+
         # Settings buttons container
         settings_container = ttk.Frame(header_frame)
         settings_container.pack(side=tk.RIGHT)
+
+        ttk.Button(settings_container, text="Check Update",
+                   command=self._manual_check_update).pack(side=tk.LEFT, padx=(0, 5))
 
         ttk.Button(settings_container, text="⚙ Config",
                    command=self.open_config_settings).pack(side=tk.LEFT, padx=(0, 5))
@@ -408,6 +419,38 @@ class UmaAutoGUI:
 
         except Exception as e:
             print(f"Warning: Could not update strategy filters: {e}")
+
+    def _check_for_updates(self):
+        """Auto-check for updates in background thread"""
+        def check_thread():
+            from core.updater import check_for_update
+            result = check_for_update()
+            if result.get("has_update"):
+                self.root.after(0, self._show_update_dialog, result)
+
+        thread = threading.Thread(target=check_thread, daemon=True)
+        thread.start()
+
+    def _manual_check_update(self):
+        """Manual check for updates triggered by button click"""
+        def check_thread():
+            from core.updater import check_for_update
+            result = check_for_update()
+            if result.get("has_update"):
+                self.root.after(0, self._show_update_dialog, result)
+            else:
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "No Update",
+                    f"You are running the latest version (v{APP_VERSION})."
+                ))
+
+        thread = threading.Thread(target=check_thread, daemon=True)
+        thread.start()
+
+    def _show_update_dialog(self, update_info):
+        """Show the update dialog"""
+        from gui.dialogs.update_dialog import UpdateDialog
+        UpdateDialog(self.root, update_info)
 
     def run(self):
         """Start the GUI application"""

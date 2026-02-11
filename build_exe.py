@@ -9,6 +9,7 @@ import sys
 import os
 import shutil
 import json
+import zipfile
 from pathlib import Path
 
 class Colors:
@@ -435,6 +436,40 @@ def create_distribution_package():
         print_error(f"Failed to create distribution package: {e}")
         return False
 
+def create_release_zip():
+    """Create a release zip file from the distribution package"""
+    print_header("Creating Release Zip")
+
+    from version import APP_VERSION
+
+    output_dir = get_output_dir()
+    if not output_dir.exists():
+        print_error("Distribution package not found. Cannot create zip.")
+        return False
+
+    zip_name = f"Uma_Musume_Auto_Train_v{APP_VERSION}.zip"
+    zip_path = output_dir.parent / zip_name
+
+    try:
+        with zipfile.ZipFile(str(zip_path), "w", zipfile.ZIP_DEFLATED) as zf:
+            for root, dirs, files in os.walk(str(output_dir)):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.join(
+                        output_dir.name,
+                        os.path.relpath(file_path, str(output_dir))
+                    )
+                    zf.write(file_path, arcname)
+
+        print_success(f"Created release zip: {zip_path}")
+        print_info(f"Size: {zip_path.stat().st_size / (1024*1024):.1f} MB")
+        return True
+
+    except Exception as e:
+        print_error(f"Failed to create release zip: {e}")
+        return False
+
+
 def cleanup_build_files():
     """Clean up build artifacts including spec files automatically"""
     print_header("Cleaning Up Build Files")
@@ -477,7 +512,8 @@ def main():
         ("Default Config", create_default_config),
         ("Spec File", create_spec_file),
         ("Executable", build_executable),
-        ("Distribution Package", create_distribution_package)
+        ("Distribution Package", create_distribution_package),
+        ("Release Zip", create_release_zip)
     ]
 
     failed_steps = []
@@ -509,8 +545,15 @@ def main():
         print_info("  - config.json, bot_settings.json")
         print_info("  - README.txt (user instructions)")
 
+        from version import APP_VERSION
+        zip_name = f"Uma_Musume_Auto_Train_v{APP_VERSION}.zip"
+        zip_path = output_dir.parent / zip_name
+
         print_colored("\n🚀 How to Distribute:", Colors.BOLD)
-        print_info(f"1. Zip the '{output_dir.name}' folder")
+        if zip_path.exists():
+            print_info(f"1. Upload '{zip_name}' to GitHub Releases")
+        else:
+            print_info(f"1. Zip the '{output_dir.name}' folder")
         print_info("2. Send the zip file to users")
         print_info("3. Users extract and run Uma_Musume_Auto_Train.exe")
         print_info("4. Users need to install Tesseract OCR separately")

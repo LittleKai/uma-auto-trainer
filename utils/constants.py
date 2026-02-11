@@ -258,11 +258,11 @@ SCENARIO_NAME = "URA Final"  # Default value
 
 # Default stat caps
 DEFAULT_STAT_CAPS = {
-    "spd": 1130,
+    "spd": 1200,
     "sta": 1100,
-    "pwr": 1080,
-    "guts": 1100,
-    "wit": 1130
+    "pwr": 1200,
+    "guts": 1200,
+    "wit": 1200
 }
 
 # Current deck information (set from GUI presets)

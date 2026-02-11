@@ -2,9 +2,30 @@ import json
 
 from core.state import check_current_year, stat_state
 
-with open("config.json", "r", encoding="utf-8") as file:
-  config = json.load(file)
+# Global config cache
+_config_cache = None
 
+def _load_config():
+  """Load config from file"""
+  with open("config.json", "r", encoding="utf-8") as file:
+    return json.load(file)
+
+def get_config():
+  """Get current config, loading from file if not cached"""
+  global _config_cache
+  if _config_cache is None:
+    _config_cache = _load_config()
+  return _config_cache
+
+def reload_config():
+  """Reload config from file - call this after config changes"""
+  global _config_cache
+  _config_cache = _load_config()
+  print("[CONFIG] Configuration reloaded from file")
+  return _config_cache
+
+# Legacy support - these will be updated on reload
+config = _load_config()
 PRIORITY_STAT = config["priority_stat"]
 MINIMUM_ENERGY_PERCENTAGE = config["minimum_energy_percentage"]
 CRITICAL_ENERGY_PERCENTAGE = config["critical_energy_percentage"]
@@ -29,30 +50,52 @@ def get_stat_caps():
     except Exception as e:
         print(f"[STAT CAPS] Error getting stat caps: {e}")
         return {
-            "spd": 1130,
+            "spd": 1200,
             "sta": 1100,
-            "pwr": 1080,
-            "guts": 1100,
-            "wit": 1130
+            "pwr": 1200,
+            "guts": 1200,
+            "wit": 1200
         }
 
 
 
-# Load scoring configuration
+# Load scoring configuration (initial)
 SCORING_CONFIG = config.get("scoring_config", {})
 
-# Career Stage Constants
+# Career Stage Constants (will be updated on reload)
 PRE_DEBUT_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("pre_debut", 16)
 EARLY_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("early_stage", 24)
 MID_STAGE_THRESHOLD = SCORING_CONFIG.get("stage_thresholds", {}).get("mid_stage", 48)
 
 def get_scoring_config():
-  """Get scoring configuration from config file"""
-  return SCORING_CONFIG
+  """Get scoring configuration from current config (supports hot reload)"""
+  return get_config().get("scoring_config", {})
+
+def get_priority_stat():
+  """Get priority stat list from current config"""
+  return get_config().get("priority_stat", ["spd", "pwr", "sta", "wit", "guts"])
+
+def get_minimum_energy():
+  """Get minimum energy percentage from current config"""
+  return get_config().get("minimum_energy_percentage", 43)
+
+def get_critical_energy():
+  """Get critical energy percentage from current config"""
+  return get_config().get("critical_energy_percentage", 20)
+
+def get_stage_thresholds():
+  """Get stage thresholds from current config"""
+  scoring = get_scoring_config()
+  thresholds = scoring.get("stage_thresholds", {})
+  return {
+    'pre_debut': thresholds.get("pre_debut", 16),
+    'early_stage': thresholds.get("early_stage", 24),
+    'mid_stage': thresholds.get("mid_stage", 48)
+  }
 
 def get_hint_score_value(absolute_day):
-  """Get hint score value based on day"""
-  hint_config = SCORING_CONFIG.get("hint_score", {})
+  """Get hint score value based on day (supports hot reload)"""
+  hint_config = get_scoring_config().get("hint_score", {})
   day_threshold = hint_config.get("day_threshold", 24)
   early_score = hint_config.get("early_stage", 1.0)
   late_score = hint_config.get("late_stage", 0.5)
@@ -61,17 +104,17 @@ def get_hint_score_value(absolute_day):
 
 def get_npc_score_value():
   """Get NPC base score value"""
-  npc_config = SCORING_CONFIG.get("npc_score", {})
+  npc_config = get_scoring_config().get("npc_score", {})
   return npc_config.get("base_value", 0.5)
 
 def get_support_base_score():
   """Get support card base score value"""
-  support_config = SCORING_CONFIG.get("support_score", {})
+  support_config = get_scoring_config().get("support_score", {})
   return support_config.get("base_value", 1.0)
 
 def get_friend_multiplier(training_type=None, current_date=None):
   """Get friend card score multiplier based on training type and stage"""
-  support_config = SCORING_CONFIG.get("support_score", {})
+  support_config = get_scoring_config().get("support_score", {})
   friend_config = support_config.get("friend_multiplier", {})
 
   # If friend_multiplier is not a dict (old config format), return it directly
@@ -82,7 +125,8 @@ def get_friend_multiplier(training_type=None, current_date=None):
   is_early_stage = False
   if current_date:
     absolute_day = current_date.get('absolute_day', 0)
-    is_early_stage = absolute_day < EARLY_STAGE_THRESHOLD
+    thresholds = get_stage_thresholds()
+    is_early_stage = absolute_day < thresholds['early_stage']
 
   # Special handling for WIT training - always 0.5 regardless of stage
   if training_type == "wit":
@@ -97,14 +141,14 @@ def get_friend_multiplier(training_type=None, current_date=None):
 
 def get_rainbow_multiplier(stage):
   """Get rainbow card multiplier based on stage"""
-  support_config = SCORING_CONFIG.get("support_score", {})
+  support_config = get_scoring_config().get("support_score", {})
   rainbow_config = support_config.get("rainbow_multiplier", {})
 
   return rainbow_config.get(stage, 1.0)
 
 def get_wit_score_requirement(energy_type, training_day):
   """Get WIT training score requirement"""
-  wit_config = SCORING_CONFIG.get("wit_training", {})
+  wit_config = get_scoring_config().get("wit_training", {})
   requirement_stages = wit_config.get(f"{energy_type}_score_requirement", {}).get("stages", [])
 
   # Find the appropriate score based on training day
@@ -118,7 +162,7 @@ def get_wit_score_requirement(energy_type, training_day):
 
 def get_wit_early_stage_bonus():
   """Get WIT early stage bonus value from configuration"""
-  wit_config = SCORING_CONFIG.get("wit_training", {})
+  wit_config = get_scoring_config().get("wit_training", {})
   return wit_config.get("early_stage_bonus", 0.25)
 
 def get_energy_restriction_config():
@@ -134,11 +178,69 @@ def get_stat_cap_penalty_config():
   """Get stat cap penalty configuration"""
   scoring_config = get_scoring_config()
   penalty_config = scoring_config.get("stat_cap_penalty", {})
+  day_adjustments = penalty_config.get("day_cap_adjustments", {})
   return {
     'enabled': penalty_config.get("enabled", True),
     'max_penalty_percent': penalty_config.get("max_penalty_percent", 40),
-    'start_penalty_percent': penalty_config.get("start_penalty_percent", 80)
+    'start_penalty_percent': penalty_config.get("start_penalty_percent", 80),
+    'start_penalty_gap': penalty_config.get("start_penalty_gap", 200),
+    'day_75_adjustment': day_adjustments.get("day_75", 30),
+    'day_74_adjustment': day_adjustments.get("day_74", 45),
+    'day_73_and_below_adjustment': day_adjustments.get("day_73_and_below", 60)
   }
+
+
+def get_effective_stat_cap(base_cap, absolute_day, penalty_config=None):
+  """
+  Calculate effective stat cap based on current day.
+
+  Day-based adjustments:
+  - Day 75: base_cap - 30
+  - Day 74: base_cap - 45
+  - Day <= 73: base_cap - 60
+
+  Args:
+    base_cap: The configured stat cap
+    absolute_day: Current day in the career (1-75)
+    penalty_config: Optional penalty config dict (will fetch if not provided)
+
+  Returns:
+    Effective stat cap after day adjustment
+  """
+  if penalty_config is None:
+    penalty_config = get_stat_cap_penalty_config()
+
+  if absolute_day >= 75:
+    adjustment = penalty_config.get('day_75_adjustment', 30)
+  elif absolute_day == 74:
+    adjustment = penalty_config.get('day_74_adjustment', 45)
+  else:  # day <= 73
+    adjustment = penalty_config.get('day_73_and_below_adjustment', 60)
+
+  return base_cap - adjustment
+
+
+def get_all_effective_stat_caps(absolute_day, penalty_config=None):
+  """
+  Get all effective stat caps for the current day.
+
+  Args:
+    absolute_day: Current day in the career (1-75)
+    penalty_config: Optional penalty config dict
+
+  Returns:
+    Dictionary of effective stat caps {spd, sta, pwr, guts, wit}
+  """
+  if penalty_config is None:
+    penalty_config = get_stat_cap_penalty_config()
+
+  base_caps = get_stat_caps()
+  effective_caps = {}
+
+  for stat, base_cap in base_caps.items():
+    effective_caps[stat] = get_effective_stat_cap(base_cap, absolute_day, penalty_config)
+
+  return effective_caps
 
 # Secondary stat gains from training
 # Training stat X also gives a % of gains to stat Y
@@ -146,47 +248,61 @@ TRAINING_SECONDARY_STATS = {
   'spd':  [('pwr', 0.3)],
   'sta':  [('guts', 0.3)],
   'pwr':  [('sta', 0.3)],
-  'guts': [('spd', 0.3), ('pwr', 0.3)],
+  'guts': [('spd', 0.2), ('pwr', 0.2)],
   'wit':  [('spd', 0.15)],
 }
 
-def _calculate_single_stat_penalty(current_stat, stat_cap, absolute_day, stat_cap_threshold_day, penalty_config):
+def _calculate_single_stat_penalty(current_stat, effective_cap, penalty_config):
   """
-  Calculate penalty percentage for a single stat approaching its target.
+  Calculate penalty percentage for a single stat approaching its effective cap.
 
-  - fill_factor: how close stat is to target (0 at start_penalty_percent, 1 at 100%)
-  - time_factor: tapers off in the last 5 days (full penalty before that)
+  Uses hybrid trigger: penalty starts when EITHER condition is met:
+  - Stat reaches start_penalty_percent of effective cap (e.g., 80%)
+  - Stat is within start_penalty_gap of effective cap (e.g., 200 points)
+
+  Formula:
+  1. trigger_by_percent = effective_cap * (start_penalty_percent / 100)
+  2. trigger_by_gap = effective_cap - start_penalty_gap
+  3. actual_trigger = MIN(trigger_by_percent, trigger_by_gap)
+  4. fill_factor = (current_stat - actual_trigger) / (effective_cap - actual_trigger)
+  5. penalty = fill_factor² * max_penalty_percent
+
+  Args:
+    current_stat: Current stat value
+    effective_cap: Effective stat cap (already adjusted for day)
+    penalty_config: Penalty configuration dict
 
   Returns: penalty_percent (0 to max_penalty_percent)
   """
   max_penalty_percent = penalty_config['max_penalty_percent']
   start_penalty_percent = penalty_config['start_penalty_percent']
+  start_penalty_gap = penalty_config['start_penalty_gap']
 
-  # Time factor: full penalty until last 5 days, then taper off
-  # Day 73 (0 remaining) = 0, Day 72 (1) = 0.2, ... Day 68+ (5+) = 1.0
-  max_day = 76
-  taper_days = 5
-  remaining_days = max(0, max_day - absolute_day)
-  if remaining_days == 0:
-    return 0.0
-  time_factor = min(remaining_days, taper_days) / taper_days
+  # If already at or above effective cap, return max penalty
+  if current_stat >= effective_cap:
+    return max_penalty_percent
 
-  # If already at or above target, penalty scaled by time
-  if current_stat >= stat_cap:
-    return max_penalty_percent * time_factor
+  # Calculate both trigger points
+  trigger_by_percent = effective_cap * (start_penalty_percent / 100)
+  trigger_by_gap = effective_cap - start_penalty_gap
 
-  # Calculate fill ratio
-  fill_ratio = current_stat / stat_cap if stat_cap > 0 else 1.0
-  start_ratio = start_penalty_percent / 100
+  # Use the trigger that activates first (lower value)
+  actual_trigger = min(trigger_by_percent, trigger_by_gap)
 
-  # Below start threshold: no penalty
-  if fill_ratio < start_ratio:
+  # Below trigger threshold: no penalty
+  if current_stat < actual_trigger:
     return 0.0
 
-  # Fill factor: 0 at start_ratio, 1 at 100% (quadratic: penalize harder near cap)
-  fill_factor = ((fill_ratio - start_ratio) / (1.0 - start_ratio)) ** 2
+  # Avoid division by zero
+  if effective_cap <= actual_trigger:
+    return max_penalty_percent
 
-  penalty_percent = fill_factor * time_factor * max_penalty_percent
+  # Calculate fill factor (0 at trigger, 1 at cap)
+  fill_factor = (current_stat - actual_trigger) / (effective_cap - actual_trigger)
+
+  # Quadratic scaling: penalty increases faster as stat approaches cap
+  penalty_percent = (fill_factor ** 2) * max_penalty_percent
+
   return min(max_penalty_percent, max(0, penalty_percent))
 
 def get_career_stage_info(current_date):
@@ -201,12 +317,17 @@ def get_career_stage_info(current_date):
 
   absolute_day = current_date.get('absolute_day', 0)
 
-  # Define stages with configurable thresholds
-  is_pre_debut = absolute_day <= PRE_DEBUT_THRESHOLD
+  # Define stages with configurable thresholds (supports hot reload)
+  thresholds = get_stage_thresholds()
+  pre_debut_threshold = thresholds['pre_debut']
+  early_threshold = thresholds['early_stage']
+  mid_threshold = thresholds['mid_stage']
 
-  if absolute_day <= EARLY_STAGE_THRESHOLD:
+  is_pre_debut = absolute_day <= pre_debut_threshold
+
+  if absolute_day <= early_threshold:
     stage = 'early'
-  elif absolute_day <= MID_STAGE_THRESHOLD:
+  elif absolute_day <= mid_threshold:
     stage = 'mid'
   else:
     stage = 'late'
@@ -215,67 +336,76 @@ def get_career_stage_info(current_date):
     'is_pre_debut': is_pre_debut,
     'stage': stage,
     'absolute_day': absolute_day,
-    'should_apply_strategy': absolute_day > PRE_DEBUT_THRESHOLD
+    'should_apply_strategy': absolute_day > pre_debut_threshold
   }
 
 def get_stat_priority(stat_key: str) -> int:
-  """Get priority index of stat from config"""
-  return PRIORITY_STAT.index(stat_key) if stat_key in PRIORITY_STAT else 999
+  """Get priority index of stat from config (supports hot reload)"""
+  priority_stat = get_priority_stat()
+  return priority_stat.index(stat_key) if stat_key in priority_stat else 999
 
 def get_priority_by_stage(stat_key, current_date):
-  """Get stat priority based on career stage"""
+  """Get stat priority based on career stage (supports hot reload)"""
   stage_info = get_career_stage_info(current_date)
 
   # Use normal priority from config for all stages
-  if stat_key in PRIORITY_STAT:
-    priority_index = PRIORITY_STAT.index(stat_key)
+  priority_stat = get_priority_stat()
+  if stat_key in priority_stat:
+    priority_index = priority_stat.index(stat_key)
     return priority_index
   else:
     return 999
 
 def filter_by_stat_caps(results, current_stats, current_date=None):
-  """Filter training results by stat caps, only applies after configured threshold day"""
+  """Filter training results by effective stat caps, only applies after configured threshold day"""
 
   penalty_config = get_stat_cap_penalty_config()
   if not penalty_config['enabled']:
     return results
 
-  # Get current stat caps from constants
-  stat_caps = get_stat_caps()
-
   # Check if stat cap filtering should be applied based on date
   if current_date:
     absolute_day = current_date.get('absolute_day', 0)
-    stat_cap_threshold_day = config.get("stat_cap_threshold_day", 30)
+    stat_cap_threshold_day = get_config().get("stat_cap_threshold_day", 30)
+
+    # Get effective stat caps (adjusted for current day)
+    effective_caps = get_all_effective_stat_caps(absolute_day, penalty_config)
+    base_caps = get_stat_caps()
 
     # Print current stats when reaching threshold day for the first time
-    if absolute_day == stat_cap_threshold_day:
-      print(f"[STAT CAPS] Current stats vs caps:")
+    # Also print for days 73, 74, 75 to show effective cap changes
+    if absolute_day == stat_cap_threshold_day or absolute_day in [73, 74, 75]:
+      print(f"[STAT CAPS] Day {absolute_day} - Current stats vs effective caps:")
       for stat in ["spd", "sta", "pwr", "guts", "wit"]:
         current_value = current_stats.get(stat, 0)
-        cap_value = stat_caps.get(stat, 1200)
-        status = "CAPPED" if current_value >= cap_value else "OK"
-        print(f"[STAT CAPS]   {stat.upper()}: {current_value}/{cap_value} ({status})")
+        base_cap = base_caps.get(stat, 1200)
+        effective_cap = effective_caps.get(stat, 1200)
+        status = "CAPPED" if current_value >= effective_cap else "OK"
+        if base_cap != effective_cap:
+          print(f"[STAT CAPS]   {stat.upper()}: {current_value}/{effective_cap} (base: {base_cap}, adj: -{base_cap - effective_cap}) ({status})")
+        else:
+          print(f"[STAT CAPS]   {stat.upper()}: {current_value}/{effective_cap} ({status})")
 
-    # Apply stat cap filtering for days >= threshold
+    # Apply stat cap filtering for days >= threshold using effective caps
     filtered_results = {}
     for stat, data in results.items():
       current_value = current_stats.get(stat, 0)
-      cap_value = stat_caps.get(stat, 1200)
+      effective_cap = effective_caps.get(stat, 1200)
 
-      if current_value < cap_value:
+      if current_value < effective_cap:
         filtered_results[stat] = data
       else:
-        print(f"[STAT CAPS] Filtered out {stat.upper()} training: {current_value}/{cap_value} (capped)")
+        print(f"[STAT CAPS] Filtered out {stat.upper()} training: {current_value}/{effective_cap} (capped)")
 
     return filtered_results
   else:
     # If no current_date provided, return all results without filtering
     return results
 
-def apply_single_training_penalty(stat_key, data, current_date):
+def apply_single_training_penalty(stat_key, data, current_date, current_stats=None):
   """
   Apply stat cap penalty to a single training result.
+  Uses effective stat caps (adjusted for current day).
   Considers cross-training: training X also gives gains to secondary stats.
   If both primary and secondary stats have penalty, only the larger one applies.
   Mutates data dict in-place. Returns True if penalty was applied.
@@ -288,19 +418,33 @@ def apply_single_training_penalty(stat_key, data, current_date):
     return False
 
   absolute_day = current_date.get('absolute_day', 0)
-  stat_cap_threshold_day = config.get("stat_cap_threshold_day", 30)
+  stat_cap_threshold_day = get_config().get("stat_cap_threshold_day", 30)
 
   if absolute_day < stat_cap_threshold_day:
     return False
 
-  current_stats = stat_state()
-  stat_caps = get_stat_caps()
+  if current_stats is None:
+    current_stats = stat_state()
+
+  # Get effective stat caps (adjusted for current day)
+  effective_caps = get_all_effective_stat_caps(absolute_day, penalty_config)
+  base_caps = get_stat_caps()
 
   # Primary penalty
   current_stat = current_stats.get(stat_key, 0)
-  stat_cap = stat_caps.get(stat_key, 1200)
+  effective_cap = effective_caps.get(stat_key, 1200)
+  base_cap = base_caps.get(stat_key, 1200)
+
+  # Calculate trigger point for debug
+  trigger_by_percent = effective_cap * (penalty_config['start_penalty_percent'] / 100)
+  trigger_by_gap = effective_cap - penalty_config['start_penalty_gap']
+  actual_trigger = min(trigger_by_percent, trigger_by_gap)
+
+  # Debug log: show stat vs effective cap for all training
+  print(f"[CAP CHECK] {stat_key.upper()}: {current_stat}/{effective_cap} (trigger: {actual_trigger:.0f}, base: {base_cap})")
+
   primary_penalty_pct = _calculate_single_stat_penalty(
-    current_stat, stat_cap, absolute_day, stat_cap_threshold_day, penalty_config
+    current_stat, effective_cap, penalty_config
   )
 
   # Secondary penalties
@@ -308,14 +452,14 @@ def apply_single_training_penalty(stat_key, data, current_date):
   secondary_source = ""
   for sec_stat, ratio in TRAINING_SECONDARY_STATS.get(stat_key, []):
     sec_current = current_stats.get(sec_stat, 0)
-    sec_cap = stat_caps.get(sec_stat, 1200)
+    sec_effective_cap = effective_caps.get(sec_stat, 1200)
     sec_penalty_pct = _calculate_single_stat_penalty(
-      sec_current, sec_cap, absolute_day, stat_cap_threshold_day, penalty_config
+      sec_current, sec_effective_cap, penalty_config
     )
     scaled_penalty = sec_penalty_pct * ratio
     if scaled_penalty > max_secondary_penalty_pct:
       max_secondary_penalty_pct = scaled_penalty
-      secondary_source = f"{sec_stat.upper()} {sec_current}/{sec_cap} x{ratio}"
+      secondary_source = f"{sec_stat.upper()} {sec_current}/{sec_effective_cap} x{ratio}"
 
   final_penalty_pct = max(primary_penalty_pct, max_secondary_penalty_pct)
 
@@ -327,9 +471,12 @@ def apply_single_training_penalty(stat_key, data, current_date):
     data["cap_penalty_multiplier"] = multiplier
     data["original_score"] = original_score
 
-    # Build penalty info string
+    # Build penalty info string (show effective cap, and base cap if different)
     if primary_penalty_pct >= max_secondary_penalty_pct:
-      penalty_info = f" - Cap penalty: -{final_penalty_pct:.1f}% ({current_stat}/{stat_cap})"
+      if base_cap != effective_cap:
+        penalty_info = f" - Cap penalty: -{final_penalty_pct:.1f}% ({current_stat}/{effective_cap}, base:{base_cap})"
+      else:
+        penalty_info = f" - Cap penalty: -{final_penalty_pct:.1f}% ({current_stat}/{effective_cap})"
     else:
       penalty_info = f" - Cap penalty: -{final_penalty_pct:.1f}% (via {secondary_source})"
     data["cap_penalty_info"] = penalty_info
@@ -366,7 +513,8 @@ def format_score_info(training_key, training_data, current_date):
   wit_bonus_info = ""
   if training_key == "wit" and current_date:
     absolute_day = current_date.get('absolute_day', 0)
-    if absolute_day < EARLY_STAGE_THRESHOLD:
+    thresholds = get_stage_thresholds()
+    if absolute_day < thresholds['early_stage']:
       bonus = get_wit_early_stage_bonus()
       wit_bonus_info = f" + Early WIT bonus ({bonus})"
 
@@ -446,7 +594,7 @@ def unified_training_selection(results, current_date, min_score_threshold=None):
   score_info = format_score_info(best_key, best_data, current_date)
   return best_key, score_info
 
-def training_decision(results_training, energy_percentage, energy_max, strategy_settings, current_date):
+def training_decision(results_training, energy_percentage, energy_max, strategy_settings, current_date, current_stats=None):
   """Enhanced training decision with unified scoring system"""
   print(f"[DEBUG] === training_decision CALLED ===")
   print(f"[DEBUG] Energy: {energy_percentage}%, Strategy: {strategy_settings.get('priority_strategy', 'Unknown')}")
@@ -459,13 +607,15 @@ def training_decision(results_training, energy_percentage, energy_max, strategy_
   print(f"[DEBUG] Stage info: {stage_info}")
 
   absolute_day = current_date.get('absolute_day', 0)
-  stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
+  current_config = get_config()
+  stat_cap_threshold_day = current_config.get("stat_cap_threshold_day", 60)
   filtered_results = results_training
 
   # Never apply stat cap filtering before threshold day
   if absolute_day >= stat_cap_threshold_day:
-    # Get current stats for caps filtering
-    current_stats = stat_state()
+    # Get current stats for caps filtering (read once, reuse)
+    if current_stats is None:
+      current_stats = stat_state()
     print(f'Stat: {current_stats}')
     # Filter by stat caps (remove completely capped stats)
     filtered_results = filter_by_stat_caps(results_training, current_stats, current_date)
@@ -474,12 +624,15 @@ def training_decision(results_training, energy_percentage, energy_max, strategy_
       return None
 
   # Check energy level for critical energy (no training allowed)
-  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
-    print(f"[DEBUG] Critical energy ({energy_percentage}% < {CRITICAL_ENERGY_PERCENTAGE}%), no training allowed")
+  critical_energy = get_critical_energy()
+  minimum_energy = get_minimum_energy()
+
+  if energy_percentage < critical_energy:
+    print(f"[DEBUG] Critical energy ({energy_percentage}% < {critical_energy}%), no training allowed")
     return None
 
   # Check energy level for medium energy logic (between critical and minimum)
-  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE and energy_percentage >= CRITICAL_ENERGY_PERCENTAGE:
+  if energy_percentage < minimum_energy and energy_percentage >= critical_energy:
     print(f"[DEBUG] Medium energy ({energy_percentage}%), checking WIT only")
     return medium_energy_wit_training(filtered_results, current_date)
 
@@ -557,7 +710,7 @@ def medium_energy_wit_training(results, current_date):
 
   return None
 
-def fallback_training(results, current_date):
+def fallback_training(results, current_date, current_stats=None):
   """Enhanced fallback training using original scores without artificial bonuses.
   Note: Penalty is already applied by training_decision on the same results dict,
   so we only filter by stat caps here (no double-penalty).
@@ -567,10 +720,11 @@ def fallback_training(results, current_date):
 
   # Apply filter by stat caps if on or after threshold day
   absolute_day = current_date.get('absolute_day', 0)
-  stat_cap_threshold_day = config.get("stat_cap_threshold_day", 60)
+  stat_cap_threshold_day = get_config().get("stat_cap_threshold_day", 60)
 
   if absolute_day >= stat_cap_threshold_day:
-    current_stats = stat_state()
+    if current_stats is None:
+      current_stats = stat_state()
     results = filter_by_stat_caps(results, current_stats, current_date)
 
     if not results:
@@ -588,7 +742,8 @@ def fallback_training(results, current_date):
     print(f"[DEBUG] Fallback {key.upper()}: Total Score={total_score:.2f}, Priority={priority_index}")
 
   # Sort by total_score (descending), then by priority (ascending - lower index = higher priority)
-  training_list.sort(key=lambda x: (-x[2], x[3]))
+  # Round score to avoid floating point precision issues (consistent with unified_training_selection)
+  training_list.sort(key=lambda x: (-round(x[2], 6), x[3]))
 
   # DEBUG: Show selection reasoning
   print(f"[DEBUG] Fallback selected: {training_list[0][0].upper()} with total score {training_list[0][2]:.2f}")
@@ -627,12 +782,15 @@ def do_something(results, energy_percentage=100, strategy_settings=None):
   if not filtered:
     return None
 
-  # Check if energy is critical
-  if energy_percentage < CRITICAL_ENERGY_PERCENTAGE:
+  # Check if energy is critical (supports hot reload)
+  critical_energy = get_critical_energy()
+  minimum_energy = get_minimum_energy()
+
+  if energy_percentage < critical_energy:
     return None
 
   # Check if energy is medium (between critical and minimum)
-  if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+  if energy_percentage < minimum_energy:
     return medium_energy_wit_training(filtered, current_date)
 
   # Normal energy logic with unified strategy system

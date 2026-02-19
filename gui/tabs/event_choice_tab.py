@@ -402,7 +402,9 @@ class EventChoiceTab:
                 break
 
     def _update_logic_stat_caps(self):
-        """Update the logic module and constants with current preset's stat caps"""
+        """Update the logic module and constants with current preset's stat caps.
+        Skips update if nothing changed since last call (deduplication).
+        """
         try:
             from core.logic import set_stat_caps
             from utils.constants import set_deck_info
@@ -419,6 +421,12 @@ class EventChoiceTab:
 
             # Get uma musume
             uma_musume = self.selected_uma_musume.get()
+
+            # Dedup: skip if nothing changed
+            new_state = (uma_musume, tuple(support_cards), tuple(sorted(stat_caps.items())))
+            if new_state == getattr(self, '_last_logic_state', None):
+                return
+            self._last_logic_state = new_state
 
             # Update logic module
             set_stat_caps(stat_caps)
@@ -880,10 +888,8 @@ class EventChoiceTab:
         uma_data = self.uma_musume_data[uma_musume_name]
 
         try:
-            if hasattr(self.main_window, 'update_strategy_filters'):
-                self.main_window.update_strategy_filters(uma_data)
-                return
-
+            # Use update_filters_from_uma_data which has disable_auto_save protection
+            # to avoid triggering save_settings() for each individual filter change
             strategy_tab = getattr(self.main_window, 'strategy_tab', None)
             if strategy_tab and hasattr(strategy_tab, 'update_filters_from_uma_data'):
                 strategy_tab.update_filters_from_uma_data(uma_data)

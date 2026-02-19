@@ -515,31 +515,34 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     "friend": "assets/icons/support_card_type_friend.png"
   }
   # Remove card types not in deck to reduce template matching
+  # Use support_card_state (set at F1) as primary source, fallback to CURRENT_DECK
+  support_state = get_support_card_state()
   for card_type in ["spd", "sta", "pwr", "guts", "wit", "friend"]:
-    if card_type == "friend":
-      if not deck_has_card_type("frd"):
-        SUPPORT_ICONS.pop(card_type, None)
-    elif not deck_has_card_type(card_type):
+    if support_state:
+      has_card = support_state.get(card_type, 0) > 0
+    elif card_type == "friend":
+      has_card = deck_has_card_type("frd")
+    else:
+      has_card = deck_has_card_type(card_type)
+    if not has_card:
       SUPPORT_ICONS.pop(card_type, None)
 
-  # Check if deck has Riko Kashimoto as friend card
+  # Normal NPCs (always present)
+  NPC_ICONS = {
+    "etsuko": "assets/icons/support_npc_etsuko.png"
+  }
+
+  # Scenario NPCs (score = 1/2 of normal NPC)
+  SCENARIO_NPC_ICONS = {}
   deck_info = get_deck_info()
 
   if SCENARIO_NAME == "Unity Cup":
-    # Check if deck has Riko Kashimoto as friend card
     has_riko_card = any("riko kashimoto" in card.lower() for card in deck_info.get("support_cards", []) if card and card != "None")
-    print(f'has_riko_card: {has_riko_card}')
-    NPC_ICONS = {
-      "etsuko": "assets/icons/support_npc_etsuko.png"
-    }
-    # Riko appears as NPC only if not in deck as friend card
+    # Riko appears as scenario NPC only if not in deck as friend card
     if not has_riko_card:
-      NPC_ICONS["riko"] = "assets/icons/support_npc_riko.png"
-  else:
-    NPC_ICONS = {
-      "akikawa": "assets/icons/support_npc_akikawa.png",
-      "etsuko": "assets/icons/support_npc_etsuko.png"
-    }
+      SCENARIO_NPC_ICONS["riko"] = "assets/icons/support_npc_riko.png"
+  elif SCENARIO_NAME == "URA Final":
+    SCENARIO_NPC_ICONS["akikawa"] = "assets/icons/support_npc_akikawa.png"
 
   count_result = {}
 
@@ -549,12 +552,19 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     matches = match_template(icon_path, support_region, threshold)
     count_result[key] = len(matches)
 
-  total_npc_count = 0
+  # Count normal NPCs
+  normal_npc_count = 0
   for npc_name, icon_path in NPC_ICONS.items():
     matches = match_template(icon_path, support_region, threshold)
-    npc_found = len(matches)
-    total_npc_count += npc_found
+    normal_npc_count += len(matches)
 
+  # Count scenario NPCs
+  scenario_npc_count = 0
+  for npc_name, icon_path in SCENARIO_NPC_ICONS.items():
+    matches = match_template(icon_path, support_region, threshold)
+    scenario_npc_count += len(matches)
+
+  total_npc_count = normal_npc_count + scenario_npc_count
   count_result["npc"] = total_npc_count
 
   hint_matches = match_template("assets/icons/support_card_hint.png", support_region, threshold)
@@ -566,10 +576,11 @@ def check_support_card(threshold=0.8, is_pre_debut=False, training_type=None, cu
     hint_score = get_hint_score_value(absolute_day)
 
   npc_score = 0
-  if total_npc_count > 0:
-    npc_score_per_unit = get_npc_score_value()
-    # npc_score = total_npc_count * npc_score_per_unit
-    npc_score = get_npc_score_value()
+  npc_base_score = get_npc_score_value()
+  if normal_npc_count > 0:
+    npc_score += npc_base_score
+  if scenario_npc_count > 0:
+    npc_score += round(npc_base_score / 2, 2)
 
   count_result["hint"] = hint_count
   count_result["hint_score"] = hint_score

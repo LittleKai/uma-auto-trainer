@@ -382,7 +382,7 @@ class RaceHandler:
             self.log(f"Pre-debut race - selecting style: {target_style}")
             time.sleep(1.0)
             # Click style_selection button first
-            if find_and_click(f"{STYLE_ASSETS_FOLDER}/style_selection.png", max_attempts=3, delay_between=1,
+            if find_and_click(f"{STYLE_ASSETS_FOLDER}/style_selection.png", max_attempts=6, delay_between=2,
                               check_stop_func=self.check_stop):
                 time.sleep(0.5)
                 # Click target style button
@@ -472,15 +472,14 @@ class RaceHandler:
 
         if self.check_stop():
             return False
-
+        time.sleep(0.5)
         find_and_click(
-            "assets/buttons/ok_btn.png", max_attempts=3, delay_between=1,
+            "assets/buttons/ok_btn.png", max_attempts=1, delay_between=1,
             check_stop_func=self.check_stop)
-
+        # for 2 times race_btn click
         for i in range(2):
             if self.check_stop():
                 return False
-
             if not find_and_click(
                     "assets/buttons/race_btn.png", max_attempts=3, delay_between=1,
                     check_stop_func=self.check_stop):

@@ -626,10 +626,15 @@ class EventChoiceHandler:
             self.log(f"[WARNING] Error checking deck condition: {e}")
             return None
 
+    def preload_database(self, uma_musume: str, support_cards: List[str]):
+        """Preload event database at bot start so it doesn't need to check every event"""
+        self.cached_database = self.get_database(uma_musume, support_cards)
+        self.log("[DEBUG] Event database preloaded")
+
     def find_event_choice(self, event_type: str, event_name: str, uma_musume: str, support_cards: List[str]) -> Optional[int]:
         """Find appropriate event choice based on event type and configuration"""
         try:
-            database = self.get_database(uma_musume, support_cards)
+            database = self.cached_database if self.cached_database else self.get_database(uma_musume, support_cards)
 
             search_categories = ["train_event_scenario", "train_event_uma_musume", "train_event_support_card"]
 

@@ -12,6 +12,10 @@ import json
 import zipfile
 from pathlib import Path
 
+# Ensure project root is in path for version import
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
+from version import APP_VERSION
+
 class Colors:
     """ANSI color codes for terminal output"""
     HEADER = '\033[95m'
@@ -331,11 +335,9 @@ def create_default_config():
         return False
 
 def get_output_dir():
-    """Get output directory outside of project folder"""
-    # Get project directory (where this script is located)
+    """Get output directory inside Uma_release folder"""
     project_dir = Path(__file__).parent.resolve()
-    # Output to parent directory (D:\Dev\Python\Uma_Musume_Auto_Train)
-    output_dir = project_dir.parent / "Uma_Musume_Auto_Train"
+    output_dir = project_dir / "Uma_release" / "Uma_Musume_Auto_Train"
     return output_dir
 
 def build_executable():
@@ -370,6 +372,13 @@ def build_executable():
         print_error(f"Error output: {e.stderr}")
         return False
 
+def _rmtree_readonly_handler(func, path, exc_info):
+    """Handle read-only files during shutil.rmtree on Windows"""
+    import stat
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def create_distribution_package():
     """Create a distribution package with all necessary files"""
     print_header("Creating Distribution Package")
@@ -381,7 +390,13 @@ def create_distribution_package():
     print_info(f"Output directory: {dist_dir}")
 
     if os.path.exists(dist_dir):
-        shutil.rmtree(dist_dir)
+        try:
+            shutil.rmtree(dist_dir, onerror=_rmtree_readonly_handler)
+            print_success("Removed old output directory")
+        except Exception as e:
+            print_error(f"Could not remove old output directory: {e}")
+            print_info("Please close any programs using files in that folder and try again.")
+            return False
 
     try:
         os.makedirs(dist_dir, exist_ok=True)
@@ -440,14 +455,12 @@ def create_release_zip():
     """Create a release zip file from the distribution package"""
     print_header("Creating Release Zip")
 
-    from version import APP_VERSION
-
     output_dir = get_output_dir()
     if not output_dir.exists():
         print_error("Distribution package not found. Cannot create zip.")
         return False
 
-    zip_name = f"Uma_Musume_Auto_Train_v{APP_VERSION}.zip"
+    zip_name = "Uma_Musume_Auto_Train.zip"
     zip_path = output_dir.parent / zip_name
 
     try:
@@ -485,7 +498,7 @@ def cleanup_build_files():
         try:
             if os.path.exists(item):
                 if os.path.isdir(item):
-                    shutil.rmtree(item)
+                    shutil.rmtree(item, onerror=_rmtree_readonly_handler)
                 else:
                     os.remove(item)
                 print_success(f"Removed: {item}")
@@ -545,8 +558,7 @@ def main():
         print_info("  - config.json, bot_settings.json")
         print_info("  - README.txt (user instructions)")
 
-        from version import APP_VERSION
-        zip_name = f"Uma_Musume_Auto_Train_v{APP_VERSION}.zip"
+        zip_name = "Uma_Musume_Auto_Train.zip"
         zip_path = output_dir.parent / zip_name
 
         print_colored("\n🚀 How to Distribute:", Colors.BOLD)

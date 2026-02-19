@@ -342,9 +342,12 @@ class DecisionEngine:
         if best_training and best_training not in ["SHOULD_REST", "NO_TRAINING", "STRATEGY_NOT_MET"]:
             return self._execute_selected_training(best_training)
 
-        # if best_training in ["SHOULD_REST", "NO_TRAINING"]:
-        # if best_training in ["SHOULD_REST"]:
-        #     return self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui)
+        # SHOULD_REST: energy shortage with low scores - try race first, then rest (no fallback train)
+        if best_training == "SHOULD_REST":
+            return self._handle_should_rest(
+                energy_percentage, strategy_settings, current_date,
+                race_manager, gui
+            )
 
         # best_training is None or STRATEGY_NOT_MET - no suitable training found
         return self._handle_no_suitable_training(
@@ -356,6 +359,38 @@ class DecisionEngine:
     def _execute_selected_training(self, best_training: str) -> bool:
         """Execute the selected training"""
         return self._navigate_and_train(best_training)
+
+    def _handle_should_rest(self, energy_percentage: int, strategy_settings: Dict[str, Any],
+                            current_date: Dict[str, Any], race_manager, gui=None) -> bool:
+        """Handle SHOULD_REST: check race first, then rest if no race (no fallback training)"""
+        allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
+        priority_strategy = strategy_settings.get('priority_strategy', 'Train Score 2.5+')
+        is_pre_debut = current_date and current_date.get('absolute_day', 0) <= 16
+
+        # Try race first (unless pre-debut)
+        if "Train Score" in priority_strategy and not is_pre_debut:
+            should_race, available_races = race_manager.should_race_today(current_date)
+
+            if should_race and available_races:
+                self._log(f"Energy shortage: No suitable training, but found {len(available_races)} matching races - Racing instead")
+
+                if self._stopped():
+                    return False
+
+                race_found = self.controller.race_handler.start_race_flow(
+                    allow_continuous_racing=allow_continuous_racing
+                )
+
+                if race_found:
+                    return True
+                else:
+                    if self._stopped():
+                        return False
+                    self._click_back_button("Race not found in game, resting instead")
+                    time.sleep(0.5)
+
+        # No race available or race failed - rest
+        return self._handle_rest_case(energy_percentage, strategy_settings, current_date, gui)
 
     def _handle_rest_case(self, energy_percentage: int, strategy_settings: Dict[str, Any],
                           current_date: Dict[str, Any], gui=None, click_back=False, click_log="") -> bool:

@@ -41,8 +41,15 @@ class BotController:
                 return
 
         # Start normal bot
+        # Sync deck info (stat caps, support cards) from current preset to global state
+        if hasattr(self.main_window, 'event_choice_tab'):
+            self.main_window.event_choice_tab._update_logic_stat_caps()
+
         # Save support card counts from current preset to state
         self.save_support_card_state()
+
+        # Preload event database for current deck configuration
+        self.preload_event_database()
 
         set_stop_flag(False)
         self.main_window.is_running = True
@@ -102,6 +109,21 @@ class BotController:
 
         except Exception as e:
             self.main_window.log_message(f"Error saving support card state: {e}")
+
+    def preload_event_database(self):
+        """Preload event database at bot start for current deck configuration"""
+        try:
+            from core.execute import _main_executor, initialize_executor
+            if _main_executor is None:
+                initialize_executor()
+
+            current_settings = self.main_window.get_event_choice_settings()
+            uma_musume = current_settings.get('uma_musume', 'None')
+            support_cards = current_settings.get('support_cards', ['None'] * 6)
+
+            _main_executor.controller.event_choice_handler.preload_database(uma_musume, support_cards)
+        except Exception as e:
+            self.main_window.log_message(f"Error preloading event database: {e}")
 
     def stop_bot(self):
         """Stop the bot"""

@@ -1,12 +1,12 @@
 {
   "track": {
-    "turf": true,
-    "dirt": false
+    "turf": false,
+    "dirt": true
   },
   "distance": {
     "sprint": true,
     "mile": true,
-    "medium": false,
+    "medium": true,
     "long": false
   },
   "grade": {
@@ -20,32 +20,32 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
-  "stop_mood_threshold": "GOOD",
+  "stop_mood_threshold": "GREAT",
   "stop_before_summer": false,
   "stop_at_month": false,
-  "target_month": "Junior Year Dec 1",
+  "target_month": "Classic Year Jun 1",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Sakura Bakushin O",
+    "uma_musume": "Smart Falcon",
     "support_cards": [
-      "spd: King Halo",
       "spd: Kitasan Black",
-      "wit: Daiwa Scarlet",
-      "wit: Fine Motion",
+      "spd: Silence Suzuka",
+      "wit: Curren Chan",
+      "wit: Marvelous Sunday",
       "wit: Mihono Bourbon",
-      "wit: Marvelous Sunday"
+      "frd: Riko Kashimoto"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 11,
+    "current_set": 9,
     "stat_caps": {
       "spd": 1200,
-      "sta": 450,
+      "sta": 500,
       "pwr": 1200,
       "guts": 1200,
       "wit": 1200
@@ -62,11 +62,11 @@
       "6": "LATE GUTS",
       "7": "Preset 7",
       "8": "Preset 8",
-      "9": "Front Wit 2",
+      "9": "Front Wit FR",
       "10": "Front Wit",
       "11": "PACE WIT",
       "12": "LATE WIT",
-      "13": "Preset 13",
+      "13": "PACE WIT FR",
       "14": "Preset 14",
       "15": "Preset 15",
       "16": "LATE STA",
@@ -97,13 +97,13 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
-          "stop_mood_threshold": "GOOD",
+          "stop_mood_threshold": "GREAT",
           "stop_before_summer": false,
           "stop_at_month": false,
-          "target_month": "Junior Year Dec 1",
+          "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
         }
@@ -241,7 +241,7 @@
         "support_cards": [
           "spd: Eishin Flash",
           "spd: Kitasan Black",
-          "gut: Haru Urara",
+          "spd: Sweep Tosho",
           "gut: Seeking the Pearl",
           "gut: Special Week",
           "frd: Riko Kashimoto"
@@ -253,11 +253,11 @@
           "guts": 1200,
           "wit": 1200
         },
-        "debut_style": "late",
+        "debut_style": "none",
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
@@ -333,46 +333,46 @@
         }
       },
       "9": {
-        "uma_musume": "Maruzensky (Summer)",
+        "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black",
           "spd: Silence Suzuka",
           "wit: Curren Chan",
-          "wit: Mihono Bourbon",
           "wit: Marvelous Sunday",
-          "wit: Fuji Kiseki"
+          "wit: Mihono Bourbon",
+          "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 1100,
+          "sta": 500,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
         },
         "debut_style": "none",
         "stop_conditions": {
-          "enable_stop_conditions": false,
-          "stop_on_infirmary": false,
-          "stop_on_need_rest": false,
-          "stop_on_low_mood": false,
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": true,
+          "stop_on_low_mood": true,
           "stop_on_race_day": false,
-          "stop_mood_threshold": "BAD",
+          "stop_mood_threshold": "GREAT",
           "stop_before_summer": false,
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": false
+          "stop_on_warning": true
         }
       },
       "10": {
         "uma_musume": "Sakura Bakushin O",
         "support_cards": [
           "spd: Kitasan Black",
-          "wit: Fuji Kiseki",
           "spd: Silence Suzuka",
+          "wit: Curren Chan",
           "wit: Marvelous Sunday",
-          "wit: Mihono Bourbon",
-          "wit: Curren Chan"
+          "wit: Mejiro Dober",
+          "wit: Mihono Bourbon"
         ],
         "stat_caps": {
           "spd": 1200,
@@ -383,7 +383,7 @@
         },
         "debut_style": "front",
         "stop_conditions": {
-          "enable_stop_conditions": true,
+          "enable_stop_conditions": false,
           "stop_on_infirmary": true,
           "stop_on_need_rest": false,
           "stop_on_low_mood": true,
@@ -397,18 +397,18 @@
         }
       },
       "11": {
-        "uma_musume": "Sakura Bakushin O",
+        "uma_musume": "El Condor Pasa",
         "support_cards": [
-          "spd: King Halo",
           "spd: Kitasan Black",
+          "spd: Sweep Tosho",
           "wit: Daiwa Scarlet",
           "wit: Fine Motion",
-          "wit: Mihono Bourbon",
-          "wit: Marvelous Sunday"
+          "wit: Marvelous Sunday",
+          "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 450,
+          "sta": 700,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
@@ -417,7 +417,7 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GOOD",
@@ -461,18 +461,18 @@
         }
       },
       "13": {
-        "uma_musume": "None",
+        "uma_musume": "El Condor Pasa",
         "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
+          "spd: Kitasan Black",
+          "spd: Sweep Tosho",
+          "wit: Daiwa Scarlet",
+          "wit: Fine Motion",
+          "wit: Marvelous Sunday",
+          "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 1100,
+          "sta": 500,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
@@ -480,16 +480,16 @@
         "debut_style": "none",
         "stop_conditions": {
           "enable_stop_conditions": false,
-          "stop_on_infirmary": false,
+          "stop_on_infirmary": true,
           "stop_on_need_rest": false,
-          "stop_on_low_mood": false,
+          "stop_on_low_mood": true,
           "stop_on_race_day": false,
-          "stop_mood_threshold": "BAD",
+          "stop_mood_threshold": "GREAT",
           "stop_before_summer": false,
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": false
+          "stop_on_warning": true
         }
       },
       "14": {
@@ -727,10 +727,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 791,
-    "height": 980,
-    "x": 1081,
-    "y": 6
+    "width": 806,
+    "height": 952,
+    "x": 1006,
+    "y": 1
   },
   "scenario": "Unity Cup"
 }

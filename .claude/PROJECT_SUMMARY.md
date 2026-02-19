@@ -1,6 +1,6 @@
 # Project Summary
 
-**Last Updated:** 2026-02-12 18:00
+**Last Updated:** 2026-02-19 12:00
 **Updated By:** Claude Code
 
 ---
@@ -60,7 +60,9 @@ uma-auto-trainer/
 │   │   ├── stop_conditions_dialog.py
 │   │   ├── uma_musume_dialog.py
 │   │   ├── config_dialog.py
-│   │   └── update_dialog.py
+│   │   ├── update_dialog.py
+│   │   ├── event_update_dialog.py
+│   │   └── check_update_dialog.py
 │   ├── components/          # GUI components
 │   │   ├── status_section.py    # Status display panel
 │   │   └── log_section.py       # Scrollable log output
@@ -196,6 +198,7 @@ score = base_score × stage_multiplier
 | Uma Musume Dialog | ✅ Done | `gui/dialogs/uma_musume_dialog.py` | Search-enabled Uma Musume selection |
 | Preset Dialog | ✅ Done | `gui/dialogs/preset_dialog.py` | Preset selection with deck summary |
 | Auto-Update | ✅ Done | `core/updater.py`, `gui/dialogs/update_dialog.py`, `version.py` | GitHub Releases auto-update |
+| Event Map Update | ✅ Done | `core/updater.py`, `gui/dialogs/event_update_dialog.py` | Check/download event maps from GitHub |
 | Shop Preferences | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase shop items |
 | Skills to Buy | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase skills |
 | Race Scheduler Enhanced | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Value-based race filtering |
@@ -246,6 +249,20 @@ score = base_score × stage_multiplier
 ---
 
 ## 7. Recent Changes (Last 5 Sessions)
+
+### 2026-02-19 - Event Map Update & Check Update Dialog
+- Added `check_event_updates()` and `download_event_files()` to `core/updater.py`
+- Uses GitHub Contents API to compare local event map files with repository via git blob SHA
+- Checks directories: uma_musume, support_card/{spd,sta,pow,gut,wit,frd}, and root JSON files
+- Created `gui/dialogs/event_update_dialog.py` with EventUpdateDialog (Treeview file list, progress bar)
+- Created `gui/dialogs/check_update_dialog.py` with CheckUpdateDialog:
+  - Auto-check update toggle (saved to bot_settings.json as `auto_check_update`)
+  - "Check Update" button for app version updates
+  - "Check Uma Event" button for event map updates
+- "Check Update" header button now opens CheckUpdateDialog instead of checking directly
+- Startup auto-check respects `auto_check_update` setting in bot_settings.json
+- Files created: `gui/dialogs/event_update_dialog.py`, `gui/dialogs/check_update_dialog.py`
+- Files modified: `core/updater.py`, `gui/main_window.py`, `gui/dialogs/__init__.py`
 
 ### 2026-02-12 - GitHub Release Auto-Update System
 - Created `version.py` with APP_VERSION, APP_NAME, GITHUB_REPO constants

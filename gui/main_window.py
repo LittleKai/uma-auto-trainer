@@ -141,7 +141,7 @@ class UmaAutoGUI:
         settings_container.pack(side=tk.RIGHT)
 
         ttk.Button(settings_container, text="Check Update",
-                   command=self._manual_check_update).pack(side=tk.LEFT, padx=(0, 5))
+                   command=self._open_check_update_dialog).pack(side=tk.LEFT, padx=(0, 5))
 
         ttk.Button(settings_container, text="⚙ Config",
                    command=self.open_config_settings).pack(side=tk.LEFT, padx=(0, 5))
@@ -421,36 +421,43 @@ class UmaAutoGUI:
             print(f"Warning: Could not update strategy filters: {e}")
 
     def _check_for_updates(self):
-        """Auto-check for updates in background thread"""
+        """Auto-check for updates on startup (respects auto_check_update setting)"""
+        import json, os
+        try:
+            if os.path.exists("bot_settings.json"):
+                with open("bot_settings.json", "r") as f:
+                    settings = json.load(f)
+                if not settings.get("auto_check_update", True):
+                    return
+        except (json.JSONDecodeError, OSError):
+            pass
+
         def check_thread():
             from core.updater import check_for_update
             result = check_for_update()
             if result.get("has_update"):
                 self.root.after(0, self._show_update_dialog, result)
 
-        thread = threading.Thread(target=check_thread, daemon=True)
-        thread.start()
+        threading.Thread(target=check_thread, daemon=True).start()
 
-    def _manual_check_update(self):
-        """Manual check for updates triggered by button click"""
-        def check_thread():
-            from core.updater import check_for_update
-            result = check_for_update()
-            if result.get("has_update"):
-                self.root.after(0, self._show_update_dialog, result)
-            else:
-                self.root.after(0, lambda: messagebox.showinfo(
-                    "No Update",
-                    f"You are running the latest version (v{APP_VERSION})."
-                ))
-
-        thread = threading.Thread(target=check_thread, daemon=True)
-        thread.start()
+    def _open_check_update_dialog(self):
+        """Open the check update dialog with all update options"""
+        from gui.dialogs.check_update_dialog import CheckUpdateDialog
+        CheckUpdateDialog(
+            self.root,
+            on_app_update_found=self._show_update_dialog,
+            on_event_update_found=self._show_event_update_dialog,
+        )
 
     def _show_update_dialog(self, update_info):
         """Show the update dialog"""
         from gui.dialogs.update_dialog import UpdateDialog
         UpdateDialog(self.root, update_info)
+
+    def _show_event_update_dialog(self, update_result):
+        """Show the event update dialog"""
+        from gui.dialogs.event_update_dialog import EventUpdateDialog
+        EventUpdateDialog(self.root, update_result)
 
     def run(self):
         """Start the GUI application"""

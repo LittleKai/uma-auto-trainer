@@ -22,9 +22,12 @@ __pycache__/
 UmaAutoTrain_Package/
 Uma_Musume_Auto_Train/
 Uma_Musume_Auto_Train_Distribution/
+Uma_release/
 dist/
 build/
 0.Temp/
+assets/event_map/.tmp.driveupload/
+assets/event_map/.tmp.drivedownload
 
 ## Claude Code documentation
 #.claude/

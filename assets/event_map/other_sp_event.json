@@ -748,6 +748,40 @@
     {
       "name": "",
       "choice": 1
+    },
+    {
+      "name": "Awkward Triangulum",
+      "choice_2_if_energy_shortage_gte": 9
+    },
+    {
+      "name": "Ayabe Shows Concern",
+      "choice_2_if_energy_shortage_gte": 9
+    },
+    {
+      "name": "Leave It to the Roomie",
+      "choice_2_if_energy_shortage_gte": 9
+    },
+    {
+      "name": "Mystery Fortune Ritual!",
+      "choice": 1
+    },
+    {
+      "name": "Uma Kids Footrace Meet",
+      "choice": 1
+    },
+    {
+      "name": "Lonesome Cepheus",
+      "choice": 2
+    },
+    {
+      "name": "Sponsored Posts Can Be Low-Key Sus",
+      "choice_1_if_energy_shortage_gte": 5,
+      "default_choice": 2
+    },
+    {
+      "name": "Sponsored Posts Can Be Low-Key Sus",
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
     }
   ]
 }

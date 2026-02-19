@@ -7,7 +7,8 @@
     },
     {
       "name": "Paying It Forward",
-      "choice": 2
+      "choice_1_if_mood_lt": "GREAT",
+      "default_choice": 2
     },
     {
       "name": "Ah, Home Sweet Home",

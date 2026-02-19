@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "name": "One Step Forward",
+      "choice": 1
+    },
+    {
+      "name": "Hope She'll Like It...",
+      "choice": 1
+    },
+    {
+      "name": "Give It a Try",
+      "choice_1_if_energy_shortage_gte": 8,
+      "choice_2_if_mood_lt": "GREAT",
+      "default_choice": 2
+    }
+  ]
+}

@@ -1,11 +1,13 @@
 """
 Auto-update module for Uma Musume Auto Train.
 Checks GitHub Releases for new versions, downloads and applies updates.
+Also checks for event map file updates from the GitHub repository.
 """
 
 import os
 import sys
 import json
+import hashlib
 import tempfile
 import zipfile
 import subprocess
@@ -255,3 +257,214 @@ REM Self-delete
 
     except Exception:
         return False
+
+
+# --- Event map update functions ---
+
+# Directories and files to check for event map updates
+EVENT_MAP_DIRS = [
+    "assets/event_map/uma_musume",
+    "assets/event_map/support_card/spd",
+    "assets/event_map/support_card/sta",
+    "assets/event_map/support_card/pow",
+    "assets/event_map/support_card/gut",
+    "assets/event_map/support_card/wit",
+    "assets/event_map/support_card/frd",
+]
+EVENT_MAP_FILES = [
+    "assets/event_map/common.json",
+    "assets/event_map/other_sp_event.json",
+]
+
+GITHUB_CONTENTS_API = f"https://api.github.com/repos/{GITHUB_REPO}/contents/"
+
+
+def _compute_git_blob_sha(file_path):
+    """Compute the git blob SHA1 for a local file (same algorithm GitHub uses)."""
+    with open(file_path, "rb") as f:
+        data = f.read()
+    header = f"blob {len(data)}\0".encode("ascii")
+    return hashlib.sha1(header + data).hexdigest()
+
+
+def _fetch_github_dir(dir_path):
+    """Fetch file listing from a GitHub directory via the Contents API.
+
+    Returns list of dicts with keys: name, path, sha, download_url
+    or empty list on error.
+    """
+    url = GITHUB_CONTENTS_API + dir_path
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github.v3+json",
+                "User-Agent": "UmaAutoTrain-Updater",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            items = json.loads(resp.read().decode("utf-8"))
+        return [
+            {
+                "name": item["name"],
+                "path": item["path"],
+                "sha": item["sha"],
+                "download_url": item["download_url"],
+            }
+            for item in items
+            if item["type"] == "file" and item["name"].endswith(".json")
+        ]
+    except (urllib.error.URLError, urllib.error.HTTPError,
+            json.JSONDecodeError, OSError, KeyError):
+        return []
+
+
+def _fetch_github_file_info(file_path):
+    """Fetch info for a single file from GitHub Contents API.
+
+    Returns dict with keys: name, path, sha, download_url
+    or None on error.
+    """
+    url = GITHUB_CONTENTS_API + file_path
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github.v3+json",
+                "User-Agent": "UmaAutoTrain-Updater",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            item = json.loads(resp.read().decode("utf-8"))
+        if item.get("type") != "file":
+            return None
+        return {
+            "name": item["name"],
+            "path": item["path"],
+            "sha": item["sha"],
+            "download_url": item["download_url"],
+        }
+    except (urllib.error.URLError, urllib.error.HTTPError,
+            json.JSONDecodeError, OSError, KeyError):
+        return None
+
+
+def _get_app_dir():
+    """Get the application root directory."""
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def check_event_updates():
+    """Check GitHub for new/updated event map files.
+
+    Returns:
+        dict with keys:
+            has_updates (bool): True if there are files to update
+            files_to_update (list): list of dicts with {path, download_url, status}
+            error (str or None): error message if something went wrong
+    """
+    app_dir = _get_app_dir()
+    files_to_update = []
+    errors = []
+
+    # Check directories
+    for dir_path in EVENT_MAP_DIRS:
+        remote_files = _fetch_github_dir(dir_path)
+        if not remote_files and dir_path == EVENT_MAP_DIRS[0]:
+            # If the first dir fails, likely a network issue
+            errors.append(f"Could not fetch {dir_path}")
+            continue
+
+        for remote_file in remote_files:
+            local_path = os.path.join(app_dir, remote_file["path"])
+
+            if not os.path.exists(local_path):
+                files_to_update.append({
+                    "path": remote_file["path"],
+                    "download_url": remote_file["download_url"],
+                    "status": "New",
+                })
+            else:
+                local_sha = _compute_git_blob_sha(local_path)
+                if local_sha != remote_file["sha"]:
+                    files_to_update.append({
+                        "path": remote_file["path"],
+                        "download_url": remote_file["download_url"],
+                        "status": "Updated",
+                    })
+
+    # Check individual files
+    for file_path in EVENT_MAP_FILES:
+        remote_file = _fetch_github_file_info(file_path)
+        if remote_file is None:
+            continue
+
+        local_path = os.path.join(app_dir, remote_file["path"])
+
+        if not os.path.exists(local_path):
+            files_to_update.append({
+                "path": remote_file["path"],
+                "download_url": remote_file["download_url"],
+                "status": "New",
+            })
+        else:
+            local_sha = _compute_git_blob_sha(local_path)
+            if local_sha != remote_file["sha"]:
+                files_to_update.append({
+                    "path": remote_file["path"],
+                    "download_url": remote_file["download_url"],
+                    "status": "Updated",
+                })
+
+    error_msg = "; ".join(errors) if errors else None
+    return {
+        "has_updates": len(files_to_update) > 0,
+        "files_to_update": files_to_update,
+        "error": error_msg,
+    }
+
+
+def download_event_files(files_to_update, progress_callback=None):
+    """Download event files from GitHub.
+
+    Args:
+        files_to_update: list of dicts with {path, download_url, status}
+        progress_callback: callable(current_index, total_count, file_path)
+
+    Returns:
+        int: number of files updated successfully
+    """
+    app_dir = _get_app_dir()
+    success_count = 0
+    total = len(files_to_update)
+
+    for i, file_info in enumerate(files_to_update):
+        if progress_callback:
+            progress_callback(i, total, file_info["path"])
+
+        local_path = os.path.join(app_dir, file_info["path"])
+
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            req = urllib.request.Request(
+                file_info["download_url"],
+                headers={"User-Agent": "UmaAutoTrain-Updater"},
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = resp.read()
+
+            with open(local_path, "wb") as f:
+                f.write(data)
+
+            success_count += 1
+        except (urllib.error.URLError, urllib.error.HTTPError, OSError):
+            continue
+
+    if progress_callback:
+        progress_callback(total, total, "")
+
+    return success_count

@@ -9,11 +9,11 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 32,
+  "stat_cap_threshold_day": 50,
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,
-      "late_stage": 0.75,
+      "late_stage": 0.5,
       "day_threshold": 24
     },
     "npc_score": {
@@ -67,7 +67,7 @@
       }
     },
     "energy_restrictions": {
-      "medium_energy_shortage": 45,
+      "medium_energy_shortage": 47,
       "medium_energy_max_score_threshold": 3.4
     },
     "stat_cap_penalty": {

@@ -7,8 +7,15 @@ import csv
 from gui.dialogs.support_card_dialog import SupportCardDialog
 from gui.dialogs.preset_dialog import PresetDialog
 from gui.dialogs.uma_musume_dialog import UmaMusumeDialog
+from gui.dialogs.race_schedule_dialog import RaceScheduleDialog
 
 from core.style_handler import get_style_options, get_style_display_name
+
+
+DEFAULT_RACE_SCHEDULE = [
+    {"name": "Hanshin Juvenile Fillies", "day": 23},
+    {"name": "Hopeful Stakes", "day": 24},
+]
 
 
 class EventChoiceTab:
@@ -47,6 +54,9 @@ class EventChoiceTab:
 
         # Debut style selection variable (none = disabled)
         self.debut_style = tk.StringVar(value="none")
+
+        # Race schedule dialog filters (global, not per-preset)
+        self.race_schedule_filters = dict(RaceScheduleDialog.DEFAULT_FILTERS)
 
         # Default stat caps
         self.default_stat_caps = {
@@ -90,7 +100,8 @@ class EventChoiceTab:
                     'wit': tk.IntVar(value=1200)
                 },
                 'debut_style': 'none',
-                'stop_conditions': dict(self.default_stop_conditions)
+                'stop_conditions': dict(self.default_stop_conditions),
+                'race_schedule': [dict(r) for r in DEFAULT_RACE_SCHEDULE]
             }
 
     def load_uma_musume_data(self):
@@ -283,11 +294,61 @@ class EventChoiceTab:
         # Stat Caps section
         self.create_stat_caps_section(support_frame, row=2)
 
-        # Debut Style section
-        self.create_debut_style_section(support_frame, row=3)
+        # Debut Style + Race Schedule header on same row, treeview below
+        row3_frame = ttk.Frame(support_frame)
+        row3_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(8, 0))
+        support_frame.columnconfigure(0, weight=1)
+
+        header_row = ttk.Frame(row3_frame)
+        header_row.pack(fill=tk.X)
+        self.create_debut_style_section(header_row)
+        self.create_race_schedule_header(header_row)
+
+        self.create_race_schedule_tree(row3_frame)
 
         # Update preset display to show current selection
         self._update_preset_display()
+
+    def _create_help_icon(self, parent, tooltip_text):
+        """Create a (?) help icon with hover tooltip"""
+        help_label = tk.Label(
+            parent,
+            text="(?)",
+            font=("Arial", 9),
+            fg="#888888",
+            cursor="question_arrow"
+        )
+        help_label.pack(side=tk.LEFT, padx=(2, 0))
+
+        # Tooltip on hover
+        tooltip_window = [None]
+
+        def show_tooltip(event):
+            if tooltip_window[0]:
+                return
+            x = help_label.winfo_rootx() + help_label.winfo_width() + 5
+            y = help_label.winfo_rooty()
+            tw = tk.Toplevel(help_label)
+            tw.wm_overrideredirect(True)
+            tw.wm_attributes('-topmost', True)
+            tw.wm_geometry(f"+{x}+{y}")
+            frame = tk.Frame(tw, bg="#ffffe0", relief=tk.SOLID, borderwidth=1)
+            frame.pack()
+            tk.Label(
+                frame, text=tooltip_text, bg="#ffffe0", fg="#333333",
+                font=("Arial", 9), justify=tk.LEFT, wraplength=300, padx=8, pady=5
+            ).pack()
+            tooltip_window[0] = tw
+
+        def hide_tooltip(event):
+            if tooltip_window[0]:
+                tooltip_window[0].destroy()
+                tooltip_window[0] = None
+
+        help_label.bind('<Enter>', show_tooltip)
+        help_label.bind('<Leave>', hide_tooltip)
+
+        return help_label
 
     def create_stat_caps_section(self, parent, row):
         """Create stat caps configuration section"""
@@ -300,7 +361,19 @@ class EventChoiceTab:
             text="Stat Caps:",
             font=("Arial", 10, "bold"),
             foreground="#666666"
-        ).pack(side=tk.LEFT, padx=(0, 10))
+        ).pack(side=tk.LEFT, padx=(0, 0))
+
+        self._create_help_icon(
+            stat_caps_frame,
+            "Set each stat's target cap value.\n"
+            "When a stat approaches its cap, a score penalty is applied\n"
+            "to training options that raise that stat, making the bot\n"
+            "prefer training other stats instead.\n"
+            "Penalty increases as stat gets closer to the cap."
+        )
+
+        # Spacer after (?)
+        ttk.Frame(stat_caps_frame, width=8).pack(side=tk.LEFT)
 
         # Stat cap inputs in a row
         self.stat_cap_entries = {}
@@ -350,10 +423,10 @@ class EventChoiceTab:
         except Exception as e:
             print(f"Error updating stat cap: {e}")
 
-    def create_debut_style_section(self, parent, row):
+    def create_debut_style_section(self, parent):
         """Create debut style selection section"""
         style_frame = ttk.Frame(parent)
-        style_frame.grid(row=row, column=0, sticky=(tk.W,), pady=(8, 0))
+        style_frame.pack(side=tk.LEFT, padx=(0, 20))
 
         # Style dropdown label
         ttk.Label(
@@ -361,7 +434,15 @@ class EventChoiceTab:
             text="Debut Style:",
             font=("Arial", 10, "bold"),
             foreground="#0066CC"
-        ).pack(side=tk.LEFT, padx=(0, 5))
+        ).pack(side=tk.LEFT, padx=(0, 0))
+
+        self._create_help_icon(
+            style_frame,
+            "Auto-select running style at Pre-Debut race day.\n"
+            "Set to 'None' to skip automatic style selection."
+        )
+
+        ttk.Frame(style_frame, width=5).pack(side=tk.LEFT)
 
         # Get style options
         style_options = get_style_options()
@@ -374,7 +455,7 @@ class EventChoiceTab:
             textvariable=self._style_display,
             values=style_values,
             state="readonly",
-            width=18
+            width=8
         )
         self.style_combobox.pack(side=tk.LEFT)
 
@@ -383,6 +464,171 @@ class EventChoiceTab:
 
         # Bind selection change
         self.style_combobox.bind('<<ComboboxSelected>>', self._on_style_combobox_change)
+
+    def create_race_schedule_header(self, parent):
+        """Create race schedule label and buttons (inline with debut style)"""
+        schedule_header = ttk.Frame(parent)
+        schedule_header.pack(side=tk.LEFT)
+
+        ttk.Label(
+            schedule_header,
+            text="Race Schedule:",
+            font=("Arial", 10, "bold"),
+            foreground="#CC6600"
+        ).pack(side=tk.LEFT, padx=(0, 0))
+
+        self._create_help_icon(
+            schedule_header,
+            "Preferred races the bot will prioritize.\n"
+            "On a scheduled race day, the bot will race\n"
+            "instead of training (if race passes Strategy filters).\n"
+            "Resets to defaults when Uma Musume changes."
+        )
+
+        ttk.Frame(schedule_header, width=5).pack(side=tk.LEFT)
+
+        ttk.Button(
+            schedule_header,
+            text="Add",
+            command=self._open_race_schedule_dialog,
+            width=5
+        ).pack(side=tk.LEFT, padx=(0, 3))
+
+        ttk.Button(
+            schedule_header,
+            text="Del",
+            command=self._delete_selected_race,
+            width=4
+        ).pack(side=tk.LEFT, padx=(0, 3))
+
+        ttk.Button(
+            schedule_header,
+            text="Reset",
+            command=self._reset_race_schedule,
+            width=5
+        ).pack(side=tk.LEFT)
+
+    def create_race_schedule_tree(self, parent):
+        """Create race schedule treeview (below header row)"""
+        tree_frame = ttk.Frame(parent)
+        tree_frame.pack(fill=tk.X, pady=(4, 0))
+
+        columns = ("day", "name", "grade")
+        self.schedule_tree = ttk.Treeview(
+            tree_frame,
+            columns=columns,
+            show="headings",
+            height=4,
+            selectmode="browse"
+        )
+
+        self.schedule_tree.heading("day", text="Day")
+        self.schedule_tree.heading("name", text="Race Name")
+        self.schedule_tree.heading("grade", text="Grade")
+
+        self.schedule_tree.column("day", width=40, anchor=tk.CENTER)
+        self.schedule_tree.column("name", width=250)
+        self.schedule_tree.column("grade", width=55, anchor=tk.CENTER)
+
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.schedule_tree.yview)
+        self.schedule_tree.configure(yscrollcommand=scrollbar.set)
+
+        self.schedule_tree.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Delete key binding
+        self.schedule_tree.bind("<Delete>", lambda e: self._delete_selected_race())
+
+        # Populate with current preset's schedule
+        self._refresh_schedule_tree()
+
+    def _open_race_schedule_dialog(self):
+        """Open race schedule selection dialog"""
+        def on_race_selected(race_info):
+            # race_info: {"name": str, "day": int, "grade": str}
+            current_preset = self.current_set.get()
+            schedule = self.preset_sets[current_preset].get('race_schedule', [])
+
+            # Avoid duplicates by name
+            if any(r['name'] == race_info['name'] for r in schedule):
+                return
+
+            schedule.append({"name": race_info["name"], "day": race_info["day"]})
+            # Sort by day
+            schedule.sort(key=lambda r: r["day"])
+            self.preset_sets[current_preset]['race_schedule'] = schedule
+
+            self._refresh_schedule_tree()
+            self._safe_save_settings()
+
+        def on_filters_changed(new_filters):
+            self.race_schedule_filters = new_filters
+            self._safe_save_settings()
+
+        RaceScheduleDialog(
+            self.parent,
+            callback=on_race_selected,
+            filters=self.race_schedule_filters,
+            on_filters_changed=on_filters_changed
+        )
+
+    def _delete_selected_race(self):
+        """Delete selected race from schedule"""
+        selection = self.schedule_tree.selection()
+        if not selection:
+            return
+
+        values = self.schedule_tree.item(selection[0], "values")
+        if not values:
+            return
+
+        race_name = values[1]
+        current_preset = self.current_set.get()
+        schedule = self.preset_sets[current_preset].get('race_schedule', [])
+        self.preset_sets[current_preset]['race_schedule'] = [
+            r for r in schedule if r['name'] != race_name
+        ]
+
+        self._refresh_schedule_tree()
+        self._safe_save_settings()
+
+    def _reset_race_schedule(self):
+        """Reset race schedule to defaults"""
+        current_preset = self.current_set.get()
+        self.preset_sets[current_preset]['race_schedule'] = [dict(r) for r in DEFAULT_RACE_SCHEDULE]
+        self._refresh_schedule_tree()
+        self._safe_save_settings()
+
+    def _refresh_schedule_tree(self):
+        """Refresh the schedule treeview from current preset data"""
+        if not hasattr(self, 'schedule_tree'):
+            return
+
+        self.schedule_tree.delete(*self.schedule_tree.get_children())
+
+        current_preset = self.current_set.get()
+        schedule = self.preset_sets[current_preset].get('race_schedule', [])
+
+        # Look up grade from race_list data
+        race_grades = {}
+        try:
+            import json
+            race_file = os.path.join("assets", "race_list.json")
+            if os.path.exists(race_file):
+                with open(race_file, "r", encoding="utf-8") as f:
+                    all_races = json.load(f)
+                for race in all_races:
+                    race_grades[race.get("name", "")] = race.get("grade", "?")
+        except Exception:
+            pass
+
+        for race in sorted(schedule, key=lambda r: r.get("day", 0)):
+            grade = race_grades.get(race["name"], "?")
+            self.schedule_tree.insert("", tk.END, values=(
+                race.get("day", "?"),
+                race["name"],
+                grade
+            ))
 
     def _update_style_display(self):
         """Update style combobox to show current selection"""
@@ -758,6 +1004,9 @@ class EventChoiceTab:
             # Update stat cap entries to show new preset's values
             self._update_stat_cap_entries()
 
+            # Refresh race schedule tree for new preset
+            self._refresh_schedule_tree()
+
             # Update strategy checkboxes
             self.update_strategy_checkboxes(selected_uma)
         finally:
@@ -809,6 +1058,11 @@ class EventChoiceTab:
             # Update stop conditions
             preset['stop_conditions'] = dict(
                 preset_data.get('stop_conditions', self.default_stop_conditions)
+            )
+
+            # Update race schedule
+            preset['race_schedule'] = list(
+                preset_data.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE])
             )
 
             # Update preset name
@@ -914,12 +1168,13 @@ class EventChoiceTab:
         selected_uma = self.selected_uma_musume.get()
         self.update_strategy_checkboxes(selected_uma)
 
-        # Reset debut style to 'none' when Uma Musume changes (but not during preset switch)
+        # Reset debut style and race schedule when Uma Musume changes (but not during preset switch)
         switching = getattr(self, '_switching_preset', False)
         print(f"[DEBUG] on_uma_musume_change: uma={selected_uma}, _switching_preset={switching}")
         if not switching:
             self.debut_style.set('none')
             self._update_style_display()
+            self._reset_race_schedule()
 
     def get_settings(self):
         """Get current tab settings"""
@@ -930,6 +1185,7 @@ class EventChoiceTab:
         if not getattr(self, '_switching_preset', False):
             self.preset_sets[current_preset]['debut_style'] = self.debut_style.get()
             self._save_stop_conditions_to_preset(current_preset)
+            # race_schedule is already stored in preset_sets directly
 
         current_stat_caps = {}
         for stat_key in ['spd', 'sta', 'pwr', 'guts', 'wit']:
@@ -946,6 +1202,10 @@ class EventChoiceTab:
             'debut_style': {
                 'style': self.debut_style.get()
             },
+            'race_schedule': list(self.preset_sets[current_preset].get(
+                'race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE]
+            )),
+            'race_schedule_filters': dict(self.race_schedule_filters),
             'preset_names': {},
             'preset_sets': {}
         }
@@ -965,7 +1225,8 @@ class EventChoiceTab:
                 'support_cards': [card.get() for card in preset['support_cards']],
                 'stat_caps': preset_stat_caps,
                 'debut_style': preset.get('debut_style', 'none'),
-                'stop_conditions': dict(preset.get('stop_conditions', self.default_stop_conditions))
+                'stop_conditions': dict(preset.get('stop_conditions', self.default_stop_conditions)),
+                'race_schedule': list(preset.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE]))
             }
 
         return settings
@@ -1007,6 +1268,10 @@ class EventChoiceTab:
             # Update style display if UI elements exist
             self._update_style_display()
 
+            # Load race schedule dialog filters (global)
+            if 'race_schedule_filters' in settings:
+                self.race_schedule_filters = dict(settings['race_schedule_filters'])
+
             # Load preset names
             if 'preset_names' in settings:
                 for set_num, name in settings['preset_names'].items():
@@ -1039,6 +1304,10 @@ class EventChoiceTab:
                         self.preset_sets[set_num]['stop_conditions'] = dict(
                             preset_data.get('stop_conditions', global_stop_conditions)
                         )
+                        # Load race schedule for this preset
+                        self.preset_sets[set_num]['race_schedule'] = list(
+                            preset_data.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE])
+                        )
 
             # Load current set
             if 'current_set' in settings:
@@ -1062,6 +1331,9 @@ class EventChoiceTab:
 
             # Load current preset's stop conditions to strategy_tab
             self._load_stop_conditions_from_preset(current_preset)
+
+            # Refresh race schedule tree
+            self._refresh_schedule_tree()
 
             # Update strategy checkboxes
             self.update_strategy_checkboxes(self.selected_uma_musume.get())

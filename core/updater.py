@@ -5,9 +5,9 @@ Also checks for event map file updates from the GitHub repository.
 """
 
 import os
+import ssl
 import sys
 import json
-import hashlib
 import tempfile
 import zipfile
 import subprocess
@@ -16,6 +16,21 @@ import urllib.error
 from pathlib import Path
 
 from version import APP_VERSION, GITHUB_REPO
+
+
+def _get_ssl_context():
+    """Get SSL context for HTTPS requests. Uses certifi if available."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+
+
+_ssl_ctx = _get_ssl_context()
 
 # Files that should NOT be overwritten during update (user settings)
 PROTECTED_FILES = [
@@ -62,7 +77,7 @@ def check_for_update():
             headers={"Accept": "application/vnd.github.v3+json",
                      "User-Agent": "UmaAutoTrain-Updater"}
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10, context=_ssl_ctx) as resp:
             data = json.loads(resp.read().decode("utf-8"))
 
         latest_version = data.get("tag_name", "").lstrip("v")
@@ -111,7 +126,7 @@ def download_update(url, progress_callback=None):
             url,
             headers={"User-Agent": "UmaAutoTrain-Updater"}
         )
-        resp = urllib.request.urlopen(req, timeout=60)
+        resp = urllib.request.urlopen(req, timeout=60, context=_ssl_ctx)
 
         total_size = int(resp.headers.get("Content-Length", 0))
         downloaded = 0
@@ -261,7 +276,7 @@ REM Self-delete
 
 # --- Event map update functions ---
 
-# Directories and files to check for event map updates
+# Directories to check for NEW files only (missing locally)
 EVENT_MAP_DIRS = [
     "assets/event_map/uma_musume",
     "assets/event_map/support_card/spd",
@@ -271,26 +286,20 @@ EVENT_MAP_DIRS = [
     "assets/event_map/support_card/wit",
     "assets/event_map/support_card/frd",
 ]
-EVENT_MAP_FILES = [
-    "assets/event_map/common.json",
+
+# Files to check by line count (if remote has more lines -> overwrite)
+EVENT_MAP_LINE_CHECK_FILES = [
     "assets/event_map/other_sp_event.json",
+    "assets/event_map/common.json",
 ]
 
 GITHUB_CONTENTS_API = f"https://api.github.com/repos/{GITHUB_REPO}/contents/"
 
 
-def _compute_git_blob_sha(file_path):
-    """Compute the git blob SHA1 for a local file (same algorithm GitHub uses)."""
-    with open(file_path, "rb") as f:
-        data = f.read()
-    header = f"blob {len(data)}\0".encode("ascii")
-    return hashlib.sha1(header + data).hexdigest()
-
-
 def _fetch_github_dir(dir_path):
     """Fetch file listing from a GitHub directory via the Contents API.
 
-    Returns list of dicts with keys: name, path, sha, download_url
+    Returns list of dicts with keys: name, path, download_url
     or empty list on error.
     """
     url = GITHUB_CONTENTS_API + dir_path
@@ -302,13 +311,12 @@ def _fetch_github_dir(dir_path):
                 "User-Agent": "UmaAutoTrain-Updater",
             },
         )
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=_ssl_ctx) as resp:
             items = json.loads(resp.read().decode("utf-8"))
         return [
             {
                 "name": item["name"],
                 "path": item["path"],
-                "sha": item["sha"],
                 "download_url": item["download_url"],
             }
             for item in items
@@ -322,7 +330,7 @@ def _fetch_github_dir(dir_path):
 def _fetch_github_file_info(file_path):
     """Fetch info for a single file from GitHub Contents API.
 
-    Returns dict with keys: name, path, sha, download_url
+    Returns dict with keys: name, path, download_url
     or None on error.
     """
     url = GITHUB_CONTENTS_API + file_path
@@ -334,19 +342,36 @@ def _fetch_github_file_info(file_path):
                 "User-Agent": "UmaAutoTrain-Updater",
             },
         )
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=_ssl_ctx) as resp:
             item = json.loads(resp.read().decode("utf-8"))
         if item.get("type") != "file":
             return None
         return {
             "name": item["name"],
             "path": item["path"],
-            "sha": item["sha"],
             "download_url": item["download_url"],
         }
     except (urllib.error.URLError, urllib.error.HTTPError,
             json.JSONDecodeError, OSError, KeyError):
         return None
+
+
+def _fetch_raw_content(download_url):
+    """Download raw file content from GitHub. Returns bytes or None."""
+    try:
+        req = urllib.request.Request(
+            download_url,
+            headers={"User-Agent": "UmaAutoTrain-Updater"},
+        )
+        with urllib.request.urlopen(req, timeout=15, context=_ssl_ctx) as resp:
+            return resp.read()
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError):
+        return None
+
+
+def _count_lines(data):
+    """Count lines in bytes data."""
+    return len(data.split(b"\n"))
 
 
 def _get_app_dir():
@@ -359,6 +384,9 @@ def _get_app_dir():
 def check_event_updates():
     """Check GitHub for new/updated event map files.
 
+    - support_card/* and uma_musume/*: detect NEW files only (missing locally)
+    - other_sp_event.json, common.json: overwrite if remote has more lines
+
     Returns:
         dict with keys:
             has_updates (bool): True if there are files to update
@@ -369,11 +397,10 @@ def check_event_updates():
     files_to_update = []
     errors = []
 
-    # Check directories
+    # Check directories for NEW files only
     for dir_path in EVENT_MAP_DIRS:
         remote_files = _fetch_github_dir(dir_path)
         if not remote_files and dir_path == EVENT_MAP_DIRS[0]:
-            # If the first dir fails, likely a network issue
             errors.append(f"Could not fetch {dir_path}")
             continue
 
@@ -386,17 +413,9 @@ def check_event_updates():
                     "download_url": remote_file["download_url"],
                     "status": "New",
                 })
-            else:
-                local_sha = _compute_git_blob_sha(local_path)
-                if local_sha != remote_file["sha"]:
-                    files_to_update.append({
-                        "path": remote_file["path"],
-                        "download_url": remote_file["download_url"],
-                        "status": "Updated",
-                    })
 
-    # Check individual files
-    for file_path in EVENT_MAP_FILES:
+    # Check line-count files (overwrite if remote has more lines)
+    for file_path in EVENT_MAP_LINE_CHECK_FILES:
         remote_file = _fetch_github_file_info(file_path)
         if remote_file is None:
             continue
@@ -410,8 +429,14 @@ def check_event_updates():
                 "status": "New",
             })
         else:
-            local_sha = _compute_git_blob_sha(local_path)
-            if local_sha != remote_file["sha"]:
+            # Compare line counts
+            remote_data = _fetch_raw_content(remote_file["download_url"])
+            if remote_data is None:
+                continue
+            remote_lines = _count_lines(remote_data)
+            with open(local_path, "rb") as f:
+                local_lines = _count_lines(f.read())
+            if remote_lines > local_lines:
                 files_to_update.append({
                     "path": remote_file["path"],
                     "download_url": remote_file["download_url"],
@@ -454,7 +479,7 @@ def download_event_files(files_to_update, progress_callback=None):
                 file_info["download_url"],
                 headers={"User-Agent": "UmaAutoTrain-Updater"},
             )
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=15, context=_ssl_ctx) as resp:
                 data = resp.read()
 
             with open(local_path, "wb") as f:

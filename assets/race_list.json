@@ -5,7 +5,8 @@
     "date": "June 2",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Junior Maiden Race",
@@ -13,7 +14,8 @@
     "date": "July 1",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Pre-OP"
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Chukyo Junior Stakes",
@@ -21,7 +23,8 @@
     "date": "July 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hakodate Junior Stakes",
@@ -29,7 +32,8 @@
     "date": "July 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Cosmos Sho",
@@ -37,7 +41,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Dahlia Sho",
@@ -45,7 +50,8 @@
     "date": "August 1",
     "track": "Turf⇐ Niigata",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Phoenix Sho",
@@ -53,7 +59,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Clover Sho",
@@ -61,7 +68,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Mile1500 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Niigata Junior Stakes",
@@ -69,7 +77,8 @@
     "date": "August 2",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Aster Sho",
@@ -77,7 +86,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Kokura Junior Stakes",
@@ -85,7 +95,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Nojigiku Stakes",
@@ -93,7 +104,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sapporo Junior Stakes",
@@ -101,7 +113,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Suzuran Sho",
@@ -109,7 +122,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Canna Stakes",
@@ -117,7 +131,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fuyo Stakes",
@@ -125,7 +140,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kikyo Stakes",
@@ -133,7 +149,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Saffron Sho",
@@ -141,7 +158,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Momiji Stakes",
@@ -149,7 +167,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Platanus Sho",
@@ -157,7 +176,8 @@
     "date": "October 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Rindo Sho",
@@ -165,7 +185,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Saudi Arabia Royal Cup",
@@ -173,7 +194,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Shigiku Sho",
@@ -181,7 +203,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Artemis Stakes",
@@ -189,7 +212,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Hagi Stakes",
@@ -197,7 +221,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Ivy Stakes",
@@ -205,7 +230,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Nadeshiko Sho",
@@ -213,7 +239,8 @@
     "date": "October 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Daily Hai Junior Stakes",
@@ -221,7 +248,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Fantasy Stakes",
@@ -229,7 +257,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Fukushima Junior Stakes",
@@ -237,7 +266,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hyakunichiso Tokubetsu",
@@ -245,7 +275,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Keio Hai Junior Stakes",
@@ -253,7 +284,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Kigiku Sho",
@@ -261,7 +293,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Kimmokusei Tokubetsu",
@@ -269,7 +302,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Oxalis Sho",
@@ -277,7 +311,8 @@
     "date": "November 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Akamatsu Sho",
@@ -285,7 +320,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Begonia Sho",
@@ -293,7 +329,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Cattleya Sho",
@@ -301,7 +338,8 @@
     "date": "November 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Habotan Sho",
@@ -309,7 +347,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Koyamaki Sho",
@@ -317,7 +356,8 @@
     "date": "November 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Kyoto Junior Stakes",
@@ -325,7 +365,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mochinoki Sho",
@@ -333,7 +374,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Shiragiku Sho",
@@ -341,7 +383,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Shumeigiku Sho",
@@ -349,7 +392,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Tokyo Sports Hai Junior Stakes",
@@ -357,7 +401,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Asahi Hai Futurity Stakes",
@@ -365,7 +410,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Erica Sho",
@@ -373,7 +419,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Hanshin Juvenile Fillies",
@@ -381,7 +428,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Hiiragi Sho",
@@ -389,7 +437,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Kantsubaki Sho",
@@ -397,7 +446,8 @@
     "date": "December 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Kuromatsu Sho",
@@ -405,7 +455,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Manryo Sho",
@@ -413,7 +464,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Sazanka Sho",
@@ -421,7 +473,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Tsuwabuki Sho",
@@ -429,7 +482,8 @@
     "date": "December 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Christmas Rose Stakes",
@@ -437,7 +491,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hopeful Stakes",
@@ -445,7 +500,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Senryo Sho",
@@ -453,7 +509,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Fairy Stakes",
@@ -461,7 +518,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Junior Cup",
@@ -469,7 +527,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keisei Hai",
@@ -477,7 +536,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kobai Stakes",
@@ -485,7 +545,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shinzan Kinen",
@@ -493,7 +554,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Crocus Stakes",
@@ -501,7 +563,8 @@
     "date": "January 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Wakagoma Stakes",
@@ -509,7 +572,8 @@
     "date": "January 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Elfin Stakes",
@@ -517,7 +581,8 @@
     "date": "February 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kisaragi Sho",
@@ -525,7 +590,8 @@
     "date": "February 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kyodo News Hai",
@@ -533,7 +599,8 @@
     "date": "February 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Queen Cup",
@@ -541,7 +608,8 @@
     "date": "February 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Hyacinth Stakes",
@@ -549,7 +617,8 @@
     "date": "February 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Marguerite Stakes",
@@ -557,7 +626,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sumire Stakes",
@@ -565,7 +635,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Anemone Stakes",
@@ -573,7 +644,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fillies' Revue",
@@ -581,7 +653,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Shoryu Stakes",
@@ -589,7 +662,8 @@
     "date": "March 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tulip Sho",
@@ -597,7 +671,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Yayoi Sho",
@@ -605,7 +680,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Falcon Stakes",
@@ -613,7 +689,8 @@
     "date": "March 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Flower Cup",
@@ -621,7 +698,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mainichi Hai",
@@ -629,7 +707,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Spring Stakes",
@@ -637,7 +716,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Wakaba Stakes",
@@ -645,7 +725,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Arlington Cup",
@@ -653,7 +734,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Fukuryu Stakes",
@@ -661,7 +743,8 @@
     "date": "April 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "New Zealand Trophy",
@@ -669,7 +752,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Oka Sho",
@@ -677,7 +761,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 8000
   },
   {
     "name": "Satsuki Sho",
@@ -685,7 +770,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 8000
   },
   {
     "name": "Wasurenagusa Sho",
@@ -693,7 +779,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Aoba Sho",
@@ -701,7 +788,8 @@
     "date": "April 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3500
   },
   {
     "name": "Flora Stakes",
@@ -709,7 +797,8 @@
     "date": "April 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Sweetpea Stakes",
@@ -717,7 +806,8 @@
     "date": "April 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tachibana Stakes",
@@ -725,7 +815,8 @@
     "date": "April 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tango Stakes",
@@ -733,7 +824,8 @@
     "date": "April 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kyoto Shimbun Hai",
@@ -741,7 +833,8 @@
     "date": "May 1",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "NHK Mile Cup",
@@ -749,7 +842,8 @@
     "date": "May 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Principal Stakes",
@@ -757,7 +851,8 @@
     "date": "May 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Seiryu Stakes",
@@ -765,7 +860,8 @@
     "date": "May 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Aoi Stakes",
@@ -773,7 +869,8 @@
     "date": "May 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Hosu Stakes",
@@ -781,7 +878,8 @@
     "date": "May 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Japanese Oaks",
@@ -789,7 +887,8 @@
     "date": "May 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Shirayuri Stakes",
@@ -797,7 +896,8 @@
     "date": "May 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tokyo Yushun (Japanese Derby)",
@@ -805,7 +905,8 @@
     "date": "May 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 9500
   },
   {
     "name": "Epsom Cup",
@@ -813,7 +914,8 @@
     "date": "June 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mermaid Stakes",
@@ -821,7 +923,8 @@
     "date": "June 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Naruo Kinen",
@@ -829,7 +932,8 @@
     "date": "June 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sleipnir Stakes",
@@ -837,7 +941,8 @@
     "date": "June 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Medium2100 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tempozan Stakes",
@@ -845,7 +950,8 @@
     "date": "June 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Yasuda Kinen",
@@ -853,7 +959,8 @@
     "date": "June 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Akhalteke Stakes",
@@ -861,7 +968,8 @@
     "date": "June 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hakodate Sprint Stakes",
@@ -869,7 +977,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Onuma Stakes",
@@ -877,7 +986,8 @@
     "date": "June 2",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Paradise Stakes",
@@ -885,7 +995,8 @@
     "date": "June 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sannomiya Stakes",
@@ -893,7 +1004,8 @@
     "date": "June 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Takarazuka Kinen",
@@ -901,7 +1013,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 8000
   },
   {
     "name": "Unicorn Stakes",
@@ -909,7 +1022,8 @@
     "date": "June 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Yonago Stakes",
@@ -917,7 +1031,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "CBC Sho",
@@ -925,7 +1040,8 @@
     "date": "July 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Hakodate Kinen",
@@ -933,7 +1049,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Japan Dirt Derby",
@@ -941,7 +1058,8 @@
     "date": "July 1",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 8000
   },
   {
     "name": "Marine Stakes",
@@ -949,7 +1067,8 @@
     "date": "July 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Meitetsu Hai",
@@ -957,7 +1076,8 @@
     "date": "July 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Procyon Stakes",
@@ -965,7 +1085,8 @@
     "date": "July 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Radio Nikkei Sho",
@@ -973,7 +1094,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Tanabata Sho",
@@ -981,7 +1103,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Tomoe Sho",
@@ -989,7 +1112,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Chukyo Kinen",
@@ -997,7 +1121,8 @@
     "date": "July 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Fukushima TV Open",
@@ -1005,7 +1130,8 @@
     "date": "July 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Ibis Summer Dash",
@@ -1013,7 +1139,8 @@
     "date": "July 2",
     "track": "Turf⇑ Niigata",
     "distance": "Sprint1000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Queen Stakes",
@@ -1021,7 +1148,8 @@
     "date": "July 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Aso Stakes",
@@ -1029,7 +1157,8 @@
     "date": "August 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Elm Stakes",
@@ -1037,7 +1166,8 @@
     "date": "August 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kanetsu Stakes",
@@ -1045,7 +1175,8 @@
     "date": "August 1",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kokura Kinen",
@@ -1053,7 +1184,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Leopard Stakes",
@@ -1061,7 +1193,8 @@
     "date": "August 1",
     "track": "Dirt⇐ Niigata",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sapporo Nikkei Open",
@@ -1069,7 +1202,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Long2600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sekiya Kinen",
@@ -1077,7 +1211,8 @@
     "date": "August 1",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "UHB Sho",
@@ -1085,7 +1220,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "BSN Sho",
@@ -1093,7 +1229,8 @@
     "date": "August 2",
     "track": "Dirt⇐ Niigata",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keeneland Cup",
@@ -1101,7 +1238,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kitakyushu Kinen",
@@ -1109,7 +1247,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kokura Nikkei Open",
@@ -1117,7 +1256,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "NST Sho",
@@ -1125,7 +1265,8 @@
     "date": "August 2",
     "track": "Dirt⇐ Niigata",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sapporo Kinen",
@@ -1133,7 +1274,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Toki Stakes",
@@ -1141,7 +1283,8 @@
     "date": "August 2",
     "track": "Turf⇐ Niigata",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Centaur Stakes",
@@ -1149,7 +1292,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Enif Stakes",
@@ -1157,7 +1301,8 @@
     "date": "September 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keisei Hai Autumn Handicap",
@@ -1165,7 +1310,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Niigata Kinen",
@@ -1173,7 +1319,8 @@
     "date": "September 1",
     "track": "Turf⇐ Niigata",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Prix Niel",
@@ -1181,7 +1328,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Radio Nippon Sho",
@@ -1189,7 +1337,8 @@
     "date": "September 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Rose Stakes",
@@ -1197,7 +1346,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Shion Stakes",
@@ -1205,7 +1355,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Tancho Stakes",
@@ -1213,7 +1364,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Long2600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "All Comers",
@@ -1221,7 +1373,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Kobe Shimbun Hai",
@@ -1229,7 +1382,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Nagatsuki Stakes",
@@ -1237,7 +1391,8 @@
     "date": "September 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Port Island Stakes",
@@ -1245,7 +1400,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sirius Stakes",
@@ -1253,7 +1409,8 @@
     "date": "September 2",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sprinters Stakes",
@@ -1261,7 +1418,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "St. Lite Kinen",
@@ -1269,7 +1427,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Fuchu Umamusume Stakes",
@@ -1277,7 +1436,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Green Channel Cup",
@@ -1285,7 +1445,8 @@
     "date": "October 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kyoto Daishoten",
@@ -1293,7 +1454,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Mainichi Okan",
@@ -1301,7 +1463,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "October Stakes",
@@ -1309,7 +1472,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Opal Stakes",
@@ -1317,7 +1481,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shinetsu Stakes",
@@ -1325,7 +1490,8 @@
     "date": "October 1",
     "track": "Turf⇐ Niigata",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Uzumasa Stakes",
@@ -1333,7 +1499,8 @@
     "date": "October 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Brazil Cup",
@@ -1341,7 +1508,8 @@
     "date": "October 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Medium2100 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Cassiopeia Stakes",
@@ -1349,7 +1517,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fuji Stakes",
@@ -1357,7 +1526,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Kikuka Sho",
@@ -1365,7 +1535,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Long3000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Lumiere Autumn Dash",
@@ -1373,7 +1544,8 @@
     "date": "October 2",
     "track": "Turf⇑ Niigata",
     "distance": "Sprint1000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Muromachi Stakes",
@@ -1381,7 +1553,8 @@
     "date": "October 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shuka Sho",
@@ -1389,7 +1562,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Swan Stakes",
@@ -1397,7 +1571,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tenno Sho (Autumn)",
@@ -1405,7 +1580,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 9500
   },
   {
     "name": "Copa Republica Argentina",
@@ -1413,7 +1589,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Long2500 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Fukushima Kinen",
@@ -1421,7 +1598,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "JBC Classic",
@@ -1429,7 +1607,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "VariesVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "JBC Ladies’ Classic",
@@ -1437,7 +1616,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "MileVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "JBC Sprint",
@@ -1445,7 +1625,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "SprintVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Miyako Stakes",
@@ -1453,7 +1634,8 @@
     "date": "November 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Musashino Stakes",
@@ -1461,7 +1643,8 @@
     "date": "November 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Oro Cup",
@@ -1469,7 +1652,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Queen Elizabeth II Cup",
@@ -1477,7 +1661,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Andromeda Stakes",
@@ -1485,7 +1670,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Autumn Leaf Stakes",
@@ -1493,7 +1679,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Capital Stakes",
@@ -1501,7 +1688,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fukushima Minyu Cup",
@@ -1509,7 +1697,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Japan Cup",
@@ -1517,7 +1706,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 10500
   },
   {
     "name": "Keihan Hai",
@@ -1525,7 +1715,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mile Championship",
@@ -1533,7 +1724,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Shimotsuki Stakes",
@@ -1541,7 +1733,8 @@
     "date": "November 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Capella Stakes",
@@ -1549,7 +1742,8 @@
     "date": "December 1",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Challenge Cup",
@@ -1557,7 +1751,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Champions Cup",
@@ -1565,7 +1760,8 @@
     "date": "December 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Mile1800 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Chunichi Shimbun Hai",
@@ -1573,7 +1769,8 @@
     "date": "December 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "December Stakes",
@@ -1581,7 +1778,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Lapis Lazuli Stakes",
@@ -1589,7 +1787,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Rigel Stakes",
@@ -1597,7 +1796,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shiwasu Stakes",
@@ -1605,7 +1805,8 @@
     "date": "December 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Stayers Stakes",
@@ -1613,7 +1814,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Long3600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tanzanite Stakes",
@@ -1621,7 +1823,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Turquoise Stakes",
@@ -1629,7 +1832,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Arima Kinen",
@@ -1637,7 +1841,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Long2500 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 10500
   },
   {
     "name": "Betelgeuse Stakes",
@@ -1645,7 +1850,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Galaxy Stakes",
@@ -1653,7 +1859,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hanshin Cup",
@@ -1661,7 +1868,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tokyo Daishoten",
@@ -1669,7 +1877,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Aichi Hai",
@@ -1677,7 +1886,8 @@
     "date": "January 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Carbuncle Stakes",
@@ -1685,7 +1895,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "January Stakes",
@@ -1693,7 +1904,8 @@
     "date": "January 1",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kyoto Kimpai",
@@ -1701,7 +1913,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Manyo Stakes",
@@ -1709,7 +1922,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Long3000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Nakayama Kimpai",
@@ -1717,7 +1931,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "New Year Stakes",
@@ -1725,7 +1940,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Nikkei Shinshun Hai",
@@ -1733,7 +1949,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Pollux Stakes",
@@ -1741,7 +1958,8 @@
     "date": "January 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Yodo Tankyori Stakes",
@@ -1749,7 +1967,8 @@
     "date": "January 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "American JCC",
@@ -1757,7 +1976,8 @@
     "date": "January 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Negishi Stakes",
@@ -1765,7 +1985,8 @@
     "date": "January 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Shirafuji Stakes",
@@ -1773,7 +1994,8 @@
     "date": "January 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Silk Road Stakes",
@@ -1781,7 +2003,8 @@
     "date": "January 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Subaru Stakes",
@@ -1789,7 +2012,8 @@
     "date": "January 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tokai Stakes",
@@ -1797,7 +2021,8 @@
     "date": "January 2",
     "track": "Dirt⇐ Chukyo",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Aldebaran Stakes",
@@ -1805,7 +2030,8 @@
     "date": "February 1",
     "track": "Dirt",
     "distance": "Medium1900 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kyoto Kinen",
@@ -1813,7 +2039,8 @@
     "date": "February 1",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Rakuyo Stakes",
@@ -1821,7 +2048,8 @@
     "date": "February 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tokyo Shimbun Hai",
@@ -1829,7 +2057,8 @@
     "date": "February 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Valentine Stakes",
@@ -1837,7 +2066,8 @@
     "date": "February 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Yamato Stakes",
@@ -1845,7 +2075,8 @@
     "date": "February 1",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Diamond Stakes",
@@ -1853,7 +2084,8 @@
     "date": "February 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Long3400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "February Stakes",
@@ -1861,7 +2093,8 @@
     "date": "February 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Hankyu Hai",
@@ -1869,7 +2102,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kitakyushu Tankyori Stakes",
@@ -1877,7 +2111,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kokura Daishoten",
@@ -1885,7 +2120,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kyoto Umamusume Stakes",
@@ -1893,7 +2129,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Nakayama Kinen",
@@ -1901,7 +2138,8 @@
     "date": "February 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Sobu Stakes",
@@ -1909,7 +2147,8 @@
     "date": "February 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kinko Sho",
@@ -1917,7 +2156,8 @@
     "date": "March 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Medium2000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Kochi Stakes",
@@ -1925,7 +2165,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Nakayama Umamusume Stakes",
@@ -1933,7 +2174,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Nigawa Stakes",
@@ -1941,7 +2183,8 @@
     "date": "March 1",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Ocean Stakes",
@@ -1949,7 +2192,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Osakajo Stakes",
@@ -1957,7 +2201,8 @@
     "date": "March 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Polaris Stakes",
@@ -1965,7 +2210,8 @@
     "date": "March 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Chiba Stakes",
@@ -1973,7 +2219,8 @@
     "date": "March 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hanshin Daishoten",
@@ -1981,7 +2228,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Long3000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "March Stakes",
@@ -1989,7 +2237,8 @@
     "date": "March 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Nikkei Sho",
@@ -1997,7 +2246,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Long2500 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Osaka Hai",
@@ -2005,7 +2255,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Rokko Stakes",
@@ -2013,7 +2264,8 @@
     "date": "March 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Takamatsunomiya Kinen",
@@ -2021,7 +2273,8 @@
     "date": "March 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Antares Stakes",
@@ -2029,7 +2282,8 @@
     "date": "April 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Azumakofuji Stakes",
@@ -2037,7 +2291,8 @@
     "date": "April 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Coral Stakes",
@@ -2045,7 +2300,8 @@
     "date": "April 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fukushima Mimpo Hai",
@@ -2053,7 +2309,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hanshin Umamusume Stakes",
@@ -2061,7 +2318,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Keiyo Stakes",
@@ -2069,7 +2327,8 @@
     "date": "April 1",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Lord Derby Challenge Trophy",
@@ -2077,7 +2336,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Shunrai Stakes",
@@ -2085,7 +2345,8 @@
     "date": "April 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fukushima Umamusume Stakes",
@@ -2093,7 +2354,8 @@
     "date": "April 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Milers Cup",
@@ -2101,7 +2363,8 @@
     "date": "April 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Oasis Stakes",
@@ -2109,7 +2372,8 @@
     "date": "April 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tenno Sho (Spring)",
@@ -2117,7 +2381,8 @@
     "date": "April 2",
     "track": "Turf",
     "distance": "Long3200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 9500
   },
   {
     "name": "Tennozan Stakes",
@@ -2125,7 +2390,8 @@
     "date": "April 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Brilliant Stakes",
@@ -2133,7 +2399,8 @@
     "date": "May 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Medium2100 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keio Hai Spring Cup",
@@ -2141,7 +2408,8 @@
     "date": "May 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Kurama Stakes",
@@ -2149,7 +2417,8 @@
     "date": "May 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Metropolitan Stakes",
@@ -2157,7 +2426,8 @@
     "date": "May 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Miyakooji Stakes",
@@ -2165,7 +2435,8 @@
     "date": "May 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Niigata Daishoten",
@@ -2173,7 +2444,8 @@
     "date": "May 1",
     "track": "Turf⇐ Niigata",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Ritto Stakes",
@@ -2181,7 +2453,8 @@
     "date": "May 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tanigawadake Stakes",
@@ -2189,7 +2462,8 @@
     "date": "May 1",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Victoria Mile",
@@ -2197,7 +2471,8 @@
     "date": "May 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Azuchijo Stakes",
@@ -2205,7 +2480,8 @@
     "date": "May 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Heian Stakes",
@@ -2213,7 +2489,8 @@
     "date": "May 2",
     "track": "Dirt",
     "distance": "Medium1900 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Idaten Stakes",
@@ -2221,7 +2498,8 @@
     "date": "May 2",
     "track": "Turf⇑ Niigata",
     "distance": "Sprint1000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keyaki Stakes",
@@ -2229,7 +2507,8 @@
     "date": "May 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "May Stakes",
@@ -2237,7 +2516,8 @@
     "date": "May 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Meguro Kinen",
@@ -2245,7 +2525,8 @@
     "date": "May 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Long2500 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Epsom Cup",
@@ -2253,7 +2534,8 @@
     "date": "June 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mermaid Stakes",
@@ -2261,7 +2543,8 @@
     "date": "June 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Naruo Kinen",
@@ -2269,7 +2552,8 @@
     "date": "June 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sleipnir Stakes",
@@ -2277,7 +2561,8 @@
     "date": "June 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Medium2100 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tempozan Stakes",
@@ -2285,7 +2570,8 @@
     "date": "June 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Yasuda Kinen",
@@ -2293,7 +2579,8 @@
     "date": "June 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Akhalteke Stakes",
@@ -2301,7 +2588,8 @@
     "date": "June 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hakodate Sprint Stakes",
@@ -2309,7 +2597,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Onuma Stakes",
@@ -2317,7 +2606,8 @@
     "date": "June 2",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Paradise Stakes",
@@ -2325,7 +2615,8 @@
     "date": "June 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sannomiya Stakes",
@@ -2333,7 +2624,8 @@
     "date": "June 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Takarazuka Kinen",
@@ -2341,7 +2633,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 8000
   },
   {
     "name": "Teio Sho",
@@ -2349,7 +2642,8 @@
     "date": "June 2",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Yonago Stakes",
@@ -2357,7 +2651,8 @@
     "date": "June 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "CBC Sho",
@@ -2365,7 +2660,8 @@
     "date": "July 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Hakodate Kinen",
@@ -2373,7 +2669,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Marine Stakes",
@@ -2381,7 +2678,8 @@
     "date": "July 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Meitetsu Hai",
@@ -2389,7 +2687,8 @@
     "date": "July 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Procyon Stakes",
@@ -2397,7 +2696,8 @@
     "date": "July 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Tanabata Sho",
@@ -2405,7 +2705,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Tomoe Sho",
@@ -2413,7 +2714,8 @@
     "date": "July 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Chukyo Kinen",
@@ -2421,7 +2723,8 @@
     "date": "July 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Fukushima TV Open",
@@ -2429,7 +2732,8 @@
     "date": "July 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Ibis Summer Dash",
@@ -2437,7 +2741,8 @@
     "date": "July 2",
     "track": "Turf⇑ Niigata",
     "distance": "Sprint1000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Queen Stakes",
@@ -2445,7 +2750,8 @@
     "date": "July 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Aso Stakes",
@@ -2453,7 +2759,8 @@
     "date": "August 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Elm Stakes",
@@ -2461,7 +2768,8 @@
     "date": "August 1",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kanetsu Stakes",
@@ -2469,7 +2777,8 @@
     "date": "August 1",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kokura Kinen",
@@ -2477,7 +2786,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sapporo Nikkei Open",
@@ -2485,7 +2795,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Long2600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sekiya Kinen",
@@ -2493,7 +2804,8 @@
     "date": "August 1",
     "track": "Turf⇐ Niigata",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "UHB Sho",
@@ -2501,7 +2813,8 @@
     "date": "August 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "BSN Sho",
@@ -2509,7 +2822,8 @@
     "date": "August 2",
     "track": "Dirt⇐ Niigata",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keeneland Cup",
@@ -2517,7 +2831,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kitakyushu Kinen",
@@ -2525,7 +2840,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Kokura Nikkei Open",
@@ -2533,7 +2849,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "NST Sho",
@@ -2541,7 +2858,8 @@
     "date": "August 2",
     "track": "Dirt⇐ Niigata",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sapporo Kinen",
@@ -2549,7 +2867,8 @@
     "date": "August 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Toki Stakes",
@@ -2557,7 +2876,8 @@
     "date": "August 2",
     "track": "Turf⇐ Niigata",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Centaur Stakes",
@@ -2565,7 +2885,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Enif Stakes",
@@ -2573,7 +2894,8 @@
     "date": "September 1",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Keisei Hai Autumn Handicap",
@@ -2581,7 +2903,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Niigata Kinen",
@@ -2589,7 +2912,8 @@
     "date": "September 1",
     "track": "Turf⇐ Niigata",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Prix Foy",
@@ -2597,7 +2921,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Radio Nippon Sho",
@@ -2605,7 +2930,8 @@
     "date": "September 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Tancho Stakes",
@@ -2613,7 +2939,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Long2600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "All Comers",
@@ -2621,7 +2948,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Nagatsuki Stakes",
@@ -2629,7 +2957,8 @@
     "date": "September 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Port Island Stakes",
@@ -2637,7 +2966,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Sirius Stakes",
@@ -2645,7 +2975,8 @@
     "date": "September 2",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Sprinters Stakes",
@@ -2653,7 +2984,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Fuchu Umamusume Stakes",
@@ -2661,7 +2993,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Green Channel Cup",
@@ -2669,7 +3002,8 @@
     "date": "October 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Kyoto Daishoten",
@@ -2677,7 +3011,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Medium2400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Mainichi Okan",
@@ -2685,7 +3020,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1800 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "October Stakes",
@@ -2693,7 +3029,8 @@
     "date": "October 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Opal Stakes",
@@ -2701,7 +3038,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shinetsu Stakes",
@@ -2709,7 +3047,8 @@
     "date": "October 1",
     "track": "Turf⇐ Niigata",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Uzumasa Stakes",
@@ -2717,7 +3056,8 @@
     "date": "October 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Brazil Cup",
@@ -2725,7 +3065,8 @@
     "date": "October 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Medium2100 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Cassiopeia Stakes",
@@ -2733,7 +3074,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fuji Stakes",
@@ -2741,7 +3083,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Lumiere Autumn Dash",
@@ -2749,7 +3092,8 @@
     "date": "October 2",
     "track": "Turf⇑ Niigata",
     "distance": "Sprint1000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Muromachi Stakes",
@@ -2757,7 +3101,8 @@
     "date": "October 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Swan Stakes",
@@ -2765,7 +3110,8 @@
     "date": "October 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tenno Sho (Autumn)",
@@ -2773,7 +3119,8 @@
     "date": "October 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 9500
   },
   {
     "name": "Copa Republica Argentina",
@@ -2781,7 +3128,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Long2500 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Fukushima Kinen",
@@ -2789,7 +3137,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "JBC Classic",
@@ -2797,7 +3146,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "VariesVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "JBC Ladies’ Classic",
@@ -2805,7 +3155,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "MileVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "JBC Sprint",
@@ -2813,7 +3164,8 @@
     "date": "November 1",
     "track": "Dirt Varies",
     "distance": "SprintVaries",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Miyako Stakes",
@@ -2821,7 +3173,8 @@
     "date": "November 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Musashino Stakes",
@@ -2829,7 +3182,8 @@
     "date": "November 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Oro Cup",
@@ -2837,7 +3191,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Queen Elizabeth II Cup",
@@ -2845,7 +3200,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2200 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "Andromeda Stakes",
@@ -2853,7 +3209,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Autumn Leaf Stakes",
@@ -2861,7 +3218,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Capital Stakes",
@@ -2869,7 +3227,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Fukushima Minyu Cup",
@@ -2877,7 +3236,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Mile1700 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Japan Cup",
@@ -2885,7 +3245,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2400 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 10500
   },
   {
     "name": "Keihan Hai",
@@ -2893,7 +3254,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Mile Championship",
@@ -2901,7 +3263,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Shimotsuki Stakes",
@@ -2909,7 +3272,8 @@
     "date": "November 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Capella Stakes",
@@ -2917,7 +3281,8 @@
     "date": "December 1",
     "track": "Dirt",
     "distance": "Sprint1200 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Challenge Cup",
@@ -2925,7 +3290,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Champions Cup",
@@ -2933,7 +3299,8 @@
     "date": "December 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Mile1800 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 6500
   },
   {
     "name": "Chunichi Shimbun Hai",
@@ -2941,7 +3308,8 @@
     "date": "December 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Medium2000 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "December Stakes",
@@ -2949,7 +3317,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Lapis Lazuli Stakes",
@@ -2957,7 +3326,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Rigel Stakes",
@@ -2965,7 +3335,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Shiwasu Stakes",
@@ -2973,7 +3344,8 @@
     "date": "December 1",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Stayers Stakes",
@@ -2981,7 +3353,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Long3600 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tanzanite Stakes",
@@ -2989,7 +3362,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Turquoise Stakes",
@@ -2997,7 +3371,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "G3"
+    "grade": "G3",
+    "fan_gain": 1800
   },
   {
     "name": "Arima Kinen",
@@ -3005,7 +3380,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Long2500 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 10500
   },
   {
     "name": "Betelgeuse Stakes",
@@ -3013,7 +3389,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Galaxy Stakes",
@@ -3021,7 +3398,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "OP"
+    "grade": "OP",
+    "fan_gain": 1000
   },
   {
     "name": "Hanshin Cup",
@@ -3029,7 +3407,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "G2"
+    "grade": "G2",
+    "fan_gain": 3000
   },
   {
     "name": "Tokyo Daishoten",
@@ -3037,7 +3416,8 @@
     "date": "December 2",
     "track": "Dirt",
     "distance": "Medium2000 m",
-    "grade": "G1"
+    "grade": "G1",
+    "fan_gain": 5500
   },
   {
     "name": "URA Finals Qualifier",
@@ -3045,7 +3425,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "URA Finals Semifinal",
@@ -3053,7 +3434,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Grand Masters",
@@ -3061,7 +3443,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "Twinkle Star Climax",
@@ -3069,7 +3452,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "URA Finals Final (Aoharu)",
@@ -3077,7 +3461,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "URA Finals Final (Grand Live)",
@@ -3085,7 +3470,8 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   },
   {
     "name": "URA Finals Final (URA)",
@@ -3093,6 +3479,7 @@
     "date": "???",
     "track": "Varies Varies",
     "distance": "VariesVaries",
-    "grade": "Unknown"
+    "grade": "Unknown",
+    "fan_gain": 500
   }
 ]

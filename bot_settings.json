@@ -1,13 +1,13 @@
 {
   "track": {
-    "turf": false,
-    "dirt": true
+    "turf": true,
+    "dirt": false
   },
   "distance": {
-    "sprint": true,
+    "sprint": false,
     "mile": true,
     "medium": true,
-    "long": false
+    "long": true
   },
   "grade": {
     "g1": true,
@@ -20,11 +20,11 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
+  "stop_on_need_rest": false,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
   "target_month": "Classic Year Jun 1",
   "stop_on_ura_final": false,
@@ -32,26 +32,40 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Smart Falcon",
+    "uma_musume": "Mihono Bourbon (Valentine)",
     "support_cards": [
       "spd: Kitasan Black",
       "spd: Silence Suzuka",
-      "wit: Curren Chan",
-      "wit: Marvelous Sunday",
-      "wit: Mihono Bourbon",
+      "spd: Sweep Tosho",
+      "pow: Daitaku Helios",
+      "pow: Vodka",
       "frd: Riko Kashimoto"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 9,
+    "current_set": 1,
     "stat_caps": {
       "spd": 1200,
-      "sta": 500,
+      "sta": 900,
       "pwr": 1200,
       "guts": 1200,
       "wit": 1200
     },
     "debut_style": {
       "style": "none"
+    },
+    "race_schedule": [
+      {
+        "name": "Hanshin Juvenile Fillies",
+        "day": 23
+      },
+      {
+        "name": "Hopeful Stakes",
+        "day": 24
+      }
+    ],
+    "race_schedule_filters": {
+      "year": "All",
+      "grade": "G1"
     },
     "preset_names": {
       "1": "FRONT POWER",
@@ -88,7 +102,7 @@
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 1100,
+          "sta": 900,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
@@ -97,16 +111,26 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": true,
+          "stop_on_need_rest": false,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
-          "stop_before_summer": false,
+          "stop_before_summer": true,
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "2": {
         "uma_musume": "Oguri Cap",
@@ -138,7 +162,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "3": {
         "uma_musume": "Symboli Rudolf",
@@ -170,7 +204,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "4": {
         "uma_musume": "Gold Ship",
@@ -202,7 +246,17 @@
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "5": {
         "uma_musume": "Oguri Cap (Christmas)",
@@ -234,7 +288,17 @@
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "6": {
         "uma_musume": "King Halo",
@@ -266,7 +330,17 @@
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "7": {
         "uma_musume": "Maruzensky",
@@ -298,7 +372,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "8": {
         "uma_musume": "Taiki Shuttle",
@@ -330,10 +414,20 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "9": {
-        "uma_musume": "Sakura Bakushin O",
+        "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black",
           "spd: Silence Suzuka",
@@ -362,7 +456,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "10": {
         "uma_musume": "Sakura Bakushin O",
@@ -394,7 +498,17 @@
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "11": {
         "uma_musume": "El Condor Pasa",
@@ -426,7 +540,17 @@
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "12": {
         "uma_musume": "Agnes Digital",
@@ -458,7 +582,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "13": {
         "uma_musume": "El Condor Pasa",
@@ -490,7 +624,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "14": {
         "uma_musume": "None",
@@ -522,7 +666,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "15": {
         "uma_musume": "None",
@@ -554,7 +708,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "16": {
         "uma_musume": "Symboli Rudolf",
@@ -586,7 +750,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "17": {
         "uma_musume": "Mayano Top Gun",
@@ -618,7 +792,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "18": {
         "uma_musume": "Mayano Top Gun",
@@ -650,7 +834,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "19": {
         "uma_musume": "Seiun Sky",
@@ -682,7 +876,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       },
       "20": {
         "uma_musume": "Seiun Sky",
@@ -714,7 +918,17 @@
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": false
-        }
+        },
+        "race_schedule": [
+          {
+            "name": "Hanshin Juvenile Fillies",
+            "day": 23
+          },
+          {
+            "name": "Hopeful Stakes",
+            "day": 24
+          }
+        ]
       }
     }
   },

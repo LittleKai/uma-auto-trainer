@@ -463,7 +463,7 @@ For each feature:
 
 ## Assets từ Umaplay có thể sử dụng
 
-**Source:** `D:\Dev\Uma_Musume\Umaplay`
+**Source:** `D:\Dev\Python\Umaplay-main\Umaplay-main`
 
 ### Shop Feature
 | Asset | Path | Mô tả |

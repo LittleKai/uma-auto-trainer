@@ -12,7 +12,8 @@
       "Bash(del \"D:\\\\Dev\\\\Uma_Musume\\\\uma-auto-trainer\\\\key_validator.py\")",
       "Bash(where:*)",
       "Bash(python3:*)",
-      "Bash(/c/Users/XEON/AppData/Local/Programs/Python/Python312/python.exe -c \"import py_compile; py_compile.compile\\(''D:/Dev/Uma_Musume/uma-auto-trainer/core/execute.py'', doraise=True\\); print\\(''Syntax OK''\\)\")"
+      "Bash(/c/Users/XEON/AppData/Local/Programs/Python/Python312/python.exe -c \"import py_compile; py_compile.compile\\(''D:/Dev/Uma_Musume/uma-auto-trainer/core/execute.py'', doraise=True\\); print\\(''Syntax OK''\\)\")",
+      "Bash(ls -1 \"D:\\\\Dev\\\\Python\\\\uma-auto-trainer\\\\assets\\\\buttons\"\" 2>/dev/null || echo \"Directory may not exist \")"
     ]
   }
 }

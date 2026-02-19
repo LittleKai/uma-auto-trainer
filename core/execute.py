@@ -537,6 +537,20 @@ class DecisionEngine:
         if not self._handle_mood_requirement(mood, strategy_settings, current_date, gui):
             return False
 
+        # Check preferred race schedule (overrides normal flow if filter-allowed)
+        is_preferred, preferred_races = race_manager.is_preferred_race_day(current_date)
+        if is_preferred and preferred_races:
+            self._log(f"Preferred race day: {preferred_races[0].get('name', '?')} - Racing")
+            if self._stopped():
+                return False
+            race_found = self.controller.race_handler.start_race_flow(
+                allow_continuous_racing=allow_continuous_racing)
+            if race_found:
+                return True
+            # Race not found in game, fall through to normal flow
+            self._click_back_button("Preferred race not found in game, proceeding normally")
+            time.sleep(0.5)
+
         if "G1 (no training)" in priority_strategy:
             return self._handle_race_priority_strategy(game_state, strategy_settings, race_manager, gui)
 
@@ -969,6 +983,14 @@ def career_lobby(gui=None):
 
     if gui:
         race_manager = gui.race_manager
+
+        # Load preferred races from event choice settings
+        try:
+            event_settings = gui.get_event_choice_settings()
+            race_schedule = event_settings.get('race_schedule', [])
+            race_manager.set_preferred_races(race_schedule)
+        except Exception as e:
+            print(f"[WARNING] Could not load race schedule: {e}")
 
         while gui.is_running and not _main_executor.controller.should_stop:
             if not gui.is_running or _main_executor.controller.should_stop:

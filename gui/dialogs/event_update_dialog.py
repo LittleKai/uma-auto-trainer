@@ -24,7 +24,7 @@ class EventUpdateDialog:
         self.downloading = False
 
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("Uma Event Update")
+        self.dialog.title("Event Update")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         self.dialog.resizable(False, False)
@@ -40,7 +40,7 @@ class EventUpdateDialog:
         new_count = sum(1 for f in self.files_to_update if f["status"] == "New")
         updated_count = sum(1 for f in self.files_to_update if f["status"] == "Updated")
 
-        ttk.Label(main_frame, text="Event Map Updates Available",
+        ttk.Label(main_frame, text="Event Updates Available",
                   font=("Arial", 12, "bold")).pack(anchor=tk.W)
 
         summary_parts = []

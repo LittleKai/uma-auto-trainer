@@ -92,7 +92,7 @@ class CheckUpdateDialog:
 
         self.check_event_btn = ttk.Button(
             btn_frame,
-            text="Check Uma Event",
+            text="Check Events",
             command=self._check_event_updates,
         )
         self.check_event_btn.grid(row=0, column=1, padx=(5, 0), sticky=tk.W + tk.E, ipady=4)

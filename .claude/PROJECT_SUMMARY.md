@@ -1,6 +1,6 @@
 # Project Summary
 
-**Last Updated:** 2026-02-19 12:00
+**Last Updated:** 2026-02-19 18:00
 **Updated By:** Claude Code
 
 ---
@@ -59,6 +59,7 @@ uma-auto-trainer/
 │   │   ├── preset_dialog.py
 │   │   ├── stop_conditions_dialog.py
 │   │   ├── uma_musume_dialog.py
+│   │   ├── race_schedule_dialog.py
 │   │   ├── config_dialog.py
 │   │   ├── update_dialog.py
 │   │   ├── event_update_dialog.py
@@ -201,7 +202,7 @@ score = base_score × stage_multiplier
 | Event Map Update | ✅ Done | `core/updater.py`, `gui/dialogs/event_update_dialog.py` | Check/download event maps from GitHub |
 | Shop Preferences | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase shop items |
 | Skills to Buy | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Auto-purchase skills |
-| Race Scheduler Enhanced | ⏳ Planning | `.claude/FEATURE_REQUIREMENTS.md` | Value-based race filtering |
+| Race Scheduler | ✅ Done | `core/race_manager.py`, `gui/tabs/event_choice_tab.py`, `gui/dialogs/race_schedule_dialog.py` | Preferred race scheduling with filter integration |
 | Junior Style Selection | 🚧 In Progress | `core/style_handler.py`, `core/race_handler.py`, `gui/tabs/event_choice_tab.py` | Auto-select debut style at pre-debut race day (needs templates) |
 
 **Legend:**
@@ -249,6 +250,18 @@ score = base_score × stage_multiplier
 ---
 
 ## 7. Recent Changes (Last 5 Sessions)
+
+### 2026-02-19 - Race Scheduler Feature
+- Added `fan_gain` metadata to all 387 races in `assets/race_list.json` (G1: 3500-10500, G2: 2000-4000, G3: 1800, OP: 1000)
+- Enhanced `core/race_manager.py` with `set_preferred_races()`, `is_preferred_race_day()`, `compute_absolute_day()`
+- Created `gui/dialogs/race_schedule_dialog.py` - dialog to select races with search, treeview, fan_gain display
+- Added Race Schedule UI section in `gui/tabs/event_choice_tab.py` (row 4) with Add/Delete/Reset buttons
+- Per-preset race schedule storage, saved/loaded with bot_settings.json
+- Race schedule resets to defaults (Hanshin Juvenile Fillies day 23, Hopeful Stakes day 24) on Uma change
+- Modified `core/execute.py`: preferred races force race flow before normal decision logic
+- Preferred races respect Strategy Tab filters (track/distance/grade)
+- Files created: `gui/dialogs/race_schedule_dialog.py`
+- Files modified: `assets/race_list.json`, `core/race_manager.py`, `core/execute.py`, `gui/tabs/event_choice_tab.py`
 
 ### 2026-02-19 - Event Map Update & Check Update Dialog
 - Added `check_event_updates()` and `download_event_files()` to `core/updater.py`

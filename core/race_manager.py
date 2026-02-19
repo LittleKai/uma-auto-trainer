@@ -239,6 +239,12 @@ class DateManager:
 class RaceManager:
     """Manages race filtering and selection"""
 
+    MONTHS = {
+        'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+        'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+    }
+    YEAR_INDICES = {'Junior': 0, 'Classic': 1, 'Senior': 2}
+
     def __init__(self):
         self.races = self.load_race_data()
         self.filters = {
@@ -246,6 +252,7 @@ class RaceManager:
             'distance': {'sprint': True, 'mile': True, 'medium': True, 'long': True},
             'grade': {'g1': True, 'g2': True, 'g3': True, 'op': False, 'unknown': False}
         }
+        self.preferred_races = []
 
     def load_race_data(self) -> List[Dict]:
         """Load race data from JSON file"""
@@ -475,6 +482,65 @@ class RaceManager:
         ))
 
         return filtered_races
+
+    def set_preferred_races(self, race_names: List[Dict]):
+        """Set preferred races from UI
+
+        Args:
+            race_names: List of dicts with 'name' and 'day' keys
+        """
+        self.preferred_races = race_names
+
+    def compute_absolute_day(self, race: Dict) -> Optional[int]:
+        """Compute absolute_day for a race from its year and date fields"""
+        try:
+            year_str = race.get('year', '').split()[0]
+            date_parts = race.get('date', '').split()
+            if len(date_parts) < 2:
+                return None
+            month_str = date_parts[0][:3]
+            day = int(date_parts[1])
+
+            year_index = self.YEAR_INDICES.get(year_str)
+            month_num = self.MONTHS.get(month_str)
+            if year_index is None or month_num is None:
+                return None
+
+            return year_index * 24 + (month_num - 1) * 2 + (day - 1) + 1
+        except Exception:
+            return None
+
+    def is_preferred_race_day(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
+        """Check if today has a preferred race that also passes filters
+
+        Returns:
+            (is_preferred_day, matching_preferred_races)
+        """
+        if not self.preferred_races or not current_date:
+            return False, []
+
+        absolute_day = current_date.get('absolute_day', 0)
+        if absolute_day <= 0:
+            return False, []
+
+        # Find preferred races scheduled for today
+        preferred_names_today = set()
+        for pref in self.preferred_races:
+            if pref.get('day') == absolute_day:
+                preferred_names_today.add(pref['name'])
+
+        if not preferred_names_today:
+            return False, []
+
+        # Check which of those also pass the strategy filters
+        matching = []
+        for race in self.races:
+            if race.get('name') not in preferred_names_today:
+                continue
+            if self.is_race_allowed(race, current_date):
+                matching.append(race)
+
+        return len(matching) > 0, matching
 
     def should_race_today(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
         """

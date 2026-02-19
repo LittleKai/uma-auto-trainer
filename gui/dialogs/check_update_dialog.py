@@ -1,7 +1,7 @@
 """
 Check Update Dialog for Uma Musume Auto Train.
 Provides access to app update check, event map update check,
-and auto-check toggle setting.
+auto-check toggle, and donate link.
 """
 
 import json
@@ -9,8 +9,11 @@ import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
+import webbrowser
 
 from version import APP_VERSION
+
+KOFI_URL = "https://ko-fi.com/LittleKai"
 
 
 class CheckUpdateDialog:
@@ -19,19 +22,13 @@ class CheckUpdateDialog:
     SETTINGS_FILE = "bot_settings.json"
 
     def __init__(self, parent, on_app_update_found, on_event_update_found):
-        """
-        Args:
-            parent: Parent tkinter window
-            on_app_update_found: callback(update_info) when app update is found
-            on_event_update_found: callback(update_result) when event updates are found
-        """
         self.parent = parent
         self.on_app_update_found = on_app_update_found
         self.on_event_update_found = on_event_update_found
         self.checking = False
 
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("Check Update")
+        self.dialog.title("Uma Auto Train")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         self.dialog.resizable(False, False)
@@ -40,7 +37,6 @@ class CheckUpdateDialog:
         self._center_window()
 
     def _load_auto_check_setting(self):
-        """Load auto-check setting from bot_settings.json."""
         try:
             if os.path.exists(self.SETTINGS_FILE):
                 with open(self.SETTINGS_FILE, "r") as f:
@@ -51,7 +47,6 @@ class CheckUpdateDialog:
         return True
 
     def _save_auto_check_setting(self, enabled):
-        """Save auto-check setting to bot_settings.json."""
         try:
             settings = {}
             if os.path.exists(self.SETTINGS_FILE):
@@ -64,41 +59,105 @@ class CheckUpdateDialog:
             pass
 
     def _setup_ui(self):
-        main_frame = ttk.Frame(self.dialog, padding=20)
+        main_frame = ttk.Frame(self.dialog, padding=(24, 16, 24, 20))
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Auto-check toggle
+        # ── Header: App name + version ──
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill=tk.X, pady=(0, 12))
+
+        ttk.Label(
+            header_frame,
+            text="Uma Musume Auto Train",
+            font=("Arial", 13, "bold"),
+        ).pack(side=tk.LEFT)
+
+        ttk.Label(
+            header_frame,
+            text=f"v{APP_VERSION}",
+            font=("Arial", 10),
+            foreground="#888888",
+        ).pack(side=tk.LEFT, padx=(8, 0), pady=(3, 0))
+
+        # ── Separator ──
+        ttk.Separator(main_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=(0, 14))
+
+        # ── Update section ──
+        update_frame = ttk.LabelFrame(main_frame, text="Updates", padding=(12, 8, 12, 10))
+        update_frame.pack(fill=tk.X, pady=(0, 10))
+        update_frame.columnconfigure(1, weight=1)
+
+        # App update row
+        ttk.Label(
+            update_frame,
+            text="App version:",
+            font=("Arial", 10),
+        ).grid(row=0, column=0, sticky=tk.W, padx=(0, 10), pady=(0, 6))
+
+        self.check_update_btn = ttk.Button(
+            update_frame,
+            text="Check Update",
+            command=self._check_app_update,
+            width=16,
+        )
+        self.check_update_btn.grid(row=0, column=1, sticky=tk.E, pady=(0, 6))
+
+        # Event update row
+        ttk.Label(
+            update_frame,
+            text="Event maps:",
+            font=("Arial", 10),
+        ).grid(row=1, column=0, sticky=tk.W, padx=(0, 10))
+
+        self.check_event_btn = ttk.Button(
+            update_frame,
+            text="Check Events",
+            command=self._check_event_updates,
+            width=16,
+        )
+        self.check_event_btn.grid(row=1, column=1, sticky=tk.E)
+
+        # Status label (shown when checking)
+        self.status_label = ttk.Label(update_frame, text="", font=("Arial", 9), foreground="#666666")
+
+        # ── Settings section ──
+        settings_frame = ttk.LabelFrame(main_frame, text="Settings", padding=(12, 6, 12, 8))
+        settings_frame.pack(fill=tk.X, pady=(0, 10))
+
         self.auto_check_var = tk.BooleanVar(value=self._load_auto_check_setting())
-        auto_check_cb = ttk.Checkbutton(
-            main_frame,
+        ttk.Checkbutton(
+            settings_frame,
             text="Auto check update on startup",
             variable=self.auto_check_var,
             command=self._on_auto_check_toggle,
+        ).pack(anchor=tk.W)
+
+        # ── Support section ──
+        support_frame = ttk.Frame(main_frame)
+        support_frame.pack(fill=tk.X, pady=(4, 0))
+
+        donate_btn = tk.Button(
+            support_frame,
+            text="Buy me a coffee",
+            font=("Arial", 10, "bold"),
+            fg="white",
+            bg="#FF5E5B",
+            activeforeground="white",
+            activebackground="#E04440",
+            cursor="hand2",
+            relief=tk.FLAT,
+            padx=14,
+            pady=5,
+            command=lambda: webbrowser.open(KOFI_URL),
         )
-        auto_check_cb.pack(anchor=tk.W, pady=(0, 15))
+        donate_btn.pack(side=tk.LEFT)
 
-        # Buttons frame
-        btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(fill=tk.X)
-        btn_frame.columnconfigure(0, weight=1)
-        btn_frame.columnconfigure(1, weight=1)
-
-        self.check_update_btn = ttk.Button(
-            btn_frame,
-            text="Check Update",
-            command=self._check_app_update,
-        )
-        self.check_update_btn.grid(row=0, column=0, padx=(0, 5), sticky=tk.W + tk.E, ipady=4)
-
-        self.check_event_btn = ttk.Button(
-            btn_frame,
-            text="Check Events",
-            command=self._check_event_updates,
-        )
-        self.check_event_btn.grid(row=0, column=1, padx=(5, 0), sticky=tk.W + tk.E, ipady=4)
-
-        # Status label (hidden initially)
-        self.status_label = ttk.Label(main_frame, text="", font=("Arial", 9))
+        ttk.Label(
+            support_frame,
+            text="Support development",
+            font=("Arial", 9),
+            foreground="#999999",
+        ).pack(side=tk.LEFT, padx=(8, 0))
 
     def _center_window(self):
         self.dialog.update_idletasks()
@@ -119,9 +178,9 @@ class CheckUpdateDialog:
 
         if status_text:
             self.status_label.config(text=status_text)
-            self.status_label.pack(anchor=tk.W, pady=(10, 0))
+            self.status_label.grid(row=2, column=0, columnspan=2, sticky=tk.W, pady=(8, 0))
         else:
-            self.status_label.pack_forget()
+            self.status_label.grid_forget()
 
     def _check_app_update(self):
         if self.checking:

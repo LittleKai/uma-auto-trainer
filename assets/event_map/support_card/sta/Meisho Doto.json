@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "name": "Please... Buy Some Carrots",
+      "choice": 2
+    },
+    {
+      "name": "I... Will Change",
+      "choice_1_if_mood_lt": "GREAT",
+      "choice_1_if_energy_shortage_gte": 7,
+      "default_choice": 2
+    },
+    {
+      "name": "Doomsday for the Overlord?!",
+      "choice_1_if_energy_shortage_gte": 8
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "name": "The Coolest Line",
+      "choice": 2
+    },
+    {
+      "name": "Enemies on Main Street",
+      "choice": 2
+    },
+    {
+      "name": "Slacking Off at Sundown",
+      "choice": 1
+    }
+  ]
+}

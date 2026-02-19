@@ -26,9 +26,7 @@ Uma_release/
 dist/
 build/
 0.Temp/
-assets/event_map/.tmp.driveupload/
-assets/event_map/.tmp.drivedownload
-
-## Claude Code documentation
 .claude/
 CLAUDE.md
+assets/event_map/.tmp.driveupload/
+assets/event_map/.tmp.drivedownload

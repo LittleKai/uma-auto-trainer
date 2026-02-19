@@ -513,7 +513,7 @@ class EventChoiceTab:
         tree_frame = ttk.Frame(parent)
         tree_frame.pack(fill=tk.X, pady=(4, 0))
 
-        columns = ("day", "name", "grade")
+        columns = ("day", "name", "grade", "info")
         self.schedule_tree = ttk.Treeview(
             tree_frame,
             columns=columns,
@@ -525,10 +525,12 @@ class EventChoiceTab:
         self.schedule_tree.heading("day", text="Day")
         self.schedule_tree.heading("name", text="Race Name")
         self.schedule_tree.heading("grade", text="Grade")
+        self.schedule_tree.heading("info", text="Info")
 
         self.schedule_tree.column("day", width=40, anchor=tk.CENTER)
-        self.schedule_tree.column("name", width=250)
-        self.schedule_tree.column("grade", width=55, anchor=tk.CENTER)
+        self.schedule_tree.column("name", width=200)
+        self.schedule_tree.column("grade", width=45, anchor=tk.CENTER)
+        self.schedule_tree.column("info", width=100)
 
         scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.schedule_tree.yview)
         self.schedule_tree.configure(yscrollcommand=scrollbar.set)
@@ -599,6 +601,30 @@ class EventChoiceTab:
         self._refresh_schedule_tree()
         self._safe_save_settings()
 
+    @staticmethod
+    def _extract_race_info(race_data):
+        """Extract short info string like 'Turf, Mile' from race data"""
+        track_raw = race_data.get("track", "")
+        dist_raw = race_data.get("distance", "")
+
+        # Track: take first word (Turf / Dirt)
+        track = "Dirt" if "dirt" in track_raw.lower() else "Turf"
+
+        # Distance: extract category keyword
+        dist_lower = dist_raw.lower()
+        if "long" in dist_lower:
+            dist = "Long"
+        elif "medium" in dist_lower:
+            dist = "Medium"
+        elif "mile" in dist_lower:
+            dist = "Mile"
+        elif "sprint" in dist_lower:
+            dist = "Sprint"
+        else:
+            dist = dist_raw.split()[0] if dist_raw else "?"
+
+        return f"{track}, {dist}"
+
     def _refresh_schedule_tree(self):
         """Refresh the schedule treeview from current preset data"""
         if not hasattr(self, 'schedule_tree'):
@@ -609,8 +635,8 @@ class EventChoiceTab:
         current_preset = self.current_set.get()
         schedule = self.preset_sets[current_preset].get('race_schedule', [])
 
-        # Look up grade from race_list data
-        race_grades = {}
+        # Look up race details from race_list data
+        race_lookup = {}
         try:
             import json
             race_file = os.path.join("assets", "race_list.json")
@@ -618,16 +644,19 @@ class EventChoiceTab:
                 with open(race_file, "r", encoding="utf-8") as f:
                     all_races = json.load(f)
                 for race in all_races:
-                    race_grades[race.get("name", "")] = race.get("grade", "?")
+                    race_lookup[race.get("name", "")] = race
         except Exception:
             pass
 
         for race in sorted(schedule, key=lambda r: r.get("day", 0)):
-            grade = race_grades.get(race["name"], "?")
+            race_data = race_lookup.get(race["name"], {})
+            grade = race_data.get("grade", "?")
+            info = self._extract_race_info(race_data) if race_data else "?"
             self.schedule_tree.insert("", tk.END, values=(
                 race.get("day", "?"),
                 race["name"],
-                grade
+                grade,
+                info
             ))
 
     def _update_style_display(self):

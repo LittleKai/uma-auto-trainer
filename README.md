@@ -2,6 +2,9 @@
 
 Automated training bot for **Uma Musume: Pretty Derby** on PC. Handles training, racing, events, and rest automatically.
 
+![Strategy & Filters](.github/screenshots/sceenshot1.png)
+![Event Choice](.github/screenshots/sceenshot2.png)
+
 ## Requirements
 
 - Windows 10/11 (64-bit)
@@ -34,6 +37,13 @@ Automated training bot for **Uma Musume: Pretty Derby** on PC. Handles training,
 
 ## Configuration
 
+### Strategy & Filters Tab
+
+- **Priority Strategy** - Training score threshold or G1-only mode
+- **Race Filters** - Track, distance, grade filters
+- **Minimum Mood** - Auto-rest when mood drops below threshold
+- **Stop Conditions** - Auto-stop triggers (infirmary, low mood, race day, etc.)
+
 ### Event Choice Tab
 
 - **Uma Musume** - Select your character (auto-sets race filters)
@@ -43,14 +53,7 @@ Automated training bot for **Uma Musume: Pretty Derby** on PC. Handles training,
 - **Debut Style** - Auto-select running style at debut race
 - **Race Schedule** - Preferred races the bot will prioritize (resets on Uma change)
 
-### Strategy Tab
-
-- **Priority Strategy** - Training score threshold or G1-only mode
-- **Race Filters** - Track, distance, grade filters
-- **Minimum Mood** - Auto-rest when mood drops below threshold
-- **Stop Conditions** - Auto-stop triggers (infirmary, low mood, race day, etc.)
-
-### Team Trials Tab
+### Daily Activities Tab
 
 - Team Trial, Champion Meeting, Legend Race automation
 

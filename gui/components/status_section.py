@@ -25,7 +25,7 @@ class StatusSection:
         self.create_right_column()
 
     def create_left_column(self):
-        """Create left column with bot status, date, and energy"""
+        """Create left column with bot status and date"""
         left_column = ttk.Frame(self.frame)
         left_column.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N), padx=(0, 10))
         left_column.columnconfigure(1, weight=1)
@@ -42,37 +42,27 @@ class StatusSection:
         self.date_label = ttk.Label(left_column, text="Unknown", foreground="blue")
         self.date_label.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=3)
 
-        # Energy
-        ttk.Label(left_column, text="Energy:", font=("Arial", 10, "bold")).grid(
-            row=2, column=0, sticky=tk.W, pady=3)
-
-        # Create frame for energy display with current and max
-        energy_frame = ttk.Frame(left_column)
-        energy_frame.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=3)
-
-        # Current energy label (color will change based on level)
-        self.energy_current_label = ttk.Label(energy_frame, text="0", foreground="blue")
-        self.energy_current_label.grid(row=0, column=0, sticky=tk.W)
-
-        # Separator label
-        self.energy_separator_label = ttk.Label(energy_frame, text="/", foreground="gray")
-        self.energy_separator_label.grid(row=0, column=1, sticky=tk.W)
-
-        # Max energy label (fixed color)
-        self.energy_max_label = ttk.Label(energy_frame, text="0", foreground="blue")
-        self.energy_max_label.grid(row=0, column=2, sticky=tk.W)
-
     def create_right_column(self):
-        """Create right column with game window and scenario"""
+        """Create right column with energy and scenario"""
         right_column = ttk.Frame(self.frame)
         right_column.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
         right_column.columnconfigure(1, weight=1)
 
-        # Game Window Status
-        ttk.Label(right_column, text="Game Window:", font=("Arial", 10, "bold")).grid(
+        # Energy
+        ttk.Label(right_column, text="Energy:", font=("Arial", 10, "bold")).grid(
             row=0, column=0, sticky=tk.W, pady=3)
-        self.game_status_label = ttk.Label(right_column, text="Checking...", foreground="orange")
-        self.game_status_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=3)
+
+        energy_frame = ttk.Frame(right_column)
+        energy_frame.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=3)
+
+        self.energy_current_label = ttk.Label(energy_frame, text="0", foreground="blue")
+        self.energy_current_label.grid(row=0, column=0, sticky=tk.W)
+
+        self.energy_separator_label = ttk.Label(energy_frame, text="/", foreground="gray")
+        self.energy_separator_label.grid(row=0, column=1, sticky=tk.W)
+
+        self.energy_max_label = ttk.Label(energy_frame, text="0", foreground="blue")
+        self.energy_max_label.grid(row=0, column=2, sticky=tk.W)
 
         # Scenario Selection
         ttk.Label(right_column, text="Scenario:", font=("Arial", 10, "bold")).grid(
@@ -95,7 +85,6 @@ class StatusSection:
         set_scenario(scenario)
         self.main_window.save_settings()
 
-        # Log để debug
         self.main_window.log_message(f"Scenario changed to: {scenario}")
 
     def set_bot_status(self, status, color):
@@ -116,56 +105,40 @@ class StatusSection:
     def update_energy(self, energy_data):
         """Update energy display with color coding"""
         try:
-
-            # Handle both old format (single value) and new format (tuple)
             if isinstance(energy_data, tuple):
                 current_energy, max_energy = energy_data
-                # Display energy values directly (already in percentage/energy format)
                 current_energy_display = round(current_energy)
                 max_energy_display = round(max_energy)
                 energy_percentage = current_energy
 
-                # Update current energy with dynamic color
                 self.energy_current_label.config(text=str(current_energy_display))
-
-                # Update max energy with fixed blue color
                 self.energy_max_label.config(text=str(max_energy_display), foreground="blue")
-
-                # Show separator
                 self.energy_separator_label.config(text="/")
 
             elif isinstance(energy_data, (int, float)):
-                # Old format - single percentage value
-                # For old format, we don't know max energy, so hide separator and max
                 current_energy_display = round(energy_data)
                 energy_percentage = energy_data
 
-                # Update current energy
                 self.energy_current_label.config(text=str(current_energy_display))
-
-                # Hide separator and max energy for old format
                 self.energy_separator_label.config(text="")
                 self.energy_max_label.config(text="")
 
             else:
-                print(f"[DEBUG] Processing unknown format: {energy_data}")
-                # Unknown format - show as is
                 self.energy_current_label.config(text="0", foreground="red")
                 self.energy_separator_label.config(text="/")
                 self.energy_max_label.config(text="0", foreground="blue")
-                energy_percentage = 0  # Default for color coding
+                energy_percentage = 0
 
-            # Load energy thresholds for color coding current energy
+            # Load energy thresholds for color coding
             try:
                 with open('config.json', 'r') as f:
                     config = json.load(f)
                 minimum_energy = config.get('minimum_energy_percentage', 40)
                 critical_energy = config.get('critical_energy_percentage', 20)
-            except:
+            except Exception:
                 minimum_energy = 40
                 critical_energy = 20
 
-            # Determine color for current energy based on energy level
             if energy_percentage >= minimum_energy:
                 current_color = "green"
             elif energy_percentage >= critical_energy:
@@ -173,18 +146,13 @@ class StatusSection:
             else:
                 current_color = "red"
 
-            # Apply color to current energy only
             self.energy_current_label.config(foreground=current_color)
 
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            # Fallback display
+        except Exception:
             self.energy_current_label.config(text="0", foreground="red")
             self.energy_separator_label.config(text="/")
             self.energy_max_label.config(text="0", foreground="blue")
 
     def update_game_status(self, status, color):
-        """Update game window status display"""
-        self.game_status_label.config(text=status, foreground=color)
-
+        """No-op: game window status removed from UI"""
+        pass

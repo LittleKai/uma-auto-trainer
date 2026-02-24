@@ -511,10 +511,11 @@ class RaceManager:
             return None
 
     def is_preferred_race_day(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
-        """Check if today has a preferred race that also passes filters
+        """Check if today has a preferred race scheduled.
+        Strategy tab filters are NOT applied - scheduled races always run.
 
         Returns:
-            (is_preferred_day, matching_preferred_races)
+            (is_preferred_day, scheduled_races_today)
         """
         if not self.preferred_races or not current_date:
             return False, []
@@ -523,24 +524,9 @@ class RaceManager:
         if absolute_day <= 0:
             return False, []
 
-        # Find preferred races scheduled for today
-        preferred_names_today = set()
-        for pref in self.preferred_races:
-            if pref.get('day') == absolute_day:
-                preferred_names_today.add(pref['name'])
-
-        if not preferred_names_today:
-            return False, []
-
-        # Check which of those also pass the strategy filters
-        matching = []
-        for race in self.races:
-            if race.get('name') not in preferred_names_today:
-                continue
-            if self.is_race_allowed(race, current_date):
-                matching.append(race)
-
-        return len(matching) > 0, matching
+        # Match only by day - no track/distance/grade filter applied
+        scheduled_today = [p for p in self.preferred_races if p.get('day') == absolute_day]
+        return len(scheduled_today) > 0, scheduled_today
 
     def should_race_today(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
         """

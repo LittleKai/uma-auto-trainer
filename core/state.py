@@ -117,8 +117,15 @@ def calculate_unified_training_score(training_type, support_counts, current_date
     if absolute_day < EARLY_STAGE_THRESHOLD:
       wit_bonus = get_wit_early_stage_bonus()
       total_score += wit_bonus
-    if energy_shortage < 3.0 and total_score>= 0.5:
-      total_score +=-0.5
+
+    # Energy recovery penalty: each wit rainbow recovers ~4 energy.
+    # Penalty = max(0, (4*N - (energy_shortage - 3)) / 10)
+    # where N = number of wit rainbows in this training.
+    energy_recovery_penalty = max(0.0, (4 * rainbow_count - (energy_shortage - 3)) / 10)
+    if energy_recovery_penalty > 0:
+      total_score -= energy_recovery_penalty
+      support_counts["energy_recovery_penalty"] = energy_recovery_penalty
+      print(f"[WIT] Energy recovery penalty: -{energy_recovery_penalty:.2f} (wit_rainbow={rainbow_count}, energy_shortage={energy_shortage:.1f})")
 
   return total_score
 
@@ -169,14 +176,21 @@ def extract_stat_number_enhanced(img):
     return 0, []
 
 
-def stat_state():
+def stat_state(stats_filter=None):
   """Get current character stats using configurable regions with improved OCR accuracy
 
   Reads all 5 stats (spd, sta, pwr, guts, wit) to enable stat cap score calculation.
+
+  Args:
+    stats_filter: Optional list of stat keys to read (e.g. ['spd', 'wit']).
+                  If None, reads all stats.
   """
 
   current_regions = get_current_regions()
   stat_regions = current_regions['STAT_REGIONS']
+
+  if stats_filter is not None:
+    stat_regions = {k: v for k, v in stat_regions.items() if k in stats_filter}
 
   result = {}
   validation_warnings = []

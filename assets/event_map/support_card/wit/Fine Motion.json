@@ -10,7 +10,8 @@
     },
     {
       "name": "Lovely Training Weather ♪",
-      "choice": 1
+      "choice_1_if_day_lt": 30,
+      "default_choice": 2
     }
   ]
 }

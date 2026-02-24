@@ -1,5 +1,6 @@
+import copy
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 
 class PresetDialog:
@@ -33,11 +34,13 @@ class PresetDialog:
         self.callback = callback
         self.selected_preset = None
         self._swaps_performed = False
+        self._drag_source = None
+        self._drag_hover = None
 
         # Create dialog window
         self.window = tk.Toplevel(parent)
         self.window.title("Select Preset")
-        self.window.geometry("650x500")
+        self.window.geometry("650x700")
         self.window.resizable(False, False)
 
         # Make modal
@@ -140,6 +143,7 @@ class PresetDialog:
             widget.destroy()
 
         self.preset_frames = {}
+        self.preset_card_frames = {}
         self.name_entries = {}
 
         filter_text = filter_text.lower()
@@ -154,62 +158,100 @@ class PresetDialog:
                 if filter_text not in preset_name.lower() and filter_text not in uma_musume.lower():
                     continue
 
-            # Create preset frame
-            frame = self._create_preset_frame(preset_num, preset_name, preset_data)
-            frame.pack(fill=tk.X, pady=2, padx=5)
-            self.preset_frames[preset_num] = frame
+            # Create preset row (outer container returned)
+            row = self._create_preset_frame(preset_num, preset_name, preset_data)
+            row.pack(fill=tk.X, pady=2, padx=5)
+            self.preset_frames[preset_num] = row
+
+        # "+" button to create a new empty preset at the bottom
+        add_frame = tk.Frame(self.scrollable_frame, bg="#f0f0f0")
+        add_frame.pack(fill=tk.X, pady=(6, 2), padx=5)
+
+        add_btn = tk.Label(
+            add_frame,
+            text="＋  New Preset",
+            font=("Arial", 9, "bold"),
+            fg="#0066CC",
+            bg="#f0f0f0",
+            cursor="hand2",
+            pady=6,
+            relief=tk.GROOVE,
+            borderwidth=1
+        )
+        add_btn.pack(fill=tk.X)
+        add_btn.bind('<Button-1>', lambda e: self._create_new_preset())
+        add_btn.bind('<Enter>', lambda e: e.widget.configure(bg="#ddeeff"))
+        add_btn.bind('<Leave>', lambda e: e.widget.configure(bg="#f0f0f0"))
 
     def _create_preset_frame(self, preset_num, preset_name, preset_data):
-        """Create a frame for a single preset"""
-        # Determine if this is the current preset
+        """Create a row containing the preset card and action buttons side by side."""
         is_current = preset_num == self.current_set
 
-        # Frame with border
+        # ── Outer row: card (left) + buttons (right, outside card) ──
+        row_frame = ttk.Frame(self.scrollable_frame)
+
+        # Card frame with border
         frame = tk.Frame(
-            self.scrollable_frame,
+            row_frame,
             relief=tk.RAISED if is_current else tk.GROOVE,
             borderwidth=2,
             bg="#e6f0ff" if is_current else "#f8f8f8",
             cursor="hand2"
         )
+        frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.preset_card_frames[preset_num] = frame
 
-        # Content area (left) + Move buttons (right)
+        # Content area fills the card
         content_frame = tk.Frame(frame, bg=frame.cget('bg'))
-        content_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        content_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Move buttons frame (right side, vertically centered)
-        move_frame = tk.Frame(frame, bg=frame.cget('bg'))
-        move_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 6), pady=6)
+        # ── Action buttons (outside the card, right of row) ──
+        move_frame = ttk.Frame(row_frame)
+        move_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(4, 0))
 
-        # Up arrow button
-        up_btn = tk.Label(
+        # Drag handle (replaces ▲▼ buttons)
+        drag_handle = tk.Label(
             move_frame,
-            text="\u25B2",
-            font=("Arial", 9),
-            fg="#888888",
-            bg=frame.cget('bg'),
-            cursor="hand2",
-            padx=4
+            text="\u28bf",
+            font=("Segoe UI", 13),
+            fg="#bbbbbb",
+            cursor="fleur",
+            padx=4, pady=4
         )
-        up_btn.pack(side=tk.TOP, pady=(0, 2))
-        up_btn.bind('<Button-1>', lambda e, pn=preset_num: self._move_preset_up_by_num(pn))
-        up_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#0066CC"))
-        up_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#888888"))
+        drag_handle.pack(side=tk.TOP)
+        drag_handle.bind('<ButtonPress-1>',   lambda e, pn=preset_num: self._start_drag(e, pn))
+        drag_handle.bind('<B1-Motion>',       lambda e, pn=preset_num: self._on_drag_motion(e, pn))
+        drag_handle.bind('<ButtonRelease-1>', lambda e, pn=preset_num: self._end_drag(e, pn))
+        drag_handle.bind('<Enter>', lambda e: e.widget.configure(fg="#555555"))
+        drag_handle.bind('<Leave>', lambda e: e.widget.configure(fg="#bbbbbb"))
 
-        # Down arrow button
-        down_btn = tk.Label(
+        # Copy button (green)
+        copy_btn = tk.Label(
             move_frame,
-            text="\u25BC",
-            font=("Arial", 9),
-            fg="#888888",
-            bg=frame.cget('bg'),
+            text="\u29c9",
+            font=("Arial", 11),
+            fg="#28A745",
             cursor="hand2",
-            padx=4
+            padx=4, pady=2
         )
-        down_btn.pack(side=tk.TOP)
-        down_btn.bind('<Button-1>', lambda e, pn=preset_num: self._move_preset_down_by_num(pn))
-        down_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#0066CC"))
-        down_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#888888"))
+        copy_btn.pack(side=tk.TOP, pady=(4, 0))
+        copy_btn.bind('<Button-1>', lambda e, pn=preset_num: self._copy_preset(pn))
+        copy_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#1a6e2e"))
+        copy_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#28A745"))
+
+        # Delete button (red)
+        del_btn = tk.Label(
+            move_frame,
+            text="\u2715",
+            font=("Arial", 10),
+            fg="#CC2222",
+            cursor="hand2",
+            padx=4, pady=2
+        )
+        del_btn.pack(side=tk.TOP, pady=(4, 0))
+        del_btn.bind('<Button-1>', lambda e, pn=preset_num: self._delete_preset(pn))
+        del_btn.bind('<Enter>', lambda e: e.widget.configure(fg="#ff0000"))
+        del_btn.bind('<Leave>', lambda e: e.widget.configure(fg="#CC2222"))
 
         # Header row: preset number + name entry + edit indicator
         header_frame = tk.Frame(content_frame, bg=frame.cget('bg'))
@@ -304,7 +346,7 @@ class PresetDialog:
         caps_label.bind('<Button-1>', lambda e, pn=preset_num: self._select_preset(pn))
         caps_label.bind('<Double-Button-1>', lambda e, pn=preset_num: self._double_click_preset(pn))
 
-        return frame
+        return row_frame
 
     def _get_card_summary(self, support_cards):
         """Get summary of support cards by type"""
@@ -354,16 +396,16 @@ class PresetDialog:
         """Handle preset selection (single click)"""
         self.selected_preset = preset_num
 
-        # Update visual selection
-        for pn, frame in self.preset_frames.items():
+        # Update visual selection (only the card frame, not the outer row)
+        for pn, card in self.preset_card_frames.items():
             if pn == preset_num:
-                frame.configure(bg="#d0e0ff", relief=tk.RAISED)
-                self._set_frame_bg(frame, "#d0e0ff")
+                card.configure(bg="#d0e0ff", relief=tk.RAISED)
+                self._set_frame_bg(card, "#d0e0ff")
             else:
                 is_current = pn == self.current_set
                 bg = "#e6f0ff" if is_current else "#f8f8f8"
-                frame.configure(bg=bg, relief=tk.RAISED if is_current else tk.GROOVE)
-                self._set_frame_bg(frame, bg)
+                card.configure(bg=bg, relief=tk.RAISED if is_current else tk.GROOVE)
+                self._set_frame_bg(card, bg)
 
     def _double_click_preset(self, preset_num):
         """Handle preset double-click (select and close)"""
@@ -374,38 +416,6 @@ class PresetDialog:
         """Handle search text change"""
         search_text = self.search_var.get()
         self._populate_presets(search_text)
-
-    def _move_preset_up_by_num(self, preset_num):
-        """Move a preset up one position"""
-        if preset_num <= 1:
-            return
-        self._swap_presets(preset_num, preset_num - 1)
-        # Update current_set if it was involved in the swap
-        if self.current_set == preset_num:
-            self.current_set = preset_num - 1
-        elif self.current_set == preset_num - 1:
-            self.current_set = preset_num
-        # Track selection to the moved preset
-        self.selected_preset = preset_num - 1
-        self._populate_presets(self.search_var.get())
-        self._select_preset(self.selected_preset)
-        self._scroll_to_preset(self.selected_preset)
-
-    def _move_preset_down_by_num(self, preset_num):
-        """Move a preset down one position"""
-        if preset_num >= 20:
-            return
-        self._swap_presets(preset_num, preset_num + 1)
-        # Update current_set if it was involved in the swap
-        if self.current_set == preset_num:
-            self.current_set = preset_num + 1
-        elif self.current_set == preset_num + 1:
-            self.current_set = preset_num
-        # Track selection to the moved preset
-        self.selected_preset = preset_num + 1
-        self._populate_presets(self.search_var.get())
-        self._select_preset(self.selected_preset)
-        self._scroll_to_preset(self.selected_preset)
 
     def _swap_presets(self, num_a, num_b):
         """Swap all data between two preset positions"""
@@ -452,6 +462,207 @@ class PresetDialog:
         sc_b = dict(preset_b.get('stop_conditions', {}))
         preset_a['stop_conditions'] = sc_b
         preset_b['stop_conditions'] = sc_a
+
+        # Swap race_schedule
+        rs_a = preset_a.get('race_schedule', [])
+        rs_b = preset_b.get('race_schedule', [])
+        preset_a['race_schedule'] = rs_b
+        preset_b['race_schedule'] = rs_a
+
+    # ── Drag-to-reorder ────────────────────────────────────────────────────
+
+    def _start_drag(self, event, preset_num):
+        """Begin dragging a preset row."""
+        self._drag_source = preset_num
+        self._drag_hover = None
+        card = self.preset_card_frames.get(preset_num)
+        if card:
+            card.configure(bg="#c8d8f0", relief=tk.FLAT)
+            self._set_frame_bg(card, "#c8d8f0")
+
+    def _on_drag_motion(self, event, preset_num):
+        """Update drag-over highlight while mouse moves."""
+        if self._drag_source is None:
+            return
+
+        abs_y = event.widget.winfo_rooty() + event.y
+        new_hover = self._find_row_at_y(abs_y)
+
+        if new_hover == self._drag_hover:
+            return
+
+        # Restore previous hover target
+        if self._drag_hover is not None and self._drag_hover != self._drag_source:
+            self._restore_card_bg(self._drag_hover)
+
+        self._drag_hover = new_hover
+
+        # Highlight new hover target
+        if new_hover is not None and new_hover != self._drag_source:
+            card = self.preset_card_frames.get(new_hover)
+            if card:
+                card.configure(bg="#ffe0a0", relief=tk.RAISED)
+                self._set_frame_bg(card, "#ffe0a0")
+
+    def _end_drag(self, event, preset_num):
+        """Finish drag: move preset to target position."""
+        if self._drag_source is None:
+            return
+
+        source = self._drag_source
+        target = self._drag_hover
+        self._drag_source = None
+        self._drag_hover = None
+
+        if target is not None and target != source:
+            self._move_preset_to(source, target)
+        else:
+            # Restore visuals without any move
+            self._populate_presets(self.search_var.get())
+            if self.selected_preset:
+                self._select_preset(self.selected_preset)
+
+    def _find_row_at_y(self, abs_y):
+        """Return the preset_num whose row contains the given absolute screen Y."""
+        for pn, row in self.preset_frames.items():
+            top = row.winfo_rooty()
+            if top <= abs_y <= top + row.winfo_height():
+                return pn
+        return None
+
+    def _restore_card_bg(self, preset_num):
+        """Restore a card to its default background/relief."""
+        card = self.preset_card_frames.get(preset_num)
+        if not card:
+            return
+        if preset_num == self.selected_preset:
+            bg, relief = "#d0e0ff", tk.RAISED
+        elif preset_num == self.current_set:
+            bg, relief = "#e6f0ff", tk.RAISED
+        else:
+            bg, relief = "#f8f8f8", tk.GROOVE
+        card.configure(bg=bg, relief=relief)
+        self._set_frame_bg(card, bg)
+
+    def _move_preset_to(self, source_num, target_num):
+        """Move preset from source_num to target_num, shifting everything in between."""
+        if source_num == target_num:
+            return
+
+        old_current = self.current_set
+
+        if source_num < target_num:
+            for i in range(source_num, target_num):
+                self._swap_presets(i, i + 1)
+            if old_current == source_num:
+                self.current_set = target_num
+            elif source_num < old_current <= target_num:
+                self.current_set = old_current - 1
+        else:
+            for i in range(source_num, target_num, -1):
+                self._swap_presets(i, i - 1)
+            if old_current == source_num:
+                self.current_set = target_num
+            elif target_num <= old_current < source_num:
+                self.current_set = old_current + 1
+
+        self.selected_preset = target_num
+        self._populate_presets(self.search_var.get())
+        self._select_preset(target_num)
+        self._scroll_to_preset(target_num)
+
+    def _find_next_available_slot(self):
+        """Find the first preset slot with no uma_musume configured."""
+        for slot in range(1, 21):
+            uma = self.preset_sets[slot]['uma_musume'].get()
+            if not uma or uma == "None":
+                return slot
+        return None  # All 20 slots are occupied
+
+    def _copy_preset(self, source_num):
+        """Copy preset data from source_num to the next available slot."""
+        target = self._find_next_available_slot()
+        if target is None:
+            messagebox.showwarning(
+                "No Empty Slot",
+                "All 20 preset slots are in use.",
+                parent=self.window
+            )
+            return
+
+        preset_name = self.preset_names[source_num].get()
+        if not messagebox.askyesno(
+            "Copy Preset",
+            f"Copy \"{preset_name}\" to slot #{target}?",
+            parent=self.window
+        ):
+            return
+
+        src = self.preset_sets[source_num]
+        dst = self.preset_sets[target]
+
+        # Copy name
+        self.preset_names[target].set(self.preset_names[source_num].get() + " (Copy)")
+
+        # Copy uma_musume
+        dst['uma_musume'].set(src['uma_musume'].get())
+
+        # Copy support_cards
+        for i in range(len(src['support_cards'])):
+            dst['support_cards'][i].set(src['support_cards'][i].get())
+
+        # Copy stat_caps
+        for stat_key in src['stat_caps']:
+            dst['stat_caps'][stat_key].set(src['stat_caps'][stat_key].get())
+
+        # Copy plain-value fields
+        dst['debut_style'] = src.get('debut_style', 'none')
+        dst['stop_conditions'] = copy.deepcopy(src.get('stop_conditions', {}))
+        if 'race_schedule' in src:
+            dst['race_schedule'] = copy.deepcopy(src['race_schedule'])
+
+        self._swaps_performed = True
+
+        # Refresh list and navigate to the new preset
+        self._populate_presets(self.search_var.get())
+        self._select_preset(target)
+        self._scroll_to_preset(target)
+
+    def _create_new_preset(self):
+        """Navigate to the next available (empty) preset slot."""
+        target = self._find_next_available_slot()
+        if target is None:
+            return
+
+        self._populate_presets(self.search_var.get())
+        self._select_preset(target)
+        self._scroll_to_preset(target)
+
+    def _delete_preset(self, preset_num):
+        """Clear all data from a preset slot after confirmation."""
+        preset_name = self.preset_names[preset_num].get()
+        msg = f"Clear preset #{preset_num} \"{preset_name}\"?\n\nAll settings will be reset."
+        if preset_num == self.current_set:
+            msg += "\n\nWarning: this is the currently active preset."
+
+        if not messagebox.askyesno("Clear Preset", msg, parent=self.window):
+            return
+
+        data = self.preset_sets[preset_num]
+
+        self.preset_names[preset_num].set(f"Preset {preset_num}")
+        data['uma_musume'].set("None")
+        for card_var in data['support_cards']:
+            card_var.set("None")
+        data['debut_style'] = 'none'
+        data['race_schedule'] = []
+        data['stop_conditions'] = {}
+
+        self._swaps_performed = True
+        if self.selected_preset == preset_num:
+            self.selected_preset = None
+
+        self._populate_presets(self.search_var.get())
 
     def _scroll_to_preset(self, preset_num):
         """Scroll to make a specific preset visible"""

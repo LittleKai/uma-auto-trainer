@@ -1,20 +1,20 @@
 {
   "track": {
-    "turf": true,
+    "turf": false,
     "dirt": true
   },
   "distance": {
-    "sprint": false,
+    "sprint": true,
     "mile": true,
     "medium": true,
-    "long": true
+    "long": false
   },
   "grade": {
     "g1": true,
     "g2": false,
     "g3": false
   },
-  "minimum_mood": "GOOD",
+  "minimum_mood": "NORMAL",
   "priority_strategy": "Train Score 3+",
   "allow_continuous_racing": false,
   "manual_event_handling": false,
@@ -32,20 +32,20 @@
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "El Condor Pasa",
+    "uma_musume": "Smart Falcon",
     "support_cards": [
       "spd: Kitasan Black",
-      "spd: Sweep Tosho",
-      "wit: Daiwa Scarlet",
+      "spd: Silence Suzuka",
       "wit: Fine Motion",
       "wit: Marvelous Sunday",
+      "wit: Mihono Bourbon",
       "frd: Riko Kashimoto"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 13,
+    "current_set": 20,
     "stat_caps": {
       "spd": 1200,
-      "sta": 650,
+      "sta": 700,
       "pwr": 1200,
       "guts": 1200,
       "wit": 1200
@@ -55,13 +55,27 @@
     },
     "race_schedule": [
       {
-        "name": "Hanshin Juvenile Fillies",
-        "day": 23
+        "name": "Platanus Sho",
+        "day": 19
       }
     ],
     "race_schedule_filters": {
-      "year": "All",
-      "grade": "G1"
+      "year": "Junior Year",
+      "grades": [
+        "G1",
+        "G2",
+        "G3",
+        "OP",
+        "Pre-OP"
+      ],
+      "tracks": [
+        "Dirt"
+      ],
+      "distances": [
+        "Sprint",
+        "Mile",
+        "Medium"
+      ]
     },
     "preset_names": {
       "1": "FRONT POWER",
@@ -75,15 +89,15 @@
       "9": "Front Wit FR",
       "10": "Front Wit",
       "11": "PACE WIT",
-      "12": "LATE WIT",
-      "13": "PACE WIT FR",
-      "14": "Preset 14",
-      "15": "Preset 15",
-      "16": "LATE STA",
-      "17": "END STA",
-      "18": "TEMP DECK MAYANO",
-      "19": "ParentFarm",
-      "20": "PARENT FARM STA"
+      "12": "PACE WIT FR",
+      "13": "LATE WIT",
+      "14": "FRONT POWER (Copy)",
+      "15": "LATE STA",
+      "16": "END STA",
+      "17": "TEMP DECK MAYANO",
+      "18": "ParentFarm",
+      "19": "PARENT FARM STA",
+      "20": "Smart Falcon"
     },
     "preset_sets": {
       "1": {
@@ -107,11 +121,11 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
-          "stop_before_summer": true,
+          "stop_before_summer": false,
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
@@ -121,30 +135,6 @@
           {
             "name": "Hanshin Juvenile Fillies",
             "day": 23
-          },
-          {
-            "name": "Hopeful Stakes",
-            "day": 24
-          },
-          {
-            "name": "NHK Mile Cup",
-            "day": 33
-          },
-          {
-            "name": "Yasuda Kinen",
-            "day": 35
-          },
-          {
-            "name": "Takarazuka Kinen",
-            "day": 36
-          },
-          {
-            "name": "Japan Dirt Derby",
-            "day": 37
-          },
-          {
-            "name": "Shuka Sho",
-            "day": 44
           }
         ]
       },
@@ -447,14 +437,14 @@
         "support_cards": [
           "spd: Kitasan Black",
           "spd: Silence Suzuka",
-          "wit: Curren Chan",
+          "wit: Fine Motion",
           "wit: Marvelous Sunday",
           "wit: Mihono Bourbon",
           "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 500,
+          "sta": 700,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
@@ -475,12 +465,8 @@
         },
         "race_schedule": [
           {
-            "name": "Hanshin Juvenile Fillies",
-            "day": 23
-          },
-          {
-            "name": "Hopeful Stakes",
-            "day": 24
+            "name": "Platanus Sho",
+            "day": 19
           }
         ]
       },
@@ -527,10 +513,48 @@
         ]
       },
       "11": {
-        "uma_musume": "El Condor Pasa",
+        "uma_musume": "Oguri Cap (Christmas)",
         "support_cards": [
           "spd: Kitasan Black",
-          "spd: Sweep Tosho",
+          "spd: Special Week",
+          "wit: Daiwa Scarlet",
+          "wit: Fine Motion",
+          "wit: Marvelous Sunday",
+          "wit: Mejiro Dober"
+        ],
+        "stat_caps": {
+          "spd": 1200,
+          "sta": 600,
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "pace",
+        "stop_conditions": {
+          "enable_stop_conditions": false,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GOOD",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Junior Year Dec 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
+        },
+        "race_schedule": [
+          {
+            "name": "Asahi Hai Futurity Stakes",
+            "day": 23
+          }
+        ]
+      },
+      "12": {
+        "uma_musume": "Taiki Shuttle",
+        "support_cards": [
+          "spd: Kitasan Black",
+          "spd: Silence Suzuka",
           "wit: Daiwa Scarlet",
           "wit: Fine Motion",
           "wit: Marvelous Sunday",
@@ -550,25 +574,16 @@
           "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
-          "stop_mood_threshold": "GOOD",
+          "stop_mood_threshold": "GREAT",
           "stop_before_summer": false,
           "stop_at_month": false,
-          "target_month": "Junior Year Dec 1",
+          "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true
         },
-        "race_schedule": [
-          {
-            "name": "Hanshin Juvenile Fillies",
-            "day": 23
-          },
-          {
-            "name": "Hopeful Stakes",
-            "day": 24
-          }
-        ]
+        "race_schedule": []
       },
-      "12": {
+      "13": {
         "uma_musume": "Agnes Digital",
         "support_cards": [
           "spd: Kitasan Black",
@@ -601,28 +616,24 @@
         },
         "race_schedule": [
           {
-            "name": "Hanshin Juvenile Fillies",
-            "day": 23
-          },
-          {
             "name": "Hopeful Stakes",
             "day": 24
           }
         ]
       },
-      "13": {
-        "uma_musume": "El Condor Pasa",
+      "14": {
+        "uma_musume": "Smart Falcon",
         "support_cards": [
           "spd: Kitasan Black",
-          "spd: Sweep Tosho",
-          "wit: Daiwa Scarlet",
-          "wit: Fine Motion",
+          "spd: Silence Suzuka",
+          "wit: Curren Chan",
           "wit: Marvelous Sunday",
+          "wit: Mihono Bourbon",
           "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 650,
+          "sta": 900,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
@@ -631,7 +642,7 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
@@ -648,91 +659,7 @@
           }
         ]
       },
-      "14": {
-        "uma_musume": "None",
-        "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
-        ],
-        "stat_caps": {
-          "spd": 1200,
-          "sta": 1100,
-          "pwr": 1200,
-          "guts": 1200,
-          "wit": 1200
-        },
-        "debut_style": "none",
-        "stop_conditions": {
-          "enable_stop_conditions": false,
-          "stop_on_infirmary": false,
-          "stop_on_need_rest": false,
-          "stop_on_low_mood": false,
-          "stop_on_race_day": false,
-          "stop_mood_threshold": "BAD",
-          "stop_before_summer": false,
-          "stop_at_month": false,
-          "target_month": "Classic Year Jun 1",
-          "stop_on_ura_final": false,
-          "stop_on_warning": false
-        },
-        "race_schedule": [
-          {
-            "name": "Hanshin Juvenile Fillies",
-            "day": 23
-          },
-          {
-            "name": "Hopeful Stakes",
-            "day": 24
-          }
-        ]
-      },
       "15": {
-        "uma_musume": "None",
-        "support_cards": [
-          "None",
-          "None",
-          "None",
-          "None",
-          "None",
-          "None"
-        ],
-        "stat_caps": {
-          "spd": 1200,
-          "sta": 1100,
-          "pwr": 1200,
-          "guts": 1200,
-          "wit": 1200
-        },
-        "debut_style": "none",
-        "stop_conditions": {
-          "enable_stop_conditions": false,
-          "stop_on_infirmary": false,
-          "stop_on_need_rest": false,
-          "stop_on_low_mood": false,
-          "stop_on_race_day": false,
-          "stop_mood_threshold": "BAD",
-          "stop_before_summer": false,
-          "stop_at_month": false,
-          "target_month": "Classic Year Jun 1",
-          "stop_on_ura_final": false,
-          "stop_on_warning": false
-        },
-        "race_schedule": [
-          {
-            "name": "Hanshin Juvenile Fillies",
-            "day": 23
-          },
-          {
-            "name": "Hopeful Stakes",
-            "day": 24
-          }
-        ]
-      },
-      "16": {
         "uma_musume": "Symboli Rudolf",
         "support_cards": [
           "spd: Kitasan Black",
@@ -774,7 +701,7 @@
           }
         ]
       },
-      "17": {
+      "16": {
         "uma_musume": "Mayano Top Gun",
         "support_cards": [
           "spd: Kitasan Black",
@@ -816,7 +743,7 @@
           }
         ]
       },
-      "18": {
+      "17": {
         "uma_musume": "Mayano Top Gun",
         "support_cards": [
           "spd: Kitasan Black",
@@ -858,7 +785,7 @@
           }
         ]
       },
-      "19": {
+      "18": {
         "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black",
@@ -900,7 +827,7 @@
           }
         ]
       },
-      "20": {
+      "19": {
         "uma_musume": "Seiun Sky",
         "support_cards": [
           "spd: Kitasan Black",
@@ -939,6 +866,44 @@
           {
             "name": "Hopeful Stakes",
             "day": 24
+          }
+        ]
+      },
+      "20": {
+        "uma_musume": "Smart Falcon",
+        "support_cards": [
+          "spd: Kitasan Black",
+          "spd: Silence Suzuka",
+          "wit: Curren Chan",
+          "wit: Marvelous Sunday",
+          "wit: Mihono Bourbon",
+          "frd: Riko Kashimoto"
+        ],
+        "stat_caps": {
+          "spd": 1200,
+          "sta": 700,
+          "pwr": 1200,
+          "guts": 1200,
+          "wit": 1200
+        },
+        "debut_style": "none",
+        "stop_conditions": {
+          "enable_stop_conditions": true,
+          "stop_on_infirmary": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": true,
+          "stop_on_race_day": false,
+          "stop_mood_threshold": "GREAT",
+          "stop_before_summer": false,
+          "stop_at_month": false,
+          "target_month": "Classic Year Jun 1",
+          "stop_on_ura_final": false,
+          "stop_on_warning": true
+        },
+        "race_schedule": [
+          {
+            "name": "Platanus Sho",
+            "day": 19
           }
         ]
       }

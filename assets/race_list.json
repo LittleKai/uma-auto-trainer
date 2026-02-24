@@ -86,8 +86,8 @@
     "date": "September 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Kokura Junior Stakes",
@@ -158,8 +158,8 @@
     "date": "September 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Momiji Stakes",
@@ -176,8 +176,8 @@
     "date": "October 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Rindo Sho",
@@ -185,8 +185,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Saudi Arabia Royal Cup",
@@ -203,8 +203,8 @@
     "date": "October 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Artemis Stakes",
@@ -239,8 +239,8 @@
     "date": "October 2",
     "track": "Dirt",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Daily Hai Junior Stakes",
@@ -275,8 +275,8 @@
     "date": "November 1",
     "track": "Turf⇐ Tokyo",
     "distance": "Medium2000 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Keio Hai Junior Stakes",
@@ -293,8 +293,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Kimmokusei Tokubetsu",
@@ -302,8 +302,8 @@
     "date": "November 1",
     "track": "Turf",
     "distance": "Mile1800 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Oxalis Sho",
@@ -311,8 +311,8 @@
     "date": "November 1",
     "track": "Dirt⇐ Tokyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Akamatsu Sho",
@@ -320,8 +320,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Begonia Sho",
@@ -329,8 +329,8 @@
     "date": "November 2",
     "track": "Turf⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Cattleya Sho",
@@ -338,8 +338,8 @@
     "date": "November 2",
     "track": "Dirt⇐ Tokyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Habotan Sho",
@@ -347,8 +347,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Koyamaki Sho",
@@ -356,8 +356,8 @@
     "date": "November 2",
     "track": "Turf⇐ Chukyo",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Kyoto Junior Stakes",
@@ -374,8 +374,8 @@
     "date": "November 2",
     "track": "Dirt",
     "distance": "Mile1800 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Shiragiku Sho",
@@ -383,8 +383,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Shumeigiku Sho",
@@ -392,8 +392,8 @@
     "date": "November 2",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Tokyo Sports Hai Junior Stakes",
@@ -419,8 +419,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Medium2000 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Hanshin Juvenile Fillies",
@@ -437,8 +437,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Kantsubaki Sho",
@@ -446,8 +446,8 @@
     "date": "December 1",
     "track": "Dirt⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Kuromatsu Sho",
@@ -455,8 +455,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Manryo Sho",
@@ -464,8 +464,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Sazanka Sho",
@@ -473,8 +473,8 @@
     "date": "December 1",
     "track": "Turf",
     "distance": "Sprint1200 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Tsuwabuki Sho",
@@ -482,8 +482,8 @@
     "date": "December 1",
     "track": "Turf⇐ Chukyo",
     "distance": "Sprint1400 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Christmas Rose Stakes",
@@ -509,8 +509,8 @@
     "date": "December 2",
     "track": "Turf",
     "distance": "Mile1600 m",
-    "grade": "Unknown",
-    "fan_gain": 500
+    "grade": "Pre-OP",
+    "fan_gain": 750
   },
   {
     "name": "Fairy Stakes",

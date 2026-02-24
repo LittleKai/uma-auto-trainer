@@ -186,7 +186,9 @@ def get_stat_cap_penalty_config():
     'start_penalty_gap': penalty_config.get("start_penalty_gap", 200),
     'day_75_adjustment': day_adjustments.get("day_75", 30),
     'day_74_adjustment': day_adjustments.get("day_74", 45),
-    'day_73_and_below_adjustment': day_adjustments.get("day_73_and_below", 60)
+    'day_73_and_below_adjustment': day_adjustments.get("day_73_and_below", 60),
+    'last_days_count': penalty_config.get("last_days_count", 5),
+    'last_days_penalty_reduction': penalty_config.get("last_days_penalty_reduction", 50)
   }
 
 
@@ -462,6 +464,16 @@ def apply_single_training_penalty(stat_key, data, current_date, current_stats=No
       secondary_source = f"{sec_stat.upper()} {sec_current}/{sec_effective_cap} x{ratio}"
 
   final_penalty_pct = max(primary_penalty_pct, max_secondary_penalty_pct)
+
+  # Reduce penalty in the last N days
+  last_days_count = penalty_config.get('last_days_count', 5)
+  last_days_penalty_reduction = penalty_config.get('last_days_penalty_reduction', 50)
+  max_day = 75
+  if final_penalty_pct > 0 and absolute_day > max_day - last_days_count:
+    reduction_multiplier = 1.0 - (last_days_penalty_reduction / 100)
+    reduced_penalty = final_penalty_pct * reduction_multiplier
+    print(f"[CAP PENALTY] Day {absolute_day} (last {last_days_count} days): penalty reduced {final_penalty_pct:.1f}% -> {reduced_penalty:.1f}% (-{last_days_penalty_reduction}%)")
+    final_penalty_pct = reduced_penalty
 
   if final_penalty_pct > 0:
     multiplier = 1.0 - (final_penalty_pct / 100)

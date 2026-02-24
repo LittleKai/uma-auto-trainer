@@ -17,6 +17,12 @@ DEFAULT_RACE_SCHEDULE = [
     {"name": "Hopeful Stakes", "day": 24},
 ]
 
+# Track/distance info for each candidate default race
+_DEFAULT_RACE_CANDIDATES = [
+    {"name": "Hanshin Juvenile Fillies", "day": 23, "track": "turf", "distance": "mile"},
+    {"name": "Hopeful Stakes",           "day": 24, "track": "turf", "distance": "medium"},
+]
+
 
 class EventChoiceTab:
     """Event choice configuration tab with enhanced UI - dropdown presets and card boxes"""
@@ -101,7 +107,7 @@ class EventChoiceTab:
                 },
                 'debut_style': 'none',
                 'stop_conditions': dict(self.default_stop_conditions),
-                'race_schedule': [dict(r) for r in DEFAULT_RACE_SCHEDULE]
+                'race_schedule': []
             }
 
     def load_uma_musume_data(self):
@@ -594,10 +600,38 @@ class EventChoiceTab:
         self._refresh_schedule_tree()
         self._safe_save_settings()
 
+    def get_smart_default_race_schedule(self, uma_name):
+        """
+        Return default race schedule based on uma's compatible track/distance.
+
+        Rules:
+        - If uma fits both Hanshin Juvenile Fillies AND Hopeful Stakes → only Hopeful Stakes (day 24)
+        - If uma fits only one → that one
+        - If uma fits neither (or uma is None/unknown) → empty list
+        """
+        if uma_name == "None" or uma_name not in self.uma_musume_data:
+            return []
+
+        uma_data = self.uma_musume_data[uma_name]
+        matched = []
+        for candidate in _DEFAULT_RACE_CANDIDATES:
+            track_ok = uma_data.get(candidate["track"], False)
+            dist_ok = uma_data.get(candidate["distance"], False)
+            if track_ok and dist_ok:
+                matched.append({"name": candidate["name"], "day": candidate["day"]})
+
+        # If both match, keep only the later one (Hopeful Stakes, day 24)
+        if len(matched) == 2:
+            matched = [matched[-1]]
+
+        return matched
+
     def _reset_race_schedule(self):
-        """Reset race schedule to defaults"""
+        """Reset race schedule to smart defaults based on current uma's compatibility"""
         current_preset = self.current_set.get()
-        self.preset_sets[current_preset]['race_schedule'] = [dict(r) for r in DEFAULT_RACE_SCHEDULE]
+        uma_name = self.selected_uma_musume.get()
+        default_schedule = self.get_smart_default_race_schedule(uma_name)
+        self.preset_sets[current_preset]['race_schedule'] = default_schedule
         self._refresh_schedule_tree()
         self._safe_save_settings()
 
@@ -1091,7 +1125,7 @@ class EventChoiceTab:
 
             # Update race schedule
             preset['race_schedule'] = list(
-                preset_data.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE])
+                preset_data.get('race_schedule', [])
             )
 
             # Update preset name
@@ -1194,6 +1228,8 @@ class EventChoiceTab:
 
     def on_uma_musume_change(self, *args):
         """Handle Uma Musume selection change"""
+        if getattr(self, '_loading_settings', False):
+            return
         selected_uma = self.selected_uma_musume.get()
         self.update_strategy_checkboxes(selected_uma)
 
@@ -1231,9 +1267,7 @@ class EventChoiceTab:
             'debut_style': {
                 'style': self.debut_style.get()
             },
-            'race_schedule': list(self.preset_sets[current_preset].get(
-                'race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE]
-            )),
+            'race_schedule': list(self.preset_sets[current_preset].get('race_schedule', [])),
             'race_schedule_filters': dict(self.race_schedule_filters),
             'preset_names': {},
             'preset_sets': {}
@@ -1255,13 +1289,14 @@ class EventChoiceTab:
                 'stat_caps': preset_stat_caps,
                 'debut_style': preset.get('debut_style', 'none'),
                 'stop_conditions': dict(preset.get('stop_conditions', self.default_stop_conditions)),
-                'race_schedule': list(preset.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE]))
+                'race_schedule': list(preset.get('race_schedule', []))
             }
 
         return settings
 
     def load_settings(self, settings):
         """Load settings into tab"""
+        self._loading_settings = True
         try:
             auto_event_map = settings.get('auto_event_map', False)
             auto_first_choice = settings.get('auto_first_choice', True)
@@ -1335,7 +1370,7 @@ class EventChoiceTab:
                         )
                         # Load race schedule for this preset
                         self.preset_sets[set_num]['race_schedule'] = list(
-                            preset_data.get('race_schedule', [dict(r) for r in DEFAULT_RACE_SCHEDULE])
+                            preset_data.get('race_schedule', [])
                         )
 
             # Load current set
@@ -1364,8 +1399,7 @@ class EventChoiceTab:
             # Refresh race schedule tree
             self._refresh_schedule_tree()
 
-            # Update strategy checkboxes
-            self.update_strategy_checkboxes(self.selected_uma_musume.get())
-
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")
+        finally:
+            self._loading_settings = False

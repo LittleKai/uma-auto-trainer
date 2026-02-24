@@ -40,7 +40,6 @@ class BotController:
         self.should_stop = False
         self.career_lobby_attempts = 0
         self.log_callback = None
-        self.window_inactive_start_time = None
 
         # Initialize handlers
         self._init_handlers()
@@ -108,25 +107,10 @@ class BotController:
         return False
 
     def is_game_window_active(self) -> bool:
-        """Check if Umamusume window is currently active with timeout monitoring"""
+        """Check if Umamusume window exists (does not require it to be focused)"""
         try:
             windows = gw.getWindowsWithTitle("Umamusume")
-            is_active = windows and windows[0].isActive
-
-            # Track inactive time
-            current_time = time.time()
-
-            if not is_active:
-                if self.window_inactive_start_time is None:
-                    self.window_inactive_start_time = current_time
-                elif current_time - self.window_inactive_start_time >= 120:  # 2 minutes
-                    self.log_message("[ERROR] Game window inactive for 2 minutes - Stopping bot")
-                    self.set_stop_flag(True)
-                    return False
-            else:
-                self.window_inactive_start_time = None
-
-            return is_active
+            return bool(windows)
         except:
             return False
 
@@ -537,6 +521,10 @@ class DecisionEngine:
         if not self._handle_mood_requirement(mood, strategy_settings, current_date, gui):
             return False
 
+        # Day 75 (last day): never rest - if energy < medium, train WIT; otherwise normal flow
+        if absolute_day == 75:
+            return self._handle_last_day(energy_percentage, max_energy, current_date, strategy_settings, race_manager, gui)
+
         # Check preferred race schedule (overrides normal flow if filter-allowed)
         is_preferred, preferred_races = race_manager.is_preferred_race_day(current_date)
         if is_preferred and preferred_races:
@@ -544,7 +532,8 @@ class DecisionEngine:
             if self._stopped():
                 return False
             race_found = self.controller.race_handler.start_race_flow(
-                allow_continuous_racing=allow_continuous_racing)
+                allow_continuous_racing=allow_continuous_racing,
+                skip_grade_check=True)
             if race_found:
                 return True
             # Race not found in game, fall through to normal flow
@@ -572,6 +561,44 @@ class DecisionEngine:
             return False
 
         return self._execute_training_flow(energy_percentage, max_energy, strategy_settings, current_date, race_manager, gui)
+
+    def _handle_last_day(self, energy_percentage: int, energy_max: int, current_date: Dict[str, Any],
+                         strategy_settings: Dict[str, Any], race_manager, gui=None) -> bool:
+        """Day 75 (last day): never rest.
+        - energy < medium: force WIT training immediately
+        - energy >= medium: normal training scoring, but replace any rest decision with WIT
+        """
+        self._log("Last day (Day 75): rest is disabled")
+
+        if energy_percentage < MINIMUM_ENERGY_PERCENTAGE:
+            self._log(f"Last day: energy {energy_percentage}% below medium - forcing WIT training")
+            return self._navigate_and_train("wit", "Last Day Training")
+
+        # Normal energy: go to training, score all options
+        if not self.controller.training_handler.go_to_training():
+            return True
+
+        time.sleep(0.5)
+        if self._stopped():
+            return False
+
+        results_training, current_stats = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
+
+        if self._stopped():
+            return False
+
+        best_training = training_decision(
+            results_training, energy_percentage, energy_max,
+            strategy_settings, current_date, current_stats=current_stats
+        )
+
+        # If a real training was chosen, execute it
+        if best_training and best_training not in ("SHOULD_REST", "NO_TRAINING", "STRATEGY_NOT_MET"):
+            return self._execute_selected_training(best_training)
+
+        # Would normally rest - instead force WIT on last day
+        self._log(f"Last day: training decision was '{best_training}' - forcing WIT instead of resting")
+        return self._navigate_and_train("wit", "Last Day Training")
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],
                                  current_date: Dict[str, Any], gui=None) -> bool:
@@ -978,8 +1005,6 @@ def career_lobby(gui=None):
     _main_executor.controller.set_stop_flag(False)
 
     race_manager = RaceManager()
-    window_check_failures = 0
-    max_window_check_failures = 10
 
     if gui:
         race_manager = gui.race_manager
@@ -996,66 +1021,9 @@ def career_lobby(gui=None):
             if not gui.is_running or _main_executor.controller.should_stop:
                 break
 
-            # Check if game window is active with retry mechanism
-            if not check_and_focus_game_window(gui, window_check_failures, max_window_check_failures):
-                window_check_failures += 1
-                if window_check_failures >= max_window_check_failures:
-                    gui.log_message(
-                        f"Failed to activate game window after {max_window_check_failures} attempts. Stopping bot.")
-                    _main_executor.controller.set_stop_flag(True)
-                    break
-                time.sleep(2)
-                continue
-            else:
-                # Reset failure counter on successful window check
-                window_check_failures = 0
-
             if not _main_executor.execute_single_iteration(race_manager, gui):
                 time.sleep(1)
 
-
-def check_and_focus_game_window(gui, current_failures, max_failures):
-    """Check if game window is active and attempt to focus if not active"""
-    try:
-        if not _main_executor.controller.is_game_window_active():
-            # Log the attempt to focus window
-            if gui:
-                gui.log_message(
-                    f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
-            else:
-                print(f"Game window not active. Attempting to focus... (Attempt {current_failures + 1}/{max_failures})")
-
-            # Use the existing focus_umamusume function
-            focus_umamusume()
-
-            # Wait a moment and check again after focusing
-            time.sleep(1)
-            if _main_executor.controller.is_game_window_active():
-                if gui:
-                    gui.log_message("Successfully focused game window.")
-                else:
-                    print("Successfully focused game window.")
-                return True
-            else:
-                # If focus_umamusume didn't work, try GUI's focus method as fallback
-                if gui and hasattr(gui, 'game_monitor') and hasattr(gui.game_monitor, 'focus_game_window'):
-                    if gui.game_monitor.focus_game_window():
-                        time.sleep(1)
-                        if _main_executor.controller.is_game_window_active():
-                            gui.log_message("Successfully focused game window using GUI method.")
-                            return True
-
-            return False
-        return True
-
-    except Exception as e:
-        # Log the exception and treat as failure
-        error_msg = f"Error checking/focusing game window: {str(e)}"
-        if gui:
-            gui.log_message(error_msg)
-        else:
-            print(error_msg)
-        return False
 
 
 def focus_umamusume():

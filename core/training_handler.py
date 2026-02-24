@@ -72,11 +72,11 @@ class TrainingHandler:
                                            "support_card_bonus", "special_training", "special_training_score",
                                            "spirit_explosion", "spirit_explosion_score"])
 
+        _SUPPORT_EXCLUDE = ["hint", "hint_score", "total_score", "npc_count", "npc_score",
+                            "support_card_bonus", "special_training", "special_training_score",
+                            "spirit_explosion", "spirit_explosion_score", "energy_recovery_penalty"]
         first_result = {
-            'support': {k: v for k, v in support_counts.items()
-                        if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
-                                     "support_card_bonus", "special_training", "special_training_score",
-                                     "spirit_explosion", "spirit_explosion_score"]},
+            'support': {k: v for k, v in support_counts.items() if k not in _SUPPORT_EXCLUDE},
             'hint_count': support_counts.get("hint", 0),
             'hint_score': support_counts.get("hint_score", 0),
             'npc_count': support_counts.get("npc_count", 0),
@@ -85,6 +85,7 @@ class TrainingHandler:
             'special_training_score': support_counts.get("special_training_score", 0),
             'spirit_explosion_count': support_counts.get("spirit_explosion", 0),
             'spirit_explosion_score': support_counts.get("spirit_explosion_score", 0),
+            'energy_recovery_penalty': support_counts.get("energy_recovery_penalty", 0),
             'total_score': total_score,
             'support_card_bonus': support_counts.get("support_card_bonus", 0)
         }
@@ -115,10 +116,7 @@ class TrainingHandler:
                                                "spirit_explosion", "spirit_explosion_score"])
 
             support_results.append({
-                'support': {k: v for k, v in support_counts.items()
-                            if k not in ["hint", "hint_score", "total_score", "npc_count", "npc_score",
-                                         "support_card_bonus", "special_training", "special_training_score",
-                                         "spirit_explosion", "spirit_explosion_score"]},
+                'support': {k: v for k, v in support_counts.items() if k not in _SUPPORT_EXCLUDE},
                 'hint_count': support_counts.get("hint", 0),
                 'hint_score': support_counts.get("hint_score", 0),
                 'npc_count': support_counts.get("npc_count", 0),
@@ -127,6 +125,7 @@ class TrainingHandler:
                 'special_training_score': support_counts.get("special_training_score", 0),
                 'spirit_explosion_count': support_counts.get("spirit_explosion", 0),
                 'spirit_explosion_score': support_counts.get("spirit_explosion_score", 0),
+                'energy_recovery_penalty': support_counts.get("energy_recovery_penalty", 0),
                 'total_score': total_score,
                 'support_card_bonus': support_counts.get("support_card_bonus", 0)
             })
@@ -154,6 +153,8 @@ class TrainingHandler:
             bonus_components.append(f"Special Training +{data['special_training_score']}")
         if data.get('spirit_explosion_count', 0) > 0:
             bonus_components.append(f"Spirit Explosion +{data['spirit_explosion_score']}")
+        if data.get('energy_recovery_penalty', 0) > 0:
+            bonus_components.append(f"Energy Excess -{round(data['energy_recovery_penalty'], 2)}")
 
         is_early_stage = False
         current_date = get_current_date_info()
@@ -231,7 +232,12 @@ class TrainingHandler:
                 stat_cap_threshold_day = json.load(f).get("stat_cap_threshold_day", 30)
         except Exception:
             stat_cap_threshold_day = 30
-        current_stats = stat_state() if absolute_day >= stat_cap_threshold_day else None
+        if absolute_day >= stat_cap_threshold_day:
+            # When only checking WIT, read only SPD and WIT stats
+            wit_only = list(training_types.keys()) == ["wit"]
+            current_stats = stat_state(stats_filter=['spd', 'wit'] if wit_only else None)
+        else:
+            current_stats = None
 
         # Execute mouse handling logic for each training type
         for key, icon_path in training_types.items():

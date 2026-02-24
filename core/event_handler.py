@@ -547,8 +547,8 @@ class EventChoiceHandler:
     def requires_energy_check(self, event_config: Dict) -> bool:
         """Check if event conditions require energy information"""
         for i in range(1, 6):
-            energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
-            if energy_shortage_gte_key in event_config:
+            if (f"choice_{i}_if_energy_shortage_gte" in event_config or
+                    f"choice_{i}_if_energy_shortage_critical_gte" in event_config):
                 return True
         return False
 
@@ -626,6 +626,41 @@ class EventChoiceHandler:
             self.log(f"[WARNING] Error checking deck condition: {e}")
             return None
 
+    def _check_deck_condition_label(self, event_config: Dict, label: str,
+                                    cached_num_choices: Optional[int] = None) -> Optional[int]:
+        """Like _check_deck_condition but for a string label (e.g. 'last').
+        Returns resolved choice int if condition met, else None.
+        """
+        try:
+            from utils.constants import get_deck_card_count
+            card_types = ["spd", "sta", "pwr", "pow", "guts", "gut", "wit", "frd", "friend"]
+
+            for card_type in card_types:
+                for count in range(1, 7):
+                    key = f"choice_{label}_if_deck_has_{count}_{card_type}"
+                    if key in event_config:
+                        actual_count = get_deck_card_count(card_type)
+                        if actual_count >= count:
+                            resolved = self._resolve_choice(label, cached_num_choices)
+                            self.log(f"[DEBUG] Choice '{label}' ({resolved}) selected: deck has {actual_count} {card_type} cards (required: {count}+)")
+                            return resolved
+                        else:
+                            self.log(f"[DEBUG] Deck condition not met: has {actual_count} {card_type} cards, need {count}+")
+
+                key = f"choice_{label}_if_deck_has_{card_type}"
+                if key in event_config:
+                    required_count = event_config[key]
+                    if isinstance(required_count, int):
+                        actual_count = get_deck_card_count(card_type)
+                        if actual_count >= required_count:
+                            resolved = self._resolve_choice(label, cached_num_choices)
+                            self.log(f"[DEBUG] Choice '{label}' ({resolved}) selected: deck has {actual_count} {card_type} cards (required: {required_count}+)")
+                            return resolved
+            return None
+        except Exception as e:
+            self.log(f"[WARNING] Error checking deck condition for label '{label}': {e}")
+            return None
+
     def preload_database(self, uma_musume: str, support_cards: List[str]):
         """Preload event database at bot start so it doesn't need to check every event"""
         self.cached_database = self.get_database(uma_musume, support_cards)
@@ -669,8 +704,8 @@ class EventChoiceHandler:
                 self.log(f"[INFO] Found event: '{display_name}' in {category}")
 
                 if "choice" in matched_event:
-                    choice = matched_event["choice"]
-                    if isinstance(choice, int) and 1 <= choice <= 5:
+                    choice = self._resolve_choice(matched_event["choice"])
+                    if choice is not None:
                         return choice
 
                 current_mood = None
@@ -741,20 +776,20 @@ class EventChoiceHandler:
             for event in other_events:
                 if event.get("name") == matched_name:
                     if "choice" in event:
-                        choice = event["choice"]
-                        if isinstance(choice, int) and 1 <= choice <= 5:
+                        choice = self._resolve_choice(event["choice"])
+                        if choice is not None:
                             self.log(f"[DEBUG] Using choice {choice} from 'choice' field")
                             return choice
                         else:
-                            self.log(f"[WARNING] Invalid choice value in 'choice' field: {choice}, using default")
+                            self.log(f"[WARNING] Invalid choice value in 'choice' field: {event['choice']}, using default")
 
                     if "default_choice" in event:
-                        default_choice = event["default_choice"]
-                        if isinstance(default_choice, int) and 1 <= default_choice <= 5:
+                        default_choice = self._resolve_choice(event["default_choice"])
+                        if default_choice is not None:
                             self.log(f"[DEBUG] Using choice {default_choice} from 'default_choice' field")
                             return default_choice
                         else:
-                            self.log(f"[WARNING] Invalid default_choice value: {default_choice}, using fallback")
+                            self.log(f"[WARNING] Invalid default_choice value: {event['default_choice']}, using fallback")
 
                     current_mood = self.get_current_mood()
                     current_energy = self.get_current_energy()
@@ -793,6 +828,7 @@ class EventChoiceHandler:
         """Evaluate event conditions and return appropriate choice number
 
         Priority order (highest to lowest):
+        0. Critical energy conditions (energy_shortage_critical_gte)
         1. Deck conditions (deck_has)
         2. Mood conditions (mood_lt, mood_gte)
         3. Energy conditions (energy_shortage_gte)
@@ -817,89 +853,119 @@ class EventChoiceHandler:
             except Exception as e:
                 self.log(f"[WARNING] Failed to get current date: {e}")
 
+            # Detect actual number of choices once (only if "last" is used anywhere)
+            _has_last = any(
+                v == "last"
+                for k, v in event_config.items()
+                if k.startswith("choice_last_if_") or k in ("choice", "default_choice")
+            )
+            _num_choices_cache: Optional[int] = self.detect_num_choices() if _has_last else None
+
+            # Helper: build candidate list combining numeric (1-5) and "last" slots
+            def _choice_slots():
+                """Yield (choice_label, resolved_int) for all candidate slots."""
+                for idx in range(1, 6):
+                    yield str(idx), idx
+                yield "last", _num_choices_cache if _num_choices_cache is not None else self.detect_num_choices()
+
             # ============================================================
-            # PRIORITY 1: DECK CONDITIONS (highest priority)
+            # PRIORITY 0: CRITICAL ENERGY CONDITIONS (highest priority)
             # ============================================================
-            for i in range(1, 6):
-                deck_condition = self._check_deck_condition(event_config, i)
+            for label, resolved in _choice_slots():
+                critical_key = f"choice_{label}_if_energy_shortage_critical_gte"
+                if critical_key in event_config:
+                    threshold = event_config[critical_key]
+                    if energy_shortage >= threshold:
+                        self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: CRITICAL energy shortage {energy_shortage:.1f} >= {threshold} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
+                        return resolved
+
+            # ============================================================
+            # PRIORITY 1: DECK CONDITIONS
+            # ============================================================
+            for idx in range(1, 6):
+                deck_condition = self._check_deck_condition(event_config, idx)
                 if deck_condition is not None:
                     return deck_condition
+            # "last" deck condition
+            last_deck = self._check_deck_condition_label(event_config, "last", _num_choices_cache)
+            if last_deck is not None:
+                return last_deck
 
             # ============================================================
             # PRIORITY 2: MOOD CONDITIONS
             # ============================================================
-            for i in range(1, 6):
-                mood_lt_key = f"choice_{i}_if_mood_lt"
+            for label, resolved in _choice_slots():
+                mood_lt_key = f"choice_{label}_if_mood_lt"
                 if mood_lt_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_lt_key]
                     if threshold_mood in mood_priority:
                         threshold_index = mood_priority.index(threshold_mood)
                         if current_mood_index < threshold_index:
-                            self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} < {threshold_mood}")
-                            return i
+                            self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: mood {current_mood} < {threshold_mood}")
+                            return resolved
 
-                mood_gte_key = f"choice_{i}_if_mood_gte"
+                mood_gte_key = f"choice_{label}_if_mood_gte"
                 if mood_gte_key in event_config and current_mood_index is not None:
                     threshold_mood = event_config[mood_gte_key]
                     if threshold_mood in mood_priority:
                         threshold_index = mood_priority.index(threshold_mood)
                         if current_mood_index >= threshold_index:
-                            self.log(f"[DEBUG] Choice {i} selected: mood {current_mood} >= {threshold_mood}")
-                            return i
+                            self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: mood {current_mood} >= {threshold_mood}")
+                            return resolved
 
             # ============================================================
             # PRIORITY 3: ENERGY CONDITIONS
             # ============================================================
-            for i in range(1, 6):
-                energy_shortage_gte_key = f"choice_{i}_if_energy_shortage_gte"
+            for label, resolved in _choice_slots():
+                energy_shortage_gte_key = f"choice_{label}_if_energy_shortage_gte"
                 if energy_shortage_gte_key in event_config:
                     threshold_shortage = event_config[energy_shortage_gte_key]
                     if energy_shortage >= threshold_shortage:
-                        self.log(f"[DEBUG] Choice {i} selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
-                        return i
+                        self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: energy shortage {energy_shortage:.1f} >= {threshold_shortage} (current: {current_energy_val:.1f}, max: {max_energy_val:.1f})")
+                        return resolved
 
             # ============================================================
-            # PRIORITY 4: DAY CONDITIONS (lowest priority)
+            # PRIORITY 4: DAY CONDITIONS
             # ============================================================
-            for i in range(1, 6):
-                day_lt_key = f"choice_{i}_if_day_lt"
+            for label, resolved in _choice_slots():
+                day_lt_key = f"choice_{label}_if_day_lt"
                 if day_lt_key in event_config and current_date is not None:
                     threshold_day = event_config[day_lt_key]
                     current_day = current_date.get('absolute_day', 0)
                     if current_day < threshold_day:
-                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} < {threshold_day}")
-                        return i
+                        self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: day {current_day} < {threshold_day}")
+                        return resolved
 
-                day_gte_key = f"choice_{i}_if_day_gte"
+                day_gte_key = f"choice_{label}_if_day_gte"
                 if day_gte_key in event_config and current_date is not None:
                     threshold_day = event_config[day_gte_key]
                     current_day = current_date.get('absolute_day', 0)
                     if current_day >= threshold_day:
-                        self.log(f"[DEBUG] Choice {i} selected: day {current_day} >= {threshold_day}")
-                        return i
+                        self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: day {current_day} >= {threshold_day}")
+                        return resolved
 
             # ============================================================
             # PRIORITY 5: UMA CONDITIONS
             # ============================================================
-            for i in range(1, 6):
-                uma_key = f"choice_{i}_if_uma"
+            for label, resolved in _choice_slots():
+                uma_key = f"choice_{label}_if_uma"
                 if uma_key in event_config:
                     uma_condition = event_config[uma_key]
                     if isinstance(uma_condition, str):
                         if uma_musume == uma_condition:
-                            self.log(f"[DEBUG] Choice {i} selected: uma musume matches {uma_musume}")
-                            return i
+                            self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: uma musume matches {uma_musume}")
+                            return resolved
                     elif isinstance(uma_condition, list):
                         if uma_musume in uma_condition:
-                            self.log(f"[DEBUG] Choice {i} selected: uma musume {uma_musume} in {uma_condition}")
-                            return i
+                            self.log(f"[DEBUG] Choice {resolved} ('{label}') selected: uma musume {uma_musume} in {uma_condition}")
+                            return resolved
 
             # ============================================================
             # PRIORITY 6: DEFAULT CHOICE
             # ============================================================
             if "default_choice" in event_config:
-                default_choice = event_config["default_choice"]
-                if isinstance(default_choice, int) and 1 <= default_choice <= 5:
+                default_choice = self._resolve_choice(event_config["default_choice"], _num_choices_cache)
+                if default_choice is not None:
                     self.log(f"[DEBUG] No conditions met, using custom default choice {default_choice}")
                     return default_choice
 
@@ -964,6 +1030,49 @@ class EventChoiceHandler:
         except Exception as e:
             self.log(f"[ERROR] Failed to handle event choice: {e}")
             return False
+
+    def detect_num_choices(self) -> int:
+        """Detect how many choices are visible on screen (2–5).
+        Checks icons choice_2 through choice_5 and returns the highest found.
+        """
+        num_choices = 1
+        for n in range(2, 6):
+            icon = f"assets/icons/event_choice_{n}.png"
+            if not os.path.exists(icon):
+                break
+            try:
+                pos = find_template_position(
+                    template_path=icon,
+                    region=EVENT_CHOICE_REGION,
+                    threshold=0.8,
+                    return_center=True,
+                    region_format='xywh'
+                )
+                if pos:
+                    num_choices = n
+                else:
+                    break  # choices are contiguous; first missing = end
+            except Exception:
+                break
+        return num_choices
+
+    def _resolve_choice(self, choice_value, cached_num_choices: Optional[int] = None) -> Optional[int]:
+        """Resolve a choice value to an integer.
+
+        Args:
+            choice_value: int (1-5) or "last"
+            cached_num_choices: pre-detected choice count to avoid repeated screenshots
+
+        Returns:
+            Resolved choice integer, or None if invalid.
+        """
+        if isinstance(choice_value, int) and 1 <= choice_value <= 5:
+            return choice_value
+        if choice_value == "last":
+            num = cached_num_choices if cached_num_choices is not None else self.detect_num_choices()
+            self.log(f"[DEBUG] 'last' choice resolved to {num} ({num} choices detected)")
+            return num
+        return None
 
     def click_choice(self, choice_number: int, max_retries: int = 5) -> bool:
         """Click on the specified choice button using template matching with retry mechanism"""

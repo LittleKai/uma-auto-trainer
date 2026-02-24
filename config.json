@@ -9,7 +9,7 @@
   "maximum_failure": 15,
   "minimum_energy_percentage": 43,
   "critical_energy_percentage": 20,
-  "stat_cap_threshold_day": 60,
+  "stat_cap_threshold_day": 50,
   "scoring_config": {
     "hint_score": {
       "early_stage": 1.0,
@@ -28,7 +28,7 @@
       },
       "rainbow_multiplier": {
         "pre_debut": 1.0,
-        "early_stage": 1.0,
+        "early_stage": 1.5,
         "mid_stage": 2.25,
         "late_stage": 2.25
       }
@@ -68,18 +68,20 @@
     },
     "energy_restrictions": {
       "medium_energy_shortage": 47,
-      "medium_energy_max_score_threshold": 3.4
+      "medium_energy_max_score_threshold": 3.0
     },
     "stat_cap_penalty": {
       "enabled": true,
-      "max_penalty_percent": 50,
+      "max_penalty_percent": 40,
       "start_penalty_percent": 50,
       "start_penalty_gap": 300,
       "day_cap_adjustments": {
         "day_75": 30,
         "day_74": 45,
         "day_73_and_below": 60
-      }
+      },
+      "last_days_count": 5,
+      "last_days_penalty_reduction": 50
     }
   }
 }

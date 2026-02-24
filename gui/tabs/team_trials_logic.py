@@ -410,8 +410,8 @@ class TeamTrialsLogic:
 
         # Step 3 continued: Check for immediate next button (skip to race results)
         if self.find_and_click("assets/buttons/quick_mode_on.png", click=False, confidence=0.7, max_attempts=3,
-                               delay_between=1) or self.find_and_click("assets/buttons/quick_mode_off.png",
-                                                                       click=False):
+                               delay_between=1, log_attempts=False) or self.find_and_click("assets/buttons/quick_mode_off.png",
+                                                                       click=False, log_attempts=False):
             self.main_window.log_message("Proceeding directly to race")
 
             # Check stop condition before race button

@@ -73,7 +73,8 @@ class RaceHandler:
             return
 
     def start_race_flow(self, prioritize_g1: bool = False, prioritize_g2: bool = False,
-                        allow_continuous_racing: bool = True) -> bool:
+                        allow_continuous_racing: bool = True,
+                        skip_grade_check: bool = False) -> bool:
         """Start the complete race flow from lobby to finish"""
         if self.check_stop():
             self.log("[STOP] Race cancelled due to F3 press")
@@ -110,7 +111,7 @@ class RaceHandler:
             return False
 
         # Use new panel-based race selection
-        race_found = self._select_race_by_panels()
+        race_found = self._select_race_by_panels(skip_grade_check=skip_grade_check)
 
         if not race_found or self.check_stop():
             return False
@@ -126,18 +127,18 @@ class RaceHandler:
 
         return True
 
-    def _select_race_by_panels(self) -> bool:
+    def _select_race_by_panels(self, skip_grade_check: bool = False) -> bool:
         """Select race using panel-based detection with grade priority and fallback mechanism"""
 
-        # Get enabled grades from filters
-        enabled_grades = self._get_enabled_grades()
+        # Get enabled grades from filters (not used when skip_grade_check=True)
+        enabled_grades = self._get_enabled_grades() if not skip_grade_check else []
 
         # Calculate panel dimensions (split race region into smaller panels)
         left, top, width, height = RACE_REGION
         panel_height = height // 2  # Split vertically into 2 panels
         scroll_amount = panel_height  # Scroll by panel height
 
-        # Primary search with grade filtering
+        # Primary search
         for scroll_attempt in range(4):
             if self.check_stop():
                 return False
@@ -152,18 +153,21 @@ class RaceHandler:
                 if self.check_stop():
                     return False
 
-                # Find matching race in this panel
-                race_match = self._find_matching_race_in_panel(panel_region, enabled_grades)
-
-                if race_match:
-                    grade, match_pos = race_match
-
-                    # Click on the match position
-                    pyautogui.moveTo(match_pos, duration=0.2)
-                    pyautogui.click()
-
-                    # Click race buttons
-                    return self._click_race_buttons_original()
+                if skip_grade_check:
+                    # Scheduled race: just find any match_track without grade check
+                    match_pos = self._find_match_track_in_panel(panel_region)
+                    if match_pos:
+                        pyautogui.moveTo(match_pos, duration=0.2)
+                        pyautogui.click()
+                        return self._click_race_buttons_original()
+                else:
+                    # Normal race: filter by enabled grades
+                    race_match = self._find_matching_race_in_panel(panel_region, enabled_grades)
+                    if race_match:
+                        grade, match_pos = race_match
+                        pyautogui.moveTo(match_pos, duration=0.2)
+                        pyautogui.click()
+                        return self._click_race_buttons_original()
 
             # Move mouse to center of race region before scrolling
             center_x = left + width // 2

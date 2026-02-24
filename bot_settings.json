@@ -121,7 +121,7 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": true,
+          "stop_on_need_rest": false,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",

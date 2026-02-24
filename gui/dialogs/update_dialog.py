@@ -3,6 +3,7 @@ Update Dialog for Uma Musume Auto Train.
 Shows update information and handles downloading/applying updates.
 """
 
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
@@ -153,6 +154,7 @@ class UpdateDialog:
             )
             self.dialog.destroy()
             self.parent.destroy()
+            sys.exit(0)  # Force process exit so batch script can overwrite files
         else:
             messagebox.showerror(
                 "Update Failed",

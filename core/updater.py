@@ -259,12 +259,13 @@ REM Self-delete
         with open(batch_path, "w", encoding="utf-8") as f:
             f.write(batch_content)
 
-        # Launch batch script detached
-        CREATE_NO_WINDOW = 0x08000000
-        DETACHED_PROCESS = 0x00000008
+        # Launch batch script hidden (no console window)
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
         subprocess.Popen(
             ["cmd.exe", "/c", batch_path],
-            creationflags=CREATE_NO_WINDOW | DETACHED_PROCESS,
+            startupinfo=startupinfo,
             close_fds=True,
         )
 

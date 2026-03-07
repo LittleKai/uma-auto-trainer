@@ -59,6 +59,12 @@
     300,
     25
   ],
+  "RECREATION_REGION": [
+    450,
+    890,
+    200,
+    120
+  ],
   "STAT_REGIONS": {
     "spd": [
       310,

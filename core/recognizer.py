@@ -160,7 +160,7 @@ def is_infirmary_active(region):
     print(f"[ERROR] Failed to check infirmary status: {e}")
     return False
 
-def find_template_position(template_path, region=None, threshold=0.85, return_center=True, region_format='xywh'):
+def find_template_position(template_path, region=None, threshold=0.85, return_center=True, region_format='xywh', return_confidence=False):
   """Find a single template position on screen and return its location with improved error handling"""
   try:
     # Handle different region formats and validate
@@ -240,6 +240,9 @@ def find_template_position(template_path, region=None, threshold=0.85, return_ce
     # Adjust coordinates if region was specified
     adjusted_x = position[0] + region_left
     adjusted_y = position[1] + region_top
+
+    if return_confidence:
+      return (adjusted_x, adjusted_y), max_val
     return (adjusted_x, adjusted_y)
 
   except Exception as e:

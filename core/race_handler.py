@@ -74,7 +74,8 @@ class RaceHandler:
 
     def start_race_flow(self, prioritize_g1: bool = False, prioritize_g2: bool = False,
                         allow_continuous_racing: bool = True,
-                        skip_grade_check: bool = False) -> bool:
+                        skip_grade_check: bool = False,
+                        scheduled_grade: Optional[str] = None) -> bool:
         """Start the complete race flow from lobby to finish"""
         if self.check_stop():
             self.log("[STOP] Race cancelled due to F3 press")
@@ -111,7 +112,8 @@ class RaceHandler:
             return False
 
         # Use new panel-based race selection
-        race_found = self._select_race_by_panels(skip_grade_check=skip_grade_check)
+        race_found = self._select_race_by_panels(skip_grade_check=skip_grade_check,
+                                                  scheduled_grade=scheduled_grade)
 
         if not race_found or self.check_stop():
             return False
@@ -127,16 +129,22 @@ class RaceHandler:
 
         return True
 
-    def _select_race_by_panels(self, skip_grade_check: bool = False) -> bool:
+    def _select_race_by_panels(self, skip_grade_check: bool = False,
+                               scheduled_grade: Optional[str] = None) -> bool:
         """Select race using panel-based detection with grade priority and fallback mechanism"""
 
-        # Get enabled grades from filters (not used when skip_grade_check=True)
-        enabled_grades = self._get_enabled_grades() if not skip_grade_check else []
+        # Get enabled grades from filters (not used when skip_grade_check=True or scheduled_grade set)
+        if scheduled_grade:
+            enabled_grades = []
+        elif not skip_grade_check:
+            enabled_grades = self._get_enabled_grades()
+        else:
+            enabled_grades = []
 
         # Calculate panel dimensions (split race region into smaller panels)
         left, top, width, height = RACE_REGION
         panel_height = height // 2  # Split vertically into 2 panels
-        scroll_amount = panel_height  # Scroll by panel height
+        scroll_amount = height  # Scroll by full race region height each step
 
         # Primary search
         for scroll_attempt in range(4):
@@ -153,8 +161,18 @@ class RaceHandler:
                 if self.check_stop():
                     return False
 
-                if skip_grade_check:
-                    # Scheduled race: just find any match_track without grade check
+                if scheduled_grade:
+                    # OP/Pre-OP: no grade template check, just find any match_track
+                    if scheduled_grade in ('op', 'pre_op'):
+                        match_pos = self._find_match_track_in_panel(panel_region)
+                    else:
+                        match_pos = self._find_grade_and_match_track_pair(panel_region, scheduled_grade)
+                    if match_pos:
+                        pyautogui.moveTo(match_pos, duration=0.2)
+                        pyautogui.click()
+                        return self._click_race_buttons_original()
+                elif skip_grade_check:
+                    # Legacy skip behavior: just find any match_track without grade check
                     match_pos = self._find_match_track_in_panel(panel_region)
                     if match_pos:
                         pyautogui.moveTo(match_pos, duration=0.2)
@@ -188,56 +206,37 @@ class RaceHandler:
 
         left, top, width, height = RACE_REGION
         panel_height = height // 2
-        scroll_amount = panel_height
+        scroll_amount = height  # Scroll by full race region height each step
 
-        # Move mouse to center of race region
         center_x = left + width // 2
         center_y = top + height // 2
-        pyautogui.moveTo(center_x, center_y, duration=0.2)
 
-        # Scroll up by panel_height * 4 to reset position
-        reset_scroll_amount = panel_height * 4
-
-        self.log("[DEBUG] Scrolling up to reset position for fallback search...")
-        pyautogui.scroll(reset_scroll_amount)  # Scroll up
-        time.sleep(0.5)  # Wait for scroll to complete
-
-        # Now scroll down and look for any match_track
         self.log("[DEBUG] Searching for any available race with match_track indicator...")
 
         for scroll_attempt in range(4):
             if self.check_stop():
                 return False
 
-            # Check both upper and lower panels for match_track only
+            # Check upper panel first, then lower - return immediately on first match
             panels = [
-                (left, top, width, panel_height),  # Upper panel
+                (left, top, width, panel_height),               # Upper panel
                 (left, top + panel_height, width, panel_height)  # Lower panel
             ]
 
-            for panel_index, panel_region in enumerate(panels):
+            for panel_region in panels:
                 if self.check_stop():
                     return False
 
-                # Look for match_track in this panel
                 match_track_pos = self._find_match_track_in_panel(panel_region)
-
                 if match_track_pos:
                     self.log("[DEBUG] Found race with match_track in fallback search")
-
-                    # Click on the match_track position
                     pyautogui.moveTo(match_track_pos, duration=0.2)
                     pyautogui.click()
-
-                    # Click race buttons
                     return self._click_race_buttons_original()
 
-            # Move mouse to center before scrolling
             pyautogui.moveTo(center_x, center_y, duration=0.2)
-
-            # Scroll down by panel height amount
             pyautogui.scroll(-scroll_amount)
-            time.sleep(0.5)  # Wait after scrolling
+            time.sleep(0.5)
 
         self.log("[DEBUG] Fallback search completed, no race with match_track found")
         return False
@@ -245,8 +244,8 @@ class RaceHandler:
     def _find_matching_race_in_panel(self, panel_region: tuple, enabled_grades: list) -> Optional[tuple]:
         """Find matching race in the specified panel region based on enabled grades"""
         try:
-            # Check grades in priority order: G1 > G2 > G3
-            grade_priority = ['g1', 'g2', 'g3']
+            # Check grades in priority order: G1 > G2 > G3 > OP > Pre-OP
+            grade_priority = ['g1', 'g2', 'g3', 'op', 'pre_op']
 
             for grade in grade_priority:
                 if grade not in enabled_grades:
@@ -270,36 +269,30 @@ class RaceHandler:
     def _find_grade_and_match_track_pair(self, panel_region: tuple, grade: str) -> Optional[tuple]:
         """Find single grade indicator + match_track pair in the same panel"""
         try:
-            # Find first grade indicator in this panel
-            template_path = f"assets/ui/{grade}_race.png"
-            grade_location = find_template_position(
-                template_path=template_path,
-                region=panel_region,
-                threshold=0.8,
-                region_format='xywh'
-            )
-
-            if not grade_location:
-                # Try alternative naming convention
-                template_path = f"assets/ui/{grade}_race2.png"
-                grade_location = find_template_position(
+            # Try primary template, then alternative
+            grade_location = grade_conf = None
+            for template_path in [f"assets/ui/{grade}_race.png", f"assets/ui/{grade}_race2.png"]:
+                result = find_template_position(
                     template_path=template_path,
                     region=panel_region,
-                    threshold=0.8,
-                    region_format='xywh'
+                    threshold=0.9,
+                    region_format='xywh',
+                    return_confidence=True
                 )
+                if result:
+                    grade_location, grade_conf = result
+                    break
 
             if not grade_location:
                 return None
 
-            # Find first match_track indicator in this panel
-            # Convert panel_region from (x, y, width, height) to (left, top, right, bottom)
+            # Find match_track in this panel
             left, top, width, height = panel_region
             region_ltrb = (left, top, left + width, top + height)
 
             match_track_location = pyautogui.locateCenterOnScreen(
                 "assets/ui/match_track.png",
-                confidence=0.8,
+                confidence=0.9,
                 minSearchTime=0.3,
                 region=region_ltrb
             )
@@ -307,18 +300,18 @@ class RaceHandler:
             if not match_track_location:
                 return None
 
-            # Check if they are in the same race entry (vertically close)
             vertical_distance = abs(grade_location[1] - match_track_location.y)
-            horizontal_distance = abs(grade_location[0] - match_track_location.x)
 
-            if vertical_distance <= 50 and horizontal_distance <= 300:  # Same race entry
-                # Return tuple coordinates instead of pyautogui object
+            if vertical_distance <= 50:
+                print(f"[RACE] {grade.upper()} grade={grade_conf:.2%} | "
+                      f"match_track=({match_track_location.x}, {match_track_location.y}) | "
+                      f"vdist={vertical_distance}")
                 return (match_track_location.x, match_track_location.y)
             else:
                 return None
 
         except Exception as e:
-            self.log(f"[DEBUG] Error finding {grade.upper()} + match_track pair: {e}")
+            self.log(f"[ERROR] Finding {grade.upper()} + match_track pair: {e}")
             return None
 
     def _get_enabled_grades(self) -> list:

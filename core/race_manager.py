@@ -528,6 +528,13 @@ class RaceManager:
         scheduled_today = [p for p in self.preferred_races if p.get('day') == absolute_day]
         return len(scheduled_today) > 0, scheduled_today
 
+    def get_race_by_name(self, name: str) -> Optional[Dict]:
+        """Look up a race by name from the loaded race data"""
+        for race in self.races:
+            if race.get('name', '') == name:
+                return race
+        return None
+
     def should_race_today(self, current_date: Dict) -> Tuple[bool, List[Dict]]:
         """
         Determine if should race today based on available races

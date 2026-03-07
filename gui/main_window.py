@@ -132,9 +132,6 @@ class UmaAutoGUI:
                                 font=("Arial", 14, "bold"))
         title_label.pack(anchor=tk.W)
 
-        version_label = ttk.Label(title_container, text=f"v{APP_VERSION}",
-                                  font=("Arial", 9), foreground="#888888")
-        version_label.pack(anchor=tk.W)
 
         # Settings buttons container
         settings_container = ttk.Frame(header_frame)

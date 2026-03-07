@@ -13,14 +13,14 @@ from core.style_handler import get_style_options, get_style_display_name
 
 
 DEFAULT_RACE_SCHEDULE = [
-    {"name": "Hanshin Juvenile Fillies", "day": 23},
-    {"name": "Hopeful Stakes", "day": 24},
+    {"name": "Hanshin Juvenile Fillies", "day": 23, "grade": "G1"},
+    {"name": "Hopeful Stakes", "day": 24, "grade": "G1"},
 ]
 
 # Track/distance info for each candidate default race
 _DEFAULT_RACE_CANDIDATES = [
-    {"name": "Hanshin Juvenile Fillies", "day": 23, "track": "turf", "distance": "mile"},
-    {"name": "Hopeful Stakes",           "day": 24, "track": "turf", "distance": "medium"},
+    {"name": "Hanshin Juvenile Fillies", "day": 23, "grade": "G1", "track": "turf", "distance": "mile"},
+    {"name": "Hopeful Stakes",           "day": 24, "grade": "G1", "track": "turf", "distance": "medium"},
 ]
 
 
@@ -86,6 +86,7 @@ class EventChoiceTab:
             'target_month': 'Classic Year Jun 1',
             'stop_on_ura_final': False,
             'stop_on_warning': False,
+            'enable_friend_events': False,
         }
 
         # Variables for 20 preset sets with custom names
@@ -561,7 +562,7 @@ class EventChoiceTab:
             if any(r['name'] == race_info['name'] for r in schedule):
                 return
 
-            schedule.append({"name": race_info["name"], "day": race_info["day"]})
+            schedule.append({"name": race_info["name"], "day": race_info["day"], "grade": race_info.get("grade", "")})
             # Sort by day
             schedule.sort(key=lambda r: r["day"])
             self.preset_sets[current_preset]['race_schedule'] = schedule
@@ -618,7 +619,7 @@ class EventChoiceTab:
             track_ok = uma_data.get(candidate["track"], False)
             dist_ok = uma_data.get(candidate["distance"], False)
             if track_ok and dist_ok:
-                matched.append({"name": candidate["name"], "day": candidate["day"]})
+                matched.append({"name": candidate["name"], "day": candidate["day"], "grade": candidate.get("grade", "")})
 
         # If both match, keep only the later one (Hopeful Stakes, day 24)
         if len(matched) == 2:
@@ -900,6 +901,23 @@ class EventChoiceTab:
 
             box_frame.card_display.config(text=display_text, fg="black", font=("Arial", 9, "bold"))
 
+        # Notify strategy tab about Friend card presence
+        self._notify_friend_card_presence()
+
+    def _notify_friend_card_presence(self):
+        """Check if any current support card is Friend type and update strategy tab visibility"""
+        try:
+            has_friend = any(
+                card.get().split(":")[0].strip().lower() == 'frd'
+                for card in self.support_cards
+                if card.get() and card.get() != "None" and ":" in card.get()
+            )
+            strategy_tab = getattr(self.main_window, 'strategy_tab', None)
+            if strategy_tab and hasattr(strategy_tab, 'update_friend_card_visibility'):
+                strategy_tab.update_friend_card_visibility(has_friend)
+        except Exception as e:
+            print(f"Warning: Could not notify friend card presence: {e}")
+
     # Card type sort order
     CARD_TYPE_ORDER = ['spd', 'sta', 'pow', 'gut', 'wit', 'frd']
 
@@ -1078,6 +1096,7 @@ class EventChoiceTab:
 
         # Save once with the new preset fully loaded
         self._safe_save_settings()
+        self._notify_friend_card_presence()
         print(f"[DEBUG SWITCH] === Switch complete ===")
 
     def _reload_preset_from_file(self, set_number):
@@ -1398,6 +1417,9 @@ class EventChoiceTab:
 
             # Refresh race schedule tree
             self._refresh_schedule_tree()
+
+            # Notify strategy tab about friend card presence based on loaded cards
+            self._notify_friend_card_presence()
 
         except Exception as e:
             print(f"Warning: Could not load event choice tab settings: {e}")

@@ -2,6 +2,8 @@ import pyautogui
 import time
 import threading
 
+from core.click_handler import find_and_click as _find_and_click
+
 
 class TeamTrialsLogic:
     """Optimized Team Trials logic handler with F3 stop support"""
@@ -49,61 +51,19 @@ class TeamTrialsLogic:
         self.main_window.is_running = False
         self.main_window.log_message("Daily Activities stopped")
 
-    def find_and_click(self, image_path, full_screen=False, region=None, max_attempts=1, delay_between=1, click=True,
-                       log_attempts=True, click_count=1, confidence=0.8, click_count_delay=0.3):
-        """Universal function to find and optionally click images with stop checking"""
-        time.sleep(1)
-
-        # Check stop condition before starting
-        if self.check_stop_condition():
-            return None
-        if full_screen:
-            screen_width, screen_height = pyautogui.size()
-            region = (0, 0, screen_width, screen_height)
-        else:
-            if not region:
-                # Default to left half of screen
-                screen_width, screen_height = pyautogui.size()
-                region = (0, 0, screen_width // 2, screen_height)
-
-        filename = image_path.split('/')[-1].replace('.png', '')
-
-        for attempt in range(max_attempts):
-            # Check stop condition before each attempt
-            if self.check_stop_condition():
-                return None
-
-            try:
-                button = pyautogui.locateCenterOnScreen(
-                    image_path, confidence=confidence, minSearchTime=0.2, region=region
-                )
-                if button:
-                    if click:
-                        # Check stop condition before clicking
-                        if self.check_stop_condition():
-                            return None
-                        for i in range(click_count):
-                            pyautogui.click(button)
-                            time.sleep(click_count_delay)
-                        if log_attempts:
-                            self.main_window.log_message(f"Clicked {filename}")
-                        if image_path == "assets/buttons/home/team_trials/pvp_win_gift.png":
-                            time.sleep(8)
-                        return button
-                    else:
-                        return button
-            except pyautogui.ImageNotFoundException:
-                pass
-
-            if attempt < max_attempts - 1 and log_attempts:
-                # Check stop condition before delay
-                if self.check_stop_condition():
-                    return None
-                time.sleep(delay_between)
-
-        if log_attempts and max_attempts > 1:
-            self.main_window.log_message(f"Failed to find {filename}")
-        return None
+    def find_and_click(self, image_path, full_screen=False, region=None, max_attempts=1, delay_between=1,
+                       click=True, log_attempts=True, click_count=1, confidence=0.8,
+                       click_count_delay=0.3, post_click_delay=0, alt_img_paths=None):
+        """Wrapper around core find_and_click with class stop/log context"""
+        return _find_and_click(
+            image_path, region=region, full_screen=full_screen,
+            max_attempts=max_attempts, delay_between=delay_between,
+            click=click, confidence=confidence, log_attempts=log_attempts,
+            click_count=click_count, click_count_delay=click_count_delay,
+            post_click_delay=post_click_delay, alt_img_paths=alt_img_paths,
+            check_stop_func=self.check_stop_condition,
+            log_func=self.main_window.log_message
+        )
 
     def navigate_to_champion_meet(self):
         """Navigate to Champion Meeting section"""
@@ -119,7 +79,7 @@ class TeamTrialsLogic:
             if self.check_stop_condition():
                 return False
 
-            if self.find_and_click(race_image, race_tab_region, click=None):
+            if self.find_and_click(race_image, region=race_tab_region, click=False):
                 race_clicked = True
                 time.sleep(1)
                 break
@@ -245,7 +205,7 @@ class TeamTrialsLogic:
                 if self.check_stop_condition():
                     return False
 
-                if self.find_and_click(race_image, race_tab_region):
+                if self.find_and_click(race_image, region=race_tab_region):
                     self.main_window.log_message(f"Successfully clicked race tab")
                     race_clicked = True
                     time.sleep(1)
@@ -430,13 +390,13 @@ class TeamTrialsLogic:
 
         # Step 3 final: Check for refresh button
         if not self.find_and_click("assets/buttons/refresh_btn.png", max_attempts=8, delay_between=3, click=False,
-                                   log_attempts=False):
+                                   log_attempts=False, alt_img_paths=["assets/buttons/next_btn.png"]):
             self.main_window.log_message("Neither refresh nor next button found")
             return False
 
         # Check PvP gift
         pvp_gift_pos = self.find_and_click("assets/buttons/home/team_trials/pvp_win_gift.png",
-                                           log_attempts="Found Pvp gift")
+                                           post_click_delay=8)
 
         # Select opponent if no PvP gift
         if not pvp_gift_pos:

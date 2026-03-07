@@ -1,10 +1,10 @@
 {
   "track": {
-    "turf": false,
+    "turf": true,
     "dirt": true
   },
   "distance": {
-    "sprint": true,
+    "sprint": false,
     "mile": true,
     "medium": true,
     "long": false
@@ -20,7 +20,7 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": false,
+  "stop_on_need_rest": true,
   "stop_on_low_mood": true,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
@@ -29,20 +29,21 @@
   "target_month": "Classic Year Jun 1",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
+  "enable_friend_events": false,
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
-    "uma_musume": "Smart Falcon",
+    "uma_musume": "El Condor Pasa",
     "support_cards": [
       "spd: Kitasan Black",
       "spd: Silence Suzuka",
+      "wit: Daiwa Scarlet",
       "wit: Fine Motion",
       "wit: Marvelous Sunday",
-      "wit: Mihono Bourbon",
       "frd: Riko Kashimoto"
     ],
     "unknown_event_action": "Search in other special events",
-    "current_set": 20,
+    "current_set": 12,
     "stat_caps": {
       "spd": 1200,
       "sta": 700,
@@ -55,8 +56,9 @@
     },
     "race_schedule": [
       {
-        "name": "Platanus Sho",
-        "day": 19
+        "name": "Hopeful Stakes",
+        "day": 24,
+        "grade": "G1"
       }
     ],
     "race_schedule_filters": {
@@ -121,7 +123,7 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
@@ -129,7 +131,8 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": true
+          "stop_on_warning": true,
+          "enable_friend_events": false
         },
         "race_schedule": [
           {
@@ -433,25 +436,25 @@
         ]
       },
       "9": {
-        "uma_musume": "Smart Falcon",
+        "uma_musume": "Silence Suzuka",
         "support_cards": [
           "spd: Kitasan Black",
-          "spd: Silence Suzuka",
-          "wit: Fine Motion",
+          "spd: Sweep Tosho",
+          "pow: Smart Falcon",
           "wit: Marvelous Sunday",
           "wit: Mihono Bourbon",
           "frd: Riko Kashimoto"
         ],
         "stat_caps": {
           "spd": 1200,
-          "sta": 700,
+          "sta": 1000,
           "pwr": 1200,
           "guts": 1200,
           "wit": 1200
         },
         "debut_style": "none",
         "stop_conditions": {
-          "enable_stop_conditions": true,
+          "enable_stop_conditions": false,
           "stop_on_infirmary": true,
           "stop_on_need_rest": true,
           "stop_on_low_mood": true,
@@ -461,12 +464,14 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": true
+          "stop_on_warning": false,
+          "enable_friend_events": false
         },
         "race_schedule": [
           {
-            "name": "Platanus Sho",
-            "day": 19
+            "name": "Hopeful Stakes",
+            "day": 24,
+            "grade": "G1"
           }
         ]
       },
@@ -541,7 +546,8 @@
           "stop_at_month": false,
           "target_month": "Junior Year Dec 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": true
+          "stop_on_warning": true,
+          "enable_friend_events": false
         },
         "race_schedule": [
           {
@@ -551,7 +557,7 @@
         ]
       },
       "12": {
-        "uma_musume": "Taiki Shuttle",
+        "uma_musume": "El Condor Pasa",
         "support_cards": [
           "spd: Kitasan Black",
           "spd: Silence Suzuka",
@@ -579,9 +585,16 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": true
+          "stop_on_warning": true,
+          "enable_friend_events": false
         },
-        "race_schedule": []
+        "race_schedule": [
+          {
+            "name": "Hopeful Stakes",
+            "day": 24,
+            "grade": "G1"
+          }
+        ]
       },
       "13": {
         "uma_musume": "Agnes Digital",
@@ -856,7 +869,8 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": false
+          "stop_on_warning": false,
+          "enable_friend_events": false
         },
         "race_schedule": [
           {
@@ -874,7 +888,7 @@
         "support_cards": [
           "spd: Kitasan Black",
           "spd: Silence Suzuka",
-          "wit: Curren Chan",
+          "wit: Fine Motion",
           "wit: Marvelous Sunday",
           "wit: Mihono Bourbon",
           "frd: Riko Kashimoto"
@@ -888,9 +902,9 @@
         },
         "debut_style": "none",
         "stop_conditions": {
-          "enable_stop_conditions": true,
+          "enable_stop_conditions": false,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": false,
+          "stop_on_need_rest": true,
           "stop_on_low_mood": true,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
@@ -898,19 +912,24 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": true
+          "stop_on_warning": true,
+          "enable_friend_events": false
         },
         "race_schedule": [
           {
             "name": "Platanus Sho",
             "day": 19
+          },
+          {
+            "name": "Cattleya Sho",
+            "day": 22
           }
         ]
       }
     }
   },
   "team_trials": {
-    "daily_activity_type": "Team Trial",
+    "daily_activity_type": "Champion Meeting",
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
     "stop_if_shop": false,
@@ -918,10 +937,10 @@
     "legend_race_stop_if_shop": false
   },
   "window": {
-    "width": 806,
+    "width": 786,
     "height": 952,
-    "x": 1011,
-    "y": 2
+    "x": 1059,
+    "y": 4
   },
   "scenario": "Unity Cup"
 }

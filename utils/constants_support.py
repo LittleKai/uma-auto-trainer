@@ -15,6 +15,7 @@ DEFAULT_REGIONS = {
     'UNITY_CUP_YEAR_REGION': (390, 37, 165, 16),
     'FAILURE_REGION': (275, 780, 551, 33),
     'CRITERIA_REGION': (223, 290, 150, 770),
+    'RECREATION_REGION': (450, 890, 200, 120),
     'STAT_REGIONS': {
         "spd": (310, 723, 55, 20),
         "sta": (405, 723, 55, 20),

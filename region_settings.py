@@ -148,6 +148,8 @@ class RegionSettingsWindow:
              "Race criteria or condition text area"),
             ("Failure Region", "FAILURE_REGION",
              "Training failure percentage text area"),
+            ("Recreation Region", "RECREATION_REGION",
+             "Area containing the recreation/rest selection buttons"),
         ]
 
         for i, (label, key, desc) in enumerate(ocr_regions):

@@ -51,6 +51,7 @@ class StrategyTab:
         self.target_month = tk.StringVar(value="Classic Year Jun 1")
         self.stop_on_ura_final = tk.BooleanVar(value=False)
         self.stop_on_warning = tk.BooleanVar(value=False)
+        self.enable_friend_events = tk.BooleanVar(value=False)
 
         self.bind_variable_changes()
 
@@ -102,7 +103,8 @@ class StrategyTab:
             self.stop_mood_threshold,
             self.stop_before_summer,
             self.stop_at_month,
-            self.target_month
+            self.target_month,
+            self.enable_friend_events
         ]
 
         # Modified auto-save function to check disable flag
@@ -313,31 +315,78 @@ class StrategyTab:
     def create_stop_conditions_section(self, parent, row):
         """Create stop conditions section"""
         stop_frame = ttk.LabelFrame(parent, text="Stop Conditions", padding="10")
-        # Fill column evenly
         stop_frame.grid(row=row, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(5, 0))
 
-        # Container for checkbox and button in same row
-        # controls_frame = ttk.Frame(stop_frame)
-        # controls_frame.pack(fill=tk.X)
+        # Row 0: Stop conditions - bare checkbox + button (button text acts as label)
+        sc_row = ttk.Frame(stop_frame)
+        sc_row.pack(fill=tk.X, pady=(0, 5))
 
-        # Enable stop conditions checkbox
-        enable_check = ttk.Checkbutton(
-            stop_frame,
-            text="Enable stop conditions",
+        ttk.Checkbutton(
+            sc_row,
+            text="",
             variable=self.enable_stop_conditions
-        )
-        # enable_check.pack(side=tk.LEFT)
-        enable_check.pack(anchor=tk.W, pady=(0,10))
+        ).pack(side=tk.LEFT)
 
-        # Configure stop conditions button
-        config_button = ttk.Button(
-            stop_frame,
-            text="⚙ Configure Stop Conditions",
+        self.stop_conditions_btn = ttk.Button(
+            sc_row,
+            text=" ⚙ Stop Condition Config",
             command=self.open_stop_conditions_dialog
         )
-        # config_button.pack(side=tk.LEFT, padx=(20, 0))
-        config_button.pack(fill=tk.X)
+        self.stop_conditions_btn.pack(side=tk.LEFT, padx=(4, 0))
 
+        # Row 1: Friend Events row - hidden until Friend card is detected
+        self.friend_events_row = ttk.Frame(stop_frame)
+
+        ttk.Checkbutton(
+            self.friend_events_row,
+            text="",
+            variable=self.enable_friend_events
+        ).pack(side=tk.LEFT)
+
+        self.friend_events_btn = ttk.Button(
+            self.friend_events_row,
+            text=" ⚙ Friend Supports Events",
+            command=self.open_friend_events_dialog
+        )
+        self.friend_events_btn.pack(side=tk.LEFT, padx=(4, 0))
+
+        # Set initial button states and trace changes
+        self._update_stop_btn_state()
+        self._update_friend_btn_state()
+        self.enable_stop_conditions.trace('w', lambda *args: self._update_stop_btn_state())
+        self.enable_friend_events.trace('w', lambda *args: self._update_friend_btn_state())
+
+    def _update_stop_btn_state(self):
+        """Enable/disable the Stop Conditions button based on checkbox state"""
+        if not hasattr(self, 'stop_conditions_btn'):
+            return
+        state = 'normal' if self.enable_stop_conditions.get() else 'disabled'
+        self.stop_conditions_btn.config(state=state)
+
+    def _update_friend_btn_state(self):
+        """Enable/disable the Friend Events button based on checkbox state"""
+        if not hasattr(self, 'friend_events_btn'):
+            return
+        state = 'normal' if self.enable_friend_events.get() else 'disabled'
+        self.friend_events_btn.config(state=state)
+
+    def update_friend_card_visibility(self, has_friend):
+        """Show/hide the entire Friend Events row depending on Friend card presence"""
+        if not hasattr(self, 'friend_events_row'):
+            return
+        if has_friend:
+            self.friend_events_row.pack(fill=tk.X, pady=(0, 5))
+            self._update_friend_btn_state()
+        else:
+            self.friend_events_row.pack_forget()
+
+    def open_friend_events_dialog(self):
+        """Open Friend Events configuration dialog"""
+        try:
+            from gui.dialogs.friend_events_dialog import FriendEventsWindow
+            FriendEventsWindow(self)
+        except Exception as e:
+            print(f"Error opening friend events dialog: {e}")
 
     def open_stop_conditions_dialog(self):
         """Open stop conditions configuration dialog"""
@@ -367,7 +416,8 @@ class StrategyTab:
             'stop_at_month': self.stop_at_month.get(),
             'target_month': self.target_month.get(),
             'stop_on_ura_final': self.stop_on_ura_final.get(),
-            'stop_on_warning': self.stop_on_warning.get()
+            'stop_on_warning': self.stop_on_warning.get(),
+            'enable_friend_events': self.enable_friend_events.get()
         }
 
         return settings
@@ -400,7 +450,7 @@ class StrategyTab:
                 'enable_stop_conditions', 'stop_on_infirmary', 'stop_on_need_rest',
                 'stop_on_low_mood', 'stop_on_race_day', 'stop_mood_threshold',
                 'stop_before_summer', 'stop_at_month', 'target_month',
-                'stop_on_ura_final', 'stop_on_warning'
+                'stop_on_ura_final', 'stop_on_warning', 'enable_friend_events'
             ]
 
             for key in stop_condition_keys:

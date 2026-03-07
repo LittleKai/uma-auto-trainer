@@ -380,9 +380,12 @@ class DecisionEngine:
                           current_date: Dict[str, Any], gui=None, click_back=False, click_log="") -> bool:
         """Handle the case when bot should rest"""
 
-        # Stop condition only applies after day 24
+        # Stop condition only applies after day 24 and not during summer (July-August)
+        month_num = current_date.get('month_num', 0) if current_date else 0
+        is_summer = month_num == 7 or month_num == 8
         if (strategy_settings.get('enable_stop_conditions', False) and strategy_settings.get('stop_on_need_rest', False)
-            and current_date and current_date.get('absolute_day', 0) > 24) and self.date_turn != "Race Day":
+            and current_date and current_date.get('absolute_day', 0) > 24
+            and not is_summer) and self.date_turn != "Race Day":
             self._click_back_button("")
             return self._stop_bot(gui, "Stop condition: Need rest detected - Stopping bot")
 
@@ -528,12 +531,21 @@ class DecisionEngine:
         # Check preferred race schedule (overrides normal flow if filter-allowed)
         is_preferred, preferred_races = race_manager.is_preferred_race_day(current_date)
         if is_preferred and preferred_races:
-            self._log(f"Preferred race day: {preferred_races[0].get('name', '?')} - Racing")
+            scheduled_race = preferred_races[0]
+            self._log(f"Preferred race day: {scheduled_race.get('name', '?')} - Racing")
             if self._stopped():
                 return False
+            # Convert grade to internal format (G1→g1, G2→g2, G3→g3, OP→op, Pre-OP→pre_op)
+            _grade_map = {'G1': 'g1', 'G2': 'g2', 'G3': 'g3', 'OP': 'op', 'Pre-OP': 'pre_op'}
+            scheduled_grade = _grade_map.get(scheduled_race.get('grade', ''), None)
+            # Fallback: grade not stored (old data) → look up from race list
+            if not scheduled_grade:
+                race_data = race_manager.get_race_by_name(scheduled_race.get('name', ''))
+                if race_data:
+                    scheduled_grade = _grade_map.get(race_data.get('grade', ''), None)
             race_found = self.controller.race_handler.start_race_flow(
                 allow_continuous_racing=allow_continuous_racing,
-                skip_grade_check=True)
+                scheduled_grade=scheduled_grade)
             if race_found:
                 return True
             # Race not found in game, fall through to normal flow

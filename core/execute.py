@@ -11,7 +11,7 @@ from core.training_handler import TrainingHandler
 from core.race_handler import RaceHandler
 from core.rest_handler import RestHandler
 from core.event_handler import EventChoiceHandler
-from core.click_handler import enhanced_click
+from core.click_handler import enhanced_click, find_and_click
 
 # Import core systems
 from core.state import (
@@ -19,11 +19,11 @@ from core.state import (
     get_current_date_info, check_energy_percentage, detect_finale_stage
 )
 from core.logic import training_decision, fallback_training
-from core.recognizer import is_infirmary_active
+from core.recognizer import is_infirmary_active, match_template
 from core.race_manager import RaceManager, DateManager
 from utils.constants import (
     MOOD_LIST, MINIMUM_ENERGY_PERCENTAGE, CRITICAL_ENERGY_PERCENTAGE,
-    MAX_CAREER_LOBBY_ATTEMPTS
+    MAX_CAREER_LOBBY_ATTEMPTS, RECREATION_REGION, get_deck_card_count
 )
 
 # Import helper classes
@@ -227,6 +227,8 @@ class DecisionEngine:
     def __init__(self, controller: BotController):
         self.controller = controller
         self.date_turn = {}
+        self._friend_event_date = -1  # -1 = unknown; 0-4 = date index
+        self._last_best_train_score = 0.0
 
     def _stopped(self) -> bool:
         """Check if bot should stop"""
@@ -299,6 +301,12 @@ class DecisionEngine:
         time.sleep(0.5)
         results_training, current_stats = self.controller.training_handler.check_all_training(energy_percentage, energy_max)
 
+        if results_training:
+            self._last_best_train_score = max(
+                (d.get('total_score', 0.0) for d in results_training.values()),
+                default=0.0
+            )
+
         if self._stopped():
             return False
 
@@ -324,6 +332,24 @@ class DecisionEngine:
         allow_continuous_racing = strategy_settings.get('allow_continuous_racing', True)
 
         if best_training and best_training not in ["SHOULD_REST", "NO_TRAINING", "STRATEGY_NOT_MET"]:
+            # Try friend event instead of training if score < skip_score threshold
+            month_num = current_date.get('month_num', 0) if current_date else 0
+            is_summer = month_num == 7 or month_num == 8
+            absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+            if (strategy_settings.get('enable_friend_events', False)
+                    and absolute_day > 24 and not is_summer):
+                raw_cfg = strategy_settings.get('friend_events_config', {})
+                fev_skip = raw_cfg.get('skip_score', 4.0) if isinstance(raw_cfg, dict) else 4.0
+                if self._last_best_train_score < fev_skip:
+                    friend_result = self._try_friend_event(
+                        energy_percentage, strategy_settings, current_date,
+                        click_back=True, click_log="Checking friend event before training"
+                    )
+                    if friend_result is True:
+                        return True
+                    if friend_result is False:
+                        return False
+                    # None: no event available/needed — fall through to training
             return self._execute_selected_training(best_training)
 
         # SHOULD_REST: energy shortage with low scores - try race first, then rest (no fallback train)
@@ -398,6 +424,20 @@ class DecisionEngine:
         if self._stopped():
             return False
 
+        # Friend event check: attempt friend recreation instead of resting
+        if (strategy_settings.get('enable_friend_events', False)
+                and current_date and current_date.get('absolute_day', 0) > 24
+                and not is_summer):
+            friend_result = self._try_friend_event(
+                energy_percentage, strategy_settings, current_date,
+                click_back=click_back, click_log=click_log
+            )
+            if friend_result is True:
+                return True
+            if friend_result is False:
+                return False
+            # None: friend event not done, proceed with normal rest
+
         if click_back:
             self._click_back_button(click_log)
             time.sleep(0.5)
@@ -468,6 +508,7 @@ class DecisionEngine:
     def make_decision(self, game_state: Dict[str, Any], strategy_settings: Dict[str, Any],
                       race_manager, gui=None) -> bool:
         """Make training/racing decision based on current game state"""
+        self._last_best_train_score = 0.0
         self.date_turn = game_state['turn']
         current_date = game_state.get('current_date', {})
         absolute_day = current_date.get('absolute_day', 0)
@@ -608,8 +649,16 @@ class DecisionEngine:
         if best_training and best_training not in ("SHOULD_REST", "NO_TRAINING", "STRATEGY_NOT_MET"):
             return self._execute_selected_training(best_training)
 
-        # Would normally rest - instead force WIT on last day
-        self._log(f"Last day: training decision was '{best_training}' - forcing WIT instead of resting")
+        # Strategy threshold not met - pick highest scoring training available
+        if results_training:
+            fallback_result = fallback_training(results_training, current_date, current_stats=current_stats)
+            if fallback_result:
+                best_key, _ = fallback_result
+                self._log(f"Last day: no training meets strategy threshold - using best available: {best_key.upper()}")
+                return self._navigate_and_train(best_key, "Last Day Training")
+
+        # No training data at all - force WIT
+        self._log(f"Last day: no training available - forcing WIT")
         return self._navigate_and_train("wit", "Last Day Training")
 
     def _handle_mood_requirement(self, mood: str, strategy_settings: Dict[str, Any],
@@ -838,6 +887,210 @@ class DecisionEngine:
             log_func=self.controller.log_message
         )
 
+    def reset_friend_event_date(self):
+        """Reset friend event date state at bot start"""
+        self._friend_event_date = -1
+
+    def _load_frd_dates(self) -> Optional[list]:
+        """Load dates config from the frd support card JSON file in current deck"""
+        from utils.constants import CURRENT_DECK
+        for card in CURRENT_DECK.get('support_cards', []):
+            if not card or card == 'None' or ':' not in card:
+                continue
+            card_type = card.split(':')[0].strip().lower()
+            if card_type not in ('frd', 'friend'):
+                continue
+            card_name = card.split(':', 1)[1].strip()
+            card_name = card_name.rsplit(' (', 1)[0].strip()
+            json_path = f"assets/event_map/support_card/frd/{card_name}.json"
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                dates = data.get('dates', [])
+                if len(dates) == 5:
+                    return [
+                        {
+                            'energy': d.get('energy', 0),
+                            'mood': d.get('mood', False),
+                            'heal': d.get('heal', False),
+                        }
+                        for d in dates
+                    ]
+            except Exception as e:
+                self._log(f"[FRIEND] Could not load frd dates from {json_path}: {e}")
+        return None
+
+    def _try_friend_event(self, energy_percentage: int, strategy_settings: Dict[str, Any],
+                           current_date: Dict[str, Any], click_back: bool = False,
+                           click_log: str = "") -> Optional[bool]:
+        """
+        Attempt to do a friend support card event via recreation instead of resting.
+
+        Returns:
+            True  - friend event was executed (date clicked)
+            None  - skip friend event, proceed with normal rest
+            False - bot was stopped
+        """
+        raw_config = strategy_settings.get('friend_events_config', {})
+        # Support both old list format and new dict format
+        if isinstance(raw_config, list):
+            dates_config = raw_config
+            skip_score = 4.0
+        else:
+            dates_config = raw_config.get('dates', [])
+            skip_score = raw_config.get('skip_score', 4.0)
+
+        if not dates_config or len(dates_config) < 5:
+            return None
+
+        # Skip friend event if best available training score meets the threshold
+        if skip_score > 0 and self._last_best_train_score >= skip_score:
+            self._log(f"[FRIEND] Train score {self._last_best_train_score:.1f} >= skip_score {skip_score} - skipping")
+            return None
+
+        absolute_day = current_date.get('absolute_day', 0) if current_date else 0
+        wit_count = get_deck_card_count('wit')
+        absolute_shortage = max(0, 100 - energy_percentage)
+        effective_shortage = max(0, absolute_shortage - (4 * wit_count))
+
+        frd_dates = self._load_frd_dates()
+
+        # Read mood once here (at lobby/training screen) before any navigation
+        current_mood = check_mood()
+        mood_below_great = (
+            MOOD_LIST.index(current_mood) < MOOD_LIST.index("GREAT")
+            if current_mood in MOOD_LIST else True
+        )
+
+        # Early exit: if we already know the date, check if friend event is needed
+        if self._friend_event_date != -1:
+            date_idx = self._friend_event_date
+            if date_idx < len(dates_config):
+                min_day = dates_config[date_idx].get('min_day', 25)
+                date_data = frd_dates[date_idx] if frd_dates and date_idx < len(frd_dates) else {}
+                energy_recovery = date_data.get('energy', 0)
+                date_boosts_mood = date_data.get('mood', False)
+                day_ok = absolute_day >= min_day or (date_boosts_mood and mood_below_great)
+                has_benefit = (
+                    (effective_shortage >= energy_recovery) or
+                    (date_boosts_mood and mood_below_great) or
+                    date_data.get('heal', False)
+                )
+                if not day_ok or not has_benefit:
+                    return None  # Skip friend event, do normal rest
+
+        # Need to be at lobby to check the active icon
+        if click_back:
+            self._click_back_button(click_log)
+            time.sleep(0.5)
+
+        if self._stopped():
+            return False
+
+        # Check if friend event active icon is visible in Recreation Region
+        active_matches = match_template("assets/ui/friend_event_active.png",
+                                        region=RECREATION_REGION)
+        if not active_matches:
+            self._log("[FRIEND] No active friend event icon detected")
+            return None
+
+        # Click recreation button to enter selection screen
+        self._log("[FRIEND] Active friend event detected - entering recreation")
+        rec_result = find_and_click(
+            "assets/buttons/recreation_btn.png",
+            check_stop_func=self.controller.check_should_stop,
+            log_func=self.controller.log_message
+        )
+        if not rec_result:
+            self._log("[FRIEND] Recreation button not found")
+            return None
+
+        if self._stopped():
+            return False
+
+        time.sleep(1)
+
+        # Detect current date from date images (date_0 = date 1, ..., date_4 = date 5)
+        date_paths = [
+            "assets/ui/friend_bar/date_0.png",
+            "assets/ui/friend_bar/date_1.png",
+            "assets/ui/friend_bar/date_2.png",
+            "assets/ui/friend_bar/date_3.png",
+            "assets/ui/friend_bar/date_4.png",
+        ]
+
+        detected_idx = -1
+        date_match = None
+        for idx, date_path in enumerate(date_paths):
+            matches = match_template(date_path)
+            if matches:
+                detected_idx = idx
+                date_match = matches[0]
+                break
+
+        if detected_idx == -1:
+            self._log("[FRIEND] Could not detect date - cancelling")
+            find_and_click("assets/buttons/cancel_btn.png",
+                           check_stop_func=self.controller.check_should_stop,
+                           log_func=self.controller.log_message)
+            return None
+
+        previous_date = self._friend_event_date
+        self._friend_event_date = detected_idx
+        self._log(f"[FRIEND] Date {detected_idx + 1} detected")
+
+        if self._stopped():
+            return False
+
+        if detected_idx < len(dates_config):
+            min_day = dates_config[detected_idx].get('min_day', 25)
+            date_data = frd_dates[detected_idx] if frd_dates and detected_idx < len(frd_dates) else {}
+            energy_recovery = date_data.get('energy', 0)
+            date_boosts_mood = date_data.get('mood', False)
+
+            # Day threshold not yet reached - cancel unless date boosts mood and mood < GREAT
+            skip_day_limit = date_boosts_mood and mood_below_great
+            if absolute_day < min_day and not skip_day_limit:
+                self._log(f"[FRIEND] Day {absolute_day} < min_day {min_day} for date "
+                          f"{detected_idx + 1} - cancelling")
+                find_and_click("assets/buttons/cancel_btn.png",
+                               check_stop_func=self.controller.check_should_stop,
+                               log_func=self.controller.log_message)
+                return None
+
+            # Date was previously unknown AND no benefit — cancel
+            if previous_date == -1:
+                has_benefit = (
+                    (effective_shortage >= energy_recovery) or
+                    (date_boosts_mood and mood_below_great) or
+                    date_data.get('heal', False)
+                )
+                if not has_benefit:
+                    reasons = []
+                    if effective_shortage < energy_recovery:
+                        if wit_count > 0:
+                            reasons.append(f"energy OK (shortage {absolute_shortage} - wit{wit_count}×4={4*wit_count} = {effective_shortage} < recovery {energy_recovery})")
+                        else:
+                            reasons.append("energy OK")
+                    if not date_boosts_mood:
+                        reasons.append("date has no mood boost")
+                    elif not mood_below_great:
+                        reasons.append(f"mood already {current_mood}")
+                    if not date_data.get('heal', False):
+                        reasons.append("no heal")
+                    self._log(f"[FRIEND] Date {detected_idx + 1}: no benefit ({', '.join(reasons)}) - cancelling")
+                    find_and_click("assets/buttons/cancel_btn.png",
+                                   check_stop_func=self.controller.check_should_stop,
+                                   log_func=self.controller.log_message)
+                    return None
+
+        # Click the detected date to do the friend event
+        self._log(f"[FRIEND] Doing date {detected_idx + 1} event")
+        date_x, date_y, date_w, date_h = date_match
+        pyautogui.moveTo(date_x + date_w // 2, date_y + date_h // 2, duration=0.15)
+        pyautogui.click()
+        return True
+
 
 class MainExecutor:
     """Main executor class that orchestrates all bot operations"""
@@ -906,7 +1159,10 @@ class MainExecutor:
             self.status_logger.update_gui_status(gui, game_state)
 
             # Log current status (only if in lobby)
-            self.status_logger.log_current_status(game_state, strategy_settings, race_manager)
+            self.status_logger.log_current_status(
+                game_state, strategy_settings, race_manager,
+                friend_event_date=self.decision_engine._friend_event_date
+            )
 
             if self.controller.check_should_stop():
                 return False
@@ -1015,6 +1271,7 @@ def career_lobby(gui=None):
         initialize_executor()
 
     _main_executor.controller.set_stop_flag(False)
+    _main_executor.decision_engine.reset_friend_event_date()
 
     race_manager = RaceManager()
 

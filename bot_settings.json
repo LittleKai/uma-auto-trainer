@@ -20,16 +20,36 @@
   "manual_event_handling": false,
   "enable_stop_conditions": true,
   "stop_on_infirmary": true,
-  "stop_on_need_rest": true,
-  "stop_on_low_mood": true,
+  "stop_on_need_rest": false,
+  "stop_on_low_mood": false,
   "stop_on_race_day": false,
   "stop_mood_threshold": "GREAT",
-  "stop_before_summer": false,
+  "stop_before_summer": true,
   "stop_at_month": false,
-  "target_month": "Classic Year Jun 1",
+  "target_month": "Senior Year Apr 1",
   "stop_on_ura_final": false,
   "stop_on_warning": true,
-  "enable_friend_events": false,
+  "enable_friend_events": true,
+  "friend_events_config": {
+    "skip_score": 4.0,
+    "dates": [
+      {
+        "min_day": 25
+      },
+      {
+        "min_day": 32
+      },
+      {
+        "min_day": 44
+      },
+      {
+        "min_day": 58
+      },
+      {
+        "min_day": 70
+      }
+    ]
+  },
   "event_choice": {
     "auto_event_map": true,
     "auto_first_choice": false,
@@ -123,16 +143,36 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": true,
-          "stop_on_low_mood": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
-          "stop_before_summer": false,
+          "stop_before_summer": true,
           "stop_at_month": false,
-          "target_month": "Classic Year Jun 1",
+          "target_month": "Senior Year Apr 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true,
-          "enable_friend_events": false
+          "enable_friend_events": true,
+          "friend_events_config": {
+            "skip_score": 4.0,
+            "dates": [
+              {
+                "min_day": 25
+              },
+              {
+                "min_day": 32
+              },
+              {
+                "min_day": 44
+              },
+              {
+                "min_day": 58
+              },
+              {
+                "min_day": 70
+              }
+            ]
+          }
         },
         "race_schedule": [
           {
@@ -577,16 +617,36 @@
         "stop_conditions": {
           "enable_stop_conditions": true,
           "stop_on_infirmary": true,
-          "stop_on_need_rest": true,
-          "stop_on_low_mood": true,
+          "stop_on_need_rest": false,
+          "stop_on_low_mood": false,
           "stop_on_race_day": false,
           "stop_mood_threshold": "GREAT",
-          "stop_before_summer": false,
+          "stop_before_summer": true,
           "stop_at_month": false,
-          "target_month": "Classic Year Jun 1",
+          "target_month": "Senior Year Apr 1",
           "stop_on_ura_final": false,
           "stop_on_warning": true,
-          "enable_friend_events": false
+          "enable_friend_events": true,
+          "friend_events_config": {
+            "skip_score": 4.0,
+            "dates": [
+              {
+                "min_day": 25
+              },
+              {
+                "min_day": 32
+              },
+              {
+                "min_day": 44
+              },
+              {
+                "min_day": 58
+              },
+              {
+                "min_day": 70
+              }
+            ]
+          }
         },
         "race_schedule": [
           {
@@ -625,7 +685,25 @@
           "stop_at_month": false,
           "target_month": "Classic Year Jun 1",
           "stop_on_ura_final": false,
-          "stop_on_warning": false
+          "stop_on_warning": false,
+          "enable_friend_events": false,
+          "friend_events_config": [
+            {
+              "min_day": 25
+            },
+            {
+              "min_day": 32
+            },
+            {
+              "min_day": 44
+            },
+            {
+              "min_day": 56
+            },
+            {
+              "min_day": 68
+            }
+          ]
         },
         "race_schedule": [
           {
@@ -929,7 +1007,7 @@
     }
   },
   "team_trials": {
-    "daily_activity_type": "Champion Meeting",
+    "daily_activity_type": "Team Trial",
     "opponent_type": "Opponent 3",
     "use_parfait_gift_pvp": true,
     "stop_if_shop": false,

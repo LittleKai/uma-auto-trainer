@@ -12,5 +12,12 @@
       "name": "Memories of Cinema",
       "choice": 1
     }
+  ],
+  "dates": [
+    {"date": 1, "energy": 32, "mood": true, "heal": false},
+    {"date": 2, "energy": 26, "mood": false, "heal": true},
+    {"date": 3, "energy": 26, "mood": true, "heal": false},
+    {"date": 4, "energy": 26, "mood": true, "heal": true},
+    {"date": 5, "energy": 32, "mood": true, "heal": false}
   ]
 }

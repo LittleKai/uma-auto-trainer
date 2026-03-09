@@ -53,6 +53,17 @@ class StrategyTab:
         self.stop_on_warning = tk.BooleanVar(value=False)
         self.enable_friend_events = tk.BooleanVar(value=False)
 
+        self.friend_events_config = {
+            'skip_score': 4.0,
+            'dates': [
+                {'min_day': 25},
+                {'min_day': 32},
+                {'min_day': 44},
+                {'min_day': 58},
+                {'min_day': 70},
+            ]
+        }
+
         self.bind_variable_changes()
 
     def update_filters_from_uma_data(self, uma_data):
@@ -417,7 +428,12 @@ class StrategyTab:
             'target_month': self.target_month.get(),
             'stop_on_ura_final': self.stop_on_ura_final.get(),
             'stop_on_warning': self.stop_on_warning.get(),
-            'enable_friend_events': self.enable_friend_events.get()
+            'enable_friend_events': (
+                self.enable_friend_events.get()
+                if (hasattr(self, 'friend_events_row') and self.friend_events_row.winfo_ismapped())
+                else False
+            ),
+            'friend_events_config': self.friend_events_config,
         }
 
         return settings
@@ -456,6 +472,9 @@ class StrategyTab:
             for key in stop_condition_keys:
                 if key in settings:
                     getattr(self, key).set(settings[key])
+
+            if 'friend_events_config' in settings:
+                self.friend_events_config = settings['friend_events_config']
 
         except Exception as e:
             print(f"Warning: Could not load strategy tab settings: {e}")

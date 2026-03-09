@@ -3,6 +3,7 @@ from tkinter import ttk
 import os
 import glob
 import csv
+import copy
 
 from gui.dialogs.support_card_dialog import SupportCardDialog
 from gui.dialogs.preset_dialog import PresetDialog
@@ -16,6 +17,17 @@ DEFAULT_RACE_SCHEDULE = [
     {"name": "Hanshin Juvenile Fillies", "day": 23, "grade": "G1"},
     {"name": "Hopeful Stakes", "day": 24, "grade": "G1"},
 ]
+
+DEFAULT_FRIEND_EVENTS_CONFIG = {
+    'skip_score': 4.0,
+    'dates': [
+        {'min_day': 25},
+        {'min_day': 32},
+        {'min_day': 44},
+        {'min_day': 58},
+        {'min_day': 70},
+    ]
+}
 
 # Track/distance info for each candidate default race
 _DEFAULT_RACE_CANDIDATES = [
@@ -87,6 +99,7 @@ class EventChoiceTab:
             'stop_on_ura_final': False,
             'stop_on_warning': False,
             'enable_friend_events': False,
+            'friend_events_config': copy.deepcopy(DEFAULT_FRIEND_EVENTS_CONFIG),
         }
 
         # Variables for 20 preset sets with custom names
@@ -107,7 +120,7 @@ class EventChoiceTab:
                     'wit': tk.IntVar(value=1200)
                 },
                 'debut_style': 'none',
-                'stop_conditions': dict(self.default_stop_conditions),
+                'stop_conditions': copy.deepcopy(self.default_stop_conditions),
                 'race_schedule': []
             }
 
@@ -1163,9 +1176,14 @@ class EventChoiceTab:
             return
         sc = {}
         for key in self.default_stop_conditions:
+            if key == 'friend_events_config':
+                continue
             var = getattr(strategy_tab, key, None)
             if var is not None:
                 sc[key] = var.get()
+        sc['friend_events_config'] = copy.deepcopy(
+            getattr(strategy_tab, 'friend_events_config', DEFAULT_FRIEND_EVENTS_CONFIG)
+        )
         self.preset_sets[preset_num]['stop_conditions'] = sc
 
     def _load_stop_conditions_from_preset(self, preset_num):
@@ -1177,19 +1195,29 @@ class EventChoiceTab:
         sc = self.preset_sets[preset_num].get('stop_conditions', self.default_stop_conditions)
         print(f"[DEBUG LOAD_SC] Loading stop conditions for preset {preset_num}: {sc}")
         for key, default_val in self.default_stop_conditions.items():
+            if key == 'friend_events_config':
+                continue
             var = getattr(strategy_tab, key, None)
             if var is not None:
                 var.set(sc.get(key, default_val))
+        strategy_tab.friend_events_config = copy.deepcopy(
+            sc.get('friend_events_config', DEFAULT_FRIEND_EVENTS_CONFIG)
+        )
 
     def _read_stop_conditions_from_strategy_tab(self):
         """Read current stop conditions values from strategy_tab (without modifying anything)"""
         strategy_tab = getattr(self.main_window, 'strategy_tab', None)
         if not strategy_tab:
-            return dict(self.default_stop_conditions)
+            return copy.deepcopy(self.default_stop_conditions)
         sc = {}
         for key, default_val in self.default_stop_conditions.items():
+            if key == 'friend_events_config':
+                continue
             var = getattr(strategy_tab, key, None)
             sc[key] = var.get() if var is not None else default_val
+        sc['friend_events_config'] = copy.deepcopy(
+            getattr(strategy_tab, 'friend_events_config', DEFAULT_FRIEND_EVENTS_CONFIG)
+        )
         return sc
 
     def get_uma_musume_list(self):

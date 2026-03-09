@@ -281,12 +281,15 @@ class StatusLogger:
         self.controller = controller
 
     def log_current_status(self, game_state: Dict[str, Any],
-                           strategy_settings: Dict[str, Any], race_manager):
+                           strategy_settings: Dict[str, Any], race_manager,
+                           friend_event_date: int = -1):
         """Log current game status"""
         self.controller.log_message("=" * 50)
         self.controller.log_message(f"Year: {game_state['year']}")
-        self.controller.log_message(f"Mood: {game_state['mood']}")
-        self.controller.log_message(f"Energy: {game_state['energy_percentage']}%")
+        mood_energy = f"Mood: {game_state['mood']} | Energy: {game_state['energy_percentage']}%"
+        if friend_event_date > -1:
+            mood_energy += f" | Friend Date: {friend_event_date + 1}"
+        self.controller.log_message(mood_energy)
         self._log_date_and_race_info(game_state['current_date'], race_manager)
 
     def _log_date_and_race_info(self, current_date: Dict[str, Any], race_manager):

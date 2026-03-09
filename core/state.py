@@ -121,11 +121,13 @@ def calculate_unified_training_score(training_type, support_counts, current_date
     # Energy recovery penalty: each wit rainbow recovers ~4 energy.
     # Penalty = max(0, (4*N - (energy_shortage - 3)) / 10)
     # where N = number of wit rainbows in this training.
-    energy_recovery_penalty = max(0.0, (4 * rainbow_count - (energy_shortage - 3)) / 10)
+    # Rainbow state only activates after day 24 (early stage), so N=0 before that.
+    wit_rainbow_penalty_count = 0 if is_early_stage else rainbow_count
+    energy_recovery_penalty = max(0.0, (4 * wit_rainbow_penalty_count - (energy_shortage - 4)) / 10)
     if energy_recovery_penalty > 0:
       total_score -= energy_recovery_penalty
       support_counts["energy_recovery_penalty"] = energy_recovery_penalty
-      print(f"[WIT] Energy recovery penalty: -{energy_recovery_penalty:.2f} (wit_rainbow={rainbow_count}, energy_shortage={energy_shortage:.1f})")
+      print(f"[WIT] Energy recovery penalty: -{energy_recovery_penalty:.2f} (wit_rainbow={wit_rainbow_penalty_count}, energy_shortage={energy_shortage:.1f})")
 
   return total_score
 
